@@ -1,0 +1,570 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tiansu.eam.modules.device.dao.EamDeviceDao">
+    <sql id="fieldColumns">
+        a.id as "id_key",
+        a.dev_code,
+        a.dev_name,
+        a.dev_location,
+        a.dev_category,
+        a.dev_level,
+        a.dev_expirate_date,
+        a.dev_brand,
+        a.dev_model,
+        a.dev_supplier,
+        a.dev_maintainer,
+        a.dev_startdate,
+        a.dev_prodate,
+        a.dev_param_name,
+        a.dev_param_val,
+        a.dev_emp,
+        a.dev_qrcode_status,
+        a.dev_status,
+        a.dev_buy_time,
+        a.dev_free_time,
+        a.dev_pay_time,
+        a.dev_regect_time,
+        a.dev_pic,
+        a.dev_major,
+        a.create_by,
+        a.create_time,
+        a.update_by,
+        a.update_time
+    </sql>
+
+    <!--中间8行是为了导出excel中有值  liwenlong  12-7-->
+    <sql id="fieldColumns2">
+        a.id as "id_key",
+        a.dev_code,
+        a.dev_name,
+        a.dev_location,
+        b.loc_name as "loc_name",
+        a.dev_category as "cat_id",
+        c.cat_name as "cat_name",
+        a.dev_level as "dev_level_code",
+        a.dev_supplier AS  "dev_supplier",
+        (SELECT supplier_name FROM eam_supplier s WHERE s.id = a.dev_supplier)  AS  "supplier_name",
+        a.dev_maintainer AS  "dev_maintainer",
+        (SELECT supplier_name FROM eam_supplier s WHERE s.id = a.dev_maintainer)  AS  "maintainer_name",
+        a.dev_buy_time,
+        a.dev_free_time,
+        a.dev_pay_time,
+        a.dev_startdate,
+        a.dev_emp AS  "dev_emp",
+        j.dict_name as "dev_level",
+        a.dev_expirate_date,
+        a.dev_brand,
+        a.dev_model,
+        a.dev_prodate,
+        a.dev_regect_time,
+        a.dev_param_name,
+        a.dev_param_val,
+        a.dev_qrcode_status,
+        a.dev_status,
+        a.dev_major as "dev_major_code",
+        h.dict_name as "dev_major"
+    </sql>
+
+    <sql id="fieldColumns1">
+        a.id as "id_key",
+        a.dev_code,
+        a.dev_name,
+        a.dev_location,
+        b.loc_name as "loc_name",
+        a.dev_category as "cat_id",
+        c.cat_name as "cat_name",
+        a.dev_level,
+        j.dict_name as "importance",
+        a.dev_expirate_date,
+        a.dev_brand,
+        a.dev_model,
+        a.dev_supplier,
+        e.supplier_name as "supplier_name",
+        e.supplier_linkman,
+        e.supplier_phone,
+        a.dev_maintainer,
+        f.supplier_name as "maintainer_name",
+        f.supplier_linkman as "maintainer_linkman",
+        f.supplier_phone as "maintainer_phone",
+        a.dev_startdate,
+        a.dev_prodate,
+        a.dev_param_name,
+        a.dev_param_val,
+        a.dev_emp,
+        g.realname as "dev_realname",
+        a.dev_qrcode_status,
+        k.dict_name as "codeStatus",
+        a.dev_status,
+        l.dict_name as "status",
+        a.dev_buy_time,
+        a.dev_free_time,
+        a.dev_pay_time,
+        a.dev_regect_time,
+        a.dev_pic,
+        a.dev_major,
+        h.dict_name as "major_name",
+        a.create_by,
+        a.create_time,
+        a.update_by,
+        a.update_time
+    </sql>
+
+    <sql id="deviceJoins">
+        left join eam_dev_location b on a.dev_location = b.id
+        left join eam_dev_category c on a.dev_category = c.cat_id
+        left join eam_supplier e on a.dev_supplier = e.id
+        left join eam_supplier f on a.dev_maintainer = f.id
+        left join ioms_user g on a.dev_emp = g.loginname
+        left join (SELECT a.dict_value, a.dict_name FROM eam_business_dict a WHERE EXISTS (
+            SELECT 1 FROM (SELECT b.id FROM eam_business_dict b WHERE b.dict_value = 'dev_major' ) b
+            WHERE
+            <if test="dbName == 'mssql'">CHARINDEX(',' + b.id + ',', a.dict_seq) > 0</if>
+            <if test="dbName == 'mysql'">find_in_set(b.id, a.dict_seq)</if>
+        )) h on a.dev_major = h.dict_value
+        left join (SELECT a.dict_value, a.dict_name FROM eam_business_dict a WHERE EXISTS (
+            SELECT 1 FROM (SELECT b.id FROM eam_business_dict b WHERE b.dict_value = 'dev_level' ) b
+            WHERE
+            <if test="dbName == 'mssql'">CHARINDEX(',' + b.id + ',', a.dict_seq) > 0</if>
+            <if test="dbName == 'mysql'">find_in_set(b.id, a.dict_seq)</if>
+        )) j on a.dev_level = j.dict_value
+        left join (SELECT a.dict_value, a.dict_name FROM eam_business_dict a WHERE EXISTS (
+            SELECT 1 FROM (SELECT b.id FROM eam_business_dict b WHERE b.dict_value = 'dev_qrcode_status' ) b
+            WHERE
+            <if test="dbName == 'mssql'">CHARINDEX(',' + b.id + ',', a.dict_seq) > 0</if>
+            <if test="dbName == 'mysql'">find_in_set(b.id, a.dict_seq)</if>
+        )) k on a.dev_qrcode_status = k.dict_value
+        left join (SELECT a.dict_value, a.dict_name FROM eam_business_dict a WHERE EXISTS (
+            SELECT 1 FROM (SELECT b.id FROM eam_business_dict b WHERE b.dict_value = 'common' ) b
+            WHERE
+            <if test="dbName == 'mssql'">CHARINDEX(',' + b.id + ',', a.dict_seq) > 0</if>
+            <if test="dbName == 'mysql'">find_in_set(b.id, a.dict_seq)</if>
+        )) l on a.dev_status = l.dict_value
+    </sql>
+
+    <sql id="deviceJoins2">
+        left join eam_dev_location b on a.dev_location = b.id
+        left join eam_dev_category c on a.dev_category = c.cat_id
+        left join (SELECT a.dict_value, a.dict_name FROM eam_business_dict a WHERE EXISTS (
+            SELECT 1 FROM (SELECT b.id FROM eam_business_dict b WHERE b.dict_value = 'dev_major' ) b
+            WHERE
+            <if test="dbName == 'mssql'">CHARINDEX(',' + b.id + ',', a.dict_seq) > 0</if>
+            <if test="dbName == 'mysql'">find_in_set(b.id, a.dict_seq)</if>
+        )) h on a.dev_major = h.dict_value
+        left join (SELECT a.dict_value, a.dict_name FROM eam_business_dict a WHERE EXISTS (
+            SELECT 1 FROM (SELECT b.id FROM eam_business_dict b WHERE b.dict_value = 'dev_level' ) b
+            WHERE
+            <if test="dbName == 'mssql'">CHARINDEX(',' + b.id + ',', a.dict_seq) > 0</if>
+            <if test="dbName == 'mysql'">find_in_set(b.id, a.dict_seq)</if>
+        )) j on a.dev_level = j.dict_value
+        left join (SELECT a.dict_value, a.dict_name FROM eam_business_dict a WHERE EXISTS (
+            SELECT 1 FROM (SELECT b.id FROM eam_business_dict b WHERE b.dict_value = 'dev_qrcode_status' ) b
+            WHERE
+            <if test="dbName == 'mssql'">CHARINDEX(',' + b.id + ',', a.dict_seq) > 0</if>
+            <if test="dbName == 'mysql'">find_in_set(b.id, a.dict_seq)</if>
+        )) k on a.dev_qrcode_status = k.dict_value
+        left join (SELECT a.dict_value, a.dict_name FROM eam_business_dict a WHERE EXISTS (
+            SELECT 1 FROM (SELECT b.id FROM eam_business_dict b WHERE b.dict_value = 'common' ) b
+            WHERE
+            <if test="dbName == 'mssql'">CHARINDEX(',' + b.id + ',', a.dict_seq) > 0</if>
+            <if test="dbName == 'mysql'">find_in_set(b.id, a.dict_seq)</if>
+        )) l on a.dev_status = l.dict_value
+    </sql>
+
+    <select id="findList" resultType="EamDevice">
+        select
+        <include refid="fieldColumns"/>
+        from eam_device a
+        where a.isdelete = '0'
+        <if test="dev_location != null and dev_location != ''">
+            AND a.dev_location = #{dev_location}
+        </if>
+
+    </select>
+
+
+    <select id="getDevMajorByFaultOrderId" parameterType="String" resultType="String">
+           select
+            a.dev_major major
+            from
+            eam_device a ,
+            eam_fault_order b
+            where
+            b.order_device=a.id
+            and
+            b.id=  #{business_key}
+    </select>
+    <select id="getFaultAppearance" resultType="java.util.Map">
+        select
+        order_code,notifier_appearance
+        from eam_fault_order
+        where order_device = #{devId}
+    </select>
+
+    <select id="getDev_name" resultType="String">
+        select
+        a.dev_name
+        from eam_device a
+        where a.isdelete = '0'
+        and a.id = #{id_key}
+    </select>
+
+    <select id="getEdit" resultType="java.util.Map">
+        select
+        <include refid="fieldColumns1"/>
+        from eam_device a
+        <include refid="deviceJoins"/>
+        where a.isdelete = '0'
+        and a.id = #{id_key}
+    </select>
+
+    <select id="get" resultType="EamDevice">
+        select
+        <include refid="fieldColumns"/>
+        from eam_device a
+        where a.isdelete = '0'
+        and a.id = #{id_key}
+    </select>
+
+    <update id="update">
+        UPDATE eam_device SET
+        dev_code = #{dev_code},
+        dev_name = #{dev_name},
+        dev_location = #{dev_location},
+        dev_level = #{dev_level_code},
+        dev_brand = #{dev_brand},
+        dev_model = #{dev_model},
+        dev_param_name = #{dev_param_name},
+        dev_param_val = #{dev_param_val},
+        dev_emp = #{dev_emp},
+        dev_supplier = #{dev_supplier},
+        dev_maintainer = #{dev_maintainer},
+        dev_prodate = #{dev_prodate},
+        dev_buy_time = #{dev_buy_time},
+        dev_free_time = #{dev_free_time},
+        dev_pay_time = #{dev_pay_time},
+        dev_startdate = #{dev_startdate},
+        dev_regect_time = #{dev_regect_time},
+        dev_qrcode_status = #{dev_qrcode_status},
+        dev_pic = #{dev_pic},
+        dev_major = #{dev_major_code},
+        dev_status = #{dev_status},
+        update_by = #{updateBy.loginname},
+        update_time = #{updateDate}
+        WHERE id = #{id_key}
+    </update>
+
+    <delete id="delete">
+        update eam_device set
+        isdelete = '1',
+        update_by = #{updateBy.loginname},
+        update_time = #{updateDate}
+        where id = #{id_key} and dev_status = '0'
+    </delete>
+
+    <insert id="insert">
+        INSERT INTO eam_device(
+            id,
+            dev_category,
+            dev_level,
+            dev_code,
+            dev_name,
+            dev_location,
+            dev_emp,
+            dev_model,
+            dev_brand,
+            dev_pic,
+            dev_major,
+            dev_param_name,
+            dev_param_val,
+            dev_supplier,
+            dev_maintainer,
+            dev_prodate,
+            dev_buy_time,
+            dev_free_time,
+            dev_pay_time,
+            dev_startdate,
+            dev_regect_time,
+            dev_qrcode_status,
+            dev_status,
+            create_by,
+            create_time,
+            update_by,
+            update_time,
+            isdelete
+        ) VALUES (
+            #{id_key},
+            #{dev_category},
+            #{dev_level},
+            #{dev_code},
+            #{dev_name},
+            #{dev_location},
+            #{dev_emp},
+            #{dev_model},
+            #{dev_brand},
+            #{dev_pic},
+            #{dev_major},
+            #{dev_param_name},
+            #{dev_param_val},
+            #{dev_supplier},
+            #{dev_maintainer},
+            #{dev_prodate},
+            #{dev_buy_time},
+            #{dev_free_time},
+            #{dev_pay_time},
+            #{dev_startdate},
+            #{dev_regect_time},
+            #{dev_qrcode_status},
+            #{dev_status},
+            #{createBy.loginname},
+            #{createDate},
+            #{createBy.loginname},
+            #{createDate},
+            #{isDelete}
+        )
+    </insert>
+
+    <insert id="insertBatch" >
+
+        INSERT INTO eam_device(
+        id,
+        dev_category,
+        dev_level,
+        dev_code,
+        dev_name,
+        dev_location,
+        dev_emp,
+        dev_model,
+        dev_brand,
+        dev_pic,
+        dev_major,
+        dev_param_name,
+        dev_param_val,
+        dev_supplier,
+        dev_maintainer,
+        dev_prodate,
+        dev_buy_time,
+        dev_free_time,
+        dev_pay_time,
+        dev_startdate,
+        dev_regect_time,
+        dev_qrcode_status,
+        dev_status,
+        create_by,
+        create_time,
+        update_by,
+        update_time,
+        isdelete
+        ) VALUES
+        <foreach collection="list" item="item" index="index" separator=",">
+          ( #{item.id},
+            #{item.cat_id},
+            #{item.dev_level_code},
+            #{item.dev_code},
+            #{item.dev_name},
+            #{item.dev_location},
+            #{item.dev_emp},
+            #{item.dev_model},
+            #{item.dev_brand},
+            #{item.dev_pic},
+            #{item.dev_major_code},
+            #{item.dev_param_name},
+            #{item.dev_param_val},
+            #{item.dev_supplier},
+            #{item.dev_maintainer},
+            #{item.dev_prodate},
+            #{item.dev_buy_time},
+            #{item.dev_free_time},
+            #{item.dev_pay_time},
+            #{item.dev_startdate},
+            #{item.dev_regect_time},
+            #{item.dev_qrcode_status},
+            #{item.dev_status},
+            #{item.createBy.loginname},
+            #{item.createDate},
+            #{item.createBy.loginname},
+            #{item.createDate},
+            #{item.isDelete}
+            )
+        </foreach>
+
+    </insert>
+
+
+    <select id="findListByMap" resultType="java.util.Map">
+        select
+        <include refid="fieldColumns2"/>
+        from eam_device a
+        <include refid="deviceJoins2"/>
+        where a.isdelete = '0'
+        <if test="dev_code != null and dev_code != ''">
+            AND a.dev_code like
+            <if test="dbName == 'oracle'">'%'||#{dev_code}||'%'</if>
+            <if test="dbName == 'mssql'">'%'+#{dev_code}+'%'</if>
+            <if test="dbName == 'mysql'">CONCAT('%', #{dev_code}, '%')</if>
+        </if>
+        <if test="dev_name != null and dev_name != ''">
+            AND a.dev_name LIKE
+            <if test="dbName == 'oracle'">'%'||#{dev_name}||'%'</if>
+            <if test="dbName == 'mssql'">'%'+#{dev_name}+'%'</if>
+            <if test="dbName == 'mysql'">CONCAT('%', #{dev_name}, '%')</if>
+        </if>
+        <if test="dev_location != null and dev_location != ''">
+            AND a.dev_location = #{dev_location}
+        </if>
+        <if test="dev_category != null and dev_category != ''">
+            and
+            <if test="dbName == 'oracle'"> c.cat_seq like '%'||#{dev_category}||'%'</if>
+            <if test="dbName == 'mssql'">CHARINDEX(',' + #{dev_category} + ',', c.cat_seq) > 0</if>
+            <if test="dbName == 'mysql'">find_in_set(#{dev_category}, c.cat_seq)</if>
+        </if>
+        <if test="dev_level != null and dev_level != ''">
+            AND a.dev_level = #{dev_level}
+        </if>
+        <if test="dev_major != null and dev_major != ''">
+            AND a.dev_major = #{dev_major}
+        </if>
+        <if test="dev_brand != null and dev_brand != ''">
+            AND a.dev_brand like
+            <if test="dbName == 'oracle'">'%'||#{dev_brand}||'%'</if>
+            <if test="dbName == 'mssql'">'%'+#{dev_brand}+'%'</if>
+            <if test="dbName == 'mysql'">CONCAT('%', #{dev_brand}, '%')</if>
+        </if>
+        <if test="dev_model != null and dev_model != ''">
+            AND a.dev_model like
+            <if test="dbName == 'oracle'">'%'||#{dev_model}||'%'</if>
+            <if test="dbName == 'mssql'">'%'+#{dev_model}+'%'</if>
+            <if test="dbName == 'mysql'">CONCAT('%', #{dev_model}, '%')</if>
+        </if>
+        <if test="dev_emp != null and dev_emp != ''">
+            AND a.dev_emp = #{dev_emp}
+        </if>
+        <if test="id_key != null and id_key != ''">
+            AND a.id = #{id_key}
+        </if>
+        <if test="ids != null and ids != ''">
+            AND a.id in
+            <foreach item="ids" index="index" collection="ids" open="(" separator="," close=")">
+                #{ids}
+            </foreach>
+        </if>
+        <choose>
+            <when test="page !=null and page.orderBy != null and page.orderBy != ''">
+                ORDER BY a.${page.orderBy}
+            </when>
+            <otherwise>
+                order by a.update_time desc
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="findDeviceTreeList" resultType="java.util.Map">
+          SELECT
+                cat_id AS id,
+                cat_name AS name,
+                cat_name AS text,
+                cat_code as code,
+                cat_pid AS pId,
+                id AS baseid,
+                'devCategory' AS type
+            FROM
+                eam_dev_category a
+            where isdelete = '0'
+    </select>
+
+    <select id="findDevCategoryList" resultType="java.util.Map">
+        SELECT
+            cat_id AS id,
+            cat_name AS name,
+            cat_name AS text,
+            cat_code as code,
+            cat_pid AS pId,
+            id AS baseid,
+            'devCategory' AS type
+        FROM
+            eam_dev_category a
+        where isdelete = '0'
+        UNION ALL
+        SELECT
+            id AS id,
+            dev_name AS name,
+            dev_name AS text,
+            dev_code as code,
+            dev_category AS pId,
+            id AS baseid,
+            'device' AS type
+        FROM
+            eam_device
+        where isdelete = '0'
+    </select>
+
+    <!--通过编码获取-->
+    <select id="getByCode" parameterType="String" resultType="Map">
+        SELECT
+        count(1) cou
+        FROM
+        eam_device s
+        WHERE dev_code = #{code} and isdelete = 0;
+    </select>
+
+    <insert id="insertDevSpareparts">
+        INSERT INTO eam_dev_material
+        (id,dev_id,material_id,type_flag)
+        VALUES
+        <foreach collection="list" item="item" index="index" separator="," >
+            (#{item.id},#{item.dev_id},#{item.material_id},'1')
+        </foreach>
+    </insert>
+
+    <insert id="insertDevTools">
+        INSERT INTO eam_dev_material
+        (id,dev_id,material_id,type_flag)
+        VALUES
+        <foreach collection="list" item="item" index="index" separator="," >
+            (#{item.id},#{item.dev_id},#{item.material_id},'2')
+        </foreach>
+    </insert>
+
+    <delete id="deleteSpareparts">
+        DELETE FROM eam_dev_material where dev_id = #{dev_id} and type_flag = '1'
+    </delete>
+
+    <delete id="deleteTools">
+        DELETE FROM eam_dev_material where dev_id = #{dev_id} and type_flag = '2'
+    </delete>
+
+    <select id="getMaterials" parameterType="Map" resultType="Map">
+        SELECT
+          a.id,
+          a.dev_id,
+          a.material_id as "id_key",
+          a.type_flag,
+          b.material_code,
+          b.material_name,
+          b.material_qty,
+          b.material_unit,
+          b.material_cost
+        FROM
+        eam_dev_material a
+        left join eam_material b on a.material_id = b.id
+        WHERE a.dev_id = #{deviceId}
+          and a.type_flag = #{typeFlag};
+    </select>
+
+    <select id="getLoc" parameterType="Map" resultType="Map">
+        SELECT
+          a.id,
+          a.loc_pid,
+          a.loc_name
+        FROM
+          eam_dev_location a
+        WHERE
+          a.id =#{dev_Loc_id};
+    </select>
+    
+    <update id="updateQrcode" parameterType="Map">
+        UPDATE eam_device
+        SET dev_qrcode_status = 1
+        WHERE id = #{id};
+    </update>
+
+</mapper>

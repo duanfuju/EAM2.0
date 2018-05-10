@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tiansu.eam.modules.schedual.dao.SchedualOrderDao">
+
+    <resultMap id="schedualOrderResult" type="com.tiansu.eam.modules.schedual.entity.SchedualOrder">
+        <id property="id" column="id" />
+        <result property="order_code" column="order_code" />
+        <result property="order_name" column="order_name" />
+        <result property="remark" column="remark" />
+        <result property="approve_status" column="approve_status" />
+        <result property="pstid" column="pstid" />
+        <result property="approve_by" column="approve_by" />
+        <result property="approve_time" column="approve_time" />
+        <result property="approve_reason" column="approve_reason" />
+        <collection property="schedualList" ofType="com.tiansu.eam.modules.schedual.entity.Schedual">
+            <id property="id" column="schedualList.id" />
+            <id property="schedual_emp" column="schedualList.schedual_emp" />
+            <id property="schedule_date" column="schedualList.schedule_date" />
+            <id property="status" column="schedualList.status" />
+            <!--<id property="schedual_type" ofType="com.tiansu.eam.modules.schedual.entity.Schedual" />-->
+            <id property="schedual_type.id" column="schedualList.schedual_type.id" />
+            <id property="schedual_type.type_name" column="schedualList.schedual_type.type_name" />
+        </collection>
+    </resultMap>
+
+    <sql id="SchedualOrderColumns">
+        o.id AS "id",
+        o.order_code AS "order_code",
+        o.order_name AS "order_name",
+        o.remark as "remark",
+        o.approve_status AS "approve_status",
+        s.id AS "schedualList.id",
+        s.schedual_emp AS "schedualList.schedual_emp",
+        s.schedule_date AS "schedualList.schedule_date",
+        o.pstid,o.approve_by,o.approve_time,o.approve_reason,
+        t.id as "schedualList.schedual_type.id",
+        t.type_name as "schedualList.schedual_type.type_name"
+    </sql>
+
+    <sql id="schedualJoins">
+        LEFT JOIN eam_schedual s ON o.id = s.order_id
+        LEFT JOIN eam_schedual_type t ON t.id = s.schedual_type_id
+    </sql>
+
+
+    <select id="get" resultMap="schedualOrderResult">
+        SELECT
+        <include refid="SchedualOrderColumns"/>
+        FROM eam_schedual_order o
+        <include refid="schedualJoins"/>
+        WHERE o.id = #{id}
+        and o.isdelete != '1'
+    </select>
+
+    <select id="findList" resultMap="schedualOrderResult">
+        SELECT
+        <include refid="SchedualOrderColumns"/>
+        FROM eam_schedual_order o
+        <include refid="schedualJoins"/>
+        <where>
+            o.isdelete != '1'
+            <if test="approve_status != null and approve_status != ''">
+                AND o.approve_status = #{approve_status}
+            </if>
+        </where>
+        <choose>
+            <when test="page !=null and page.orderBy != null and page.orderBy != ''">
+                ORDER BY ${page.orderBy}
+            </when>
+            <otherwise>
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="findListByMap" resultMap="schedualOrderResult">
+        SELECT
+        o.id AS "id",
+        o.order_code AS "order_code",
+        o.order_name AS "order_name",
+        o.remark as "remark",
+        o.approve_status AS "approve_status",
+        o.pstid,o.approve_by,o.approve_time,o.approve_reason
+        FROM eam_schedual_order o
+        <where>
+            o.isdelete != '1'
+            <if test="order_code != null and order_code != ''">
+                AND o.order_code LIKE
+                <if test="dbName == 'oracle'">'%'||#{order_code}||'%'</if>
+                <if test="dbName == 'mssql'">'%'+#{order_code}+'%'</if>
+                <if test="dbName == 'mysql'">concat('%',#{order_code},'%')</if>
+            </if>
+            <if test="order_name != null and order_name != ''">
+                AND o.order_name LIKE
+                <if test="dbName == 'oracle'">'%'||#{order_name}||'%'</if>
+                <if test="dbName == 'mssql'">'%'+#{order_name}+'%'</if>
+                <if test="dbName == 'mysql'">concat('%',#{order_name},'%')</if>
+            </if>
+            <if test="approve_status != null and approve_status != ''">
+                AND o.approve_status = #{approve_status}
+            </if>
+        </where>
+        <choose>
+            <when test="page !=null and page.orderBy != null and page.orderBy != ''">
+                ORDER BY ${page.orderBy}
+            </when>
+            <otherwise>
+            </otherwise>
+        </choose>
+    </select>
+
+    <insert id="insert" parameterType="com.tiansu.eam.modules.schedual.entity.SchedualOrder">
+        INSERT INTO eam_schedual_order(
+        id,order_code,order_name,remark,approve_status,pstid,create_by,create_time,update_by,update_time,isdelete
+        ) VALUES (
+        #{id},#{order_code},#{order_name},#{remark},#{approve_status},#{pstid},#{createBy.loginname},#{createDate},#{createBy.loginname},#{createDate},0
+        )
+    </insert>
+
+    <update id="update" parameterType="com.tiansu.eam.modules.schedual.entity.SchedualOrder">
+        UPDATE eam_schedual_order
+        <trim prefix="set" suffixOverrides=",">
+            <if test="order_code != null ">order_code = #{order_code},</if>
+            <if test="order_name != null ">order_name = #{order_name},</if>
+            <if test="remark != null ">remark = #{remark},</if>
+            <if test="approve_status != null ">approve_status = #{approve_status},</if>
+            <if test="pstid != null ">pstid = #{pstid},</if>
+            <if test="updateBy != null ">update_by = #{updateBy.loginname},</if>
+            <if test="updateDate != null ">update_time = #{updateDate},</if>
+            <if test="approve_by != null ">approve_by = #{approve_by},</if>
+            <if test="approve_time != null ">approve_time = #{approve_time},</if>
+            <if test="approve_reason != null ">approve_reason = #{approve_reason},</if>
+        </trim>
+        WHERE id = #{id}
+    </update>
+
+    <update id="delete" parameterType="com.tiansu.eam.modules.schedual.entity.SchedualOrder">
+        UPDATE eam_schedual_order SET
+        isdelete = '1',
+        update_by = #{updateBy.loginname},
+        update_time = #{updateDate}
+        WHERE id = #{id}
+    </update>
+
+    <select id="getExportData" resultType="Map" parameterType="Map">
+        select
+            t2.order_code,
+            t2.order_name,
+            t2.approve_status,
+            t2.remark,t2.approve_by,t2.approve_time,t2.approve_reason,
+            t1.schedual_type_id as schedual_type_code,
+            (select type_name from eam_schedual_type  where t1.schedual_type_id=id) schedual_type_name,
+            t1.schedual_emp as schedual_emp,
+            t1.schedule_date
+        from
+            eam_schedual t1
+        left join
+            eam_schedual_order t2 on t1.order_id=t2.id
+        where
+            t1.isdelete=0 and t2.isdelete=0
+            <if test="ids != null and ids != ''">
+                AND t2.id in
+                <foreach item="ids" index="index" collection="ids" open="(" separator="," close=")">
+                    #{ids}
+                </foreach>
+            </if>
+        order by
+            t2.order_code desc ,t1.schedual_emp,t1.schedule_date desc
+    </select>
+    <insert id="insertBatch">
+        INSERT INTO eam_schedual_order(id,order_code,order_name,remark,approve_status,create_by,create_time,isdelete
+        ) VALUES
+        <foreach collection="list" item="item" index="index" separator="," >
+            (
+               #{item.id},#{item.order_code},#{item.order_name},#{item.remark},#{item.approve_status},
+              #{item.createBy.loginname},#{item.createDate},0
+            )
+        </foreach>
+    </insert>
+
+
+
+</mapper>

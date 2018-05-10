@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tiansu.eam.modules.device.dao.EamDevCategoryDao">
+
+    <sql id="fieldColumns1">
+        a.id as id_key,
+        a.cat_id,
+        a.cat_pid as "parent.cat_id",
+        a.cat_code,
+        p.cat_code as "parent.cat_code",
+        a.cat_name,
+        p.cat_name as "parent.cat_name",
+        a.cat_pid,
+        a.cat_level,
+        a.cat_desc,
+        a.cat_status,
+        a.cat_seq,
+        a.isleaf,
+        a.create_time,
+        a.create_by,
+        a.update_time,
+        a.update_by
+    </sql>
+
+    <sql id="fieldColumns">
+        a.id as id_key,
+        a.cat_id,
+        a.cat_pid as "parent.cat_id",
+        a.cat_code,
+        p.cat_code as "cat_pcode",
+        a.cat_name,
+        p.cat_name as "cat_pname",
+        a.cat_pid,
+        a.cat_level,
+        a.cat_desc,
+        a.cat_status,
+        a.cat_seq,
+        a.isleaf,
+        a.create_time,
+        a.create_by,
+        a.update_time,
+        a.update_by
+    </sql>
+
+    <sql id="devCategoryJoins">
+        LEFT JOIN eam_dev_category p ON p.cat_id = a.cat_pid
+    </sql>
+
+    <!--<select id="findList" resultType="EamDevCategory">-->
+        <!--select-->
+          <!--<include refid="fieldColumns1"/>-->
+        <!--from eam_dev_category a-->
+          <!--<include refid="devCategoryJoins"/>-->
+        <!--where a.cat_status = '1'-->
+        <!--order by a.cat_pid, a.cat_id-->
+    <!--</select>-->
+    <select id="findList" resultType="EamDevCategory">
+        select a.cat_id,
+               a.cat_pid,
+               a.cat_name
+        from eam_dev_category a
+        where a.isdelete = '0'
+        order by a.cat_pid, a.cat_id
+
+    </select>
+    <select id="findListBypPid" parameterType="Map" resultType="java.util.Map">
+        select a.cat_id id,
+        a.cat_pid pId,
+        a.cat_name name,
+        a.isleaf
+        from eam_dev_category a
+        where 1=1
+        <if test="cat_pid != null">
+        and a.cat_pid= #{cat_pid}
+        </if>
+        order by a.cat_pid, a.cat_id
+
+    </select>
+
+
+    <select id="getEdit" resultType="java.util.Map">
+        select
+        <include refid="fieldColumns"/>
+        from eam_dev_category a
+        <include refid="devCategoryJoins"/>
+        where a.isdelete = '0'
+          and a.id = #{id_key}
+    </select>
+
+    <select id="getDetail" resultType="java.util.Map">
+        SELECT
+        <include refid="fieldColumns" />,
+        case a.cat_status WHEN 1 THEN '有效' ELSE '无效' END AS "cat_status"
+        FROM eam_dev_category a
+        <include refid="devCategoryJoins"/>
+        WHERE a.id = #{id_key}
+    </select>
+
+    <update id="update">
+        UPDATE eam_dev_category SET
+        cat_code = #{cat_code},
+        cat_name = #{cat_name},
+        cat_desc = #{cat_desc},
+        cat_status = #{cat_status},
+        update_by = #{updateBy.loginname},
+        update_time = #{updateDate}
+        WHERE id = #{id_key}
+    </update>
+
+    <update id="updateStatus">
+        UPDATE eam_dev_category SET
+        cat_status = #{cat_status},
+        update_by = #{updateBy.loginname},
+        update_time = #{updateDate}
+        WHERE 1 = 1
+        and
+        <if test="dbName == 'oracle'"> cat_seq like '%'||#{cat_id}||'%'</if>
+        <if test="dbName == 'mssql'">CHARINDEX(#{cat_id}, cat_seq) > 0</if>
+        <if test="dbName == 'mysql'">find_in_set(#{cat_id}, cat_seq)</if>
+    </update>
+
+    <insert id="insert">
+        INSERT INTO eam_dev_category(
+        id,
+        cat_id,
+        cat_code,
+        cat_pid,
+        cat_name,
+        cat_desc,
+        cat_status,
+        isdelete,
+        create_time,
+        create_by,
+        update_time,
+        update_by
+        ) VALUES (
+        #{id},
+        #{cat_id},
+        #{cat_code},
+        #{cat_pid},
+        #{cat_name},
+        #{cat_desc},
+        #{cat_status},
+        #{isDelete},
+        #{createDate},
+        #{createBy.loginname},
+		#{createDate},
+		#{createBy.loginname}
+        )
+    </insert>
+
+    <insert id="insertBatch" >
+
+        INSERT INTO eam_dev_category(
+            id,
+            cat_id,
+            cat_code,
+            cat_pid,
+            cat_name,
+            cat_desc,
+            cat_status,
+            isdelete,
+            create_time,
+            create_by,
+            update_time,
+            update_by
+            ) VALUES
+        <foreach collection="list" item="item" index="index" separator="," >
+            (#{item.id},#{item.cat_id},#{item.cat_code},#{item.cat_pid},#{item.cat_name},#{item.cat_desc},
+            #{item.cat_status},#{item.isDelete},#{item.createDate},#{item.createBy.loginname},#{item.createDate},#{item.createBy.loginname}
+            )
+        </foreach>
+    </insert>
+
+    <update id="updateDevCategoryTree" statementType="CALLABLE">
+        <![CDATA[
+        {call setDevCatagoryLevel()}
+        ]]>
+    </update>
+
+
+    <select id="findListByMap" resultType="java.util.Map">
+        select
+        <include refid="fieldColumns"/>
+        from eam_dev_category a
+        <include refid="devCategoryJoins"/>
+        where a.isdelete = '0'
+        <if test="cat_code != null and cat_code != ''">
+            AND a.cat_code like
+            <if test="dbName == 'oracle'">'%'||#{cat_code}||'%'</if>
+            <if test="dbName == 'mssql'">'%'+#{cat_code}+'%'</if>
+            <if test="dbName == 'mysql'">CONCAT('%', #{cat_code}, '%')</if>
+        </if>
+        <if test="cat_name != null and cat_name != ''">
+            AND a.cat_name LIKE
+            <if test="dbName == 'oracle'">'%'||#{cat_name}||'%'</if>
+            <if test="dbName == 'mssql'">'%'+#{cat_name}+'%'</if>
+            <if test="dbName == 'mysql'">CONCAT('%', #{cat_name}, '%')</if>
+        </if>
+        <if test="cat_status != null and cat_status != ''">
+            AND a.cat_status LIKE
+            <if test="dbName == 'oracle'">'%'||#{cat_status}||'%'</if>
+            <if test="dbName == 'mssql'">'%'+#{cat_status}+'%'</if>
+            <if test="dbName == 'mysql'">CONCAT('%', #{cat_status}, '%')</if>
+        </if>
+        <if test="cat_id != null and cat_id != ''">
+            and
+            <if test="dbName == 'oracle'"> a.cat_seq like '%'||#{cat_id}||'%'</if>
+            <if test="dbName == 'mssql'">CHARINDEX(',' + #{cat_id} + ',', a.cat_seq) > 0</if>
+            <if test="dbName == 'mysql'">find_in_set(#{cat_id}, a.cat_seq)</if>
+        </if>
+        <if test="ids != null and ids != ''">
+            AND a.id in
+            <foreach item="ids" index="index" collection="ids" open="(" separator="," close=")">
+                #{ids}
+            </foreach>
+        </if>
+        <if test="id_key != null and id_key != ''">
+            AND
+            a.id = #{id_key}
+        </if>
+        <choose>
+        <when test="page !=null and page.orderBy != null and page.orderBy != ''">
+            ORDER BY a.${page.orderBy}
+        </when>
+        <otherwise>
+            order by a.cat_pid, a.cat_id
+        </otherwise>
+    </choose>
+    </select>
+
+    <delete id="delete">
+        update eam_dev_category set
+        isdelete = '1',
+        update_by = #{updateBy.loginname},
+        update_time = #{updateDate}
+        where id = #{id_key} and cat_status = '0'
+    </delete>
+
+    <select id="getDevCategoryTree" resultType="java.util.Map">
+        SELECT
+        id as id_key,
+        cat_id as id,
+        cat_pid as pid,
+        cat_name as text,
+        cat_name as name,
+        cat_pid as pId
+        FROM eam_dev_category
+        where isdelete = '0'
+
+    </select>
+
+    <!--通过编码获取-->
+    <select id="getByCode" parameterType="String" resultType="Map">
+        SELECT
+        count(1) cou
+        FROM
+        eam_dev_category s
+        WHERE cat_code = #{code} and isdelete = 0;
+    </select>
+
+    <select id="count" resultType="Map">
+        SELECT
+        count(1) cnt
+        FROM
+        eam_dev_category s
+        join eam_device b on s.cat_id = b.dev_category
+        WHERE s.id = #{id} and s.isdelete = 0;
+    </select>
+</mapper>

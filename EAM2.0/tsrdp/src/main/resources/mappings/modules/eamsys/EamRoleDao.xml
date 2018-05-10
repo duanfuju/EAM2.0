@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tiansu.eam.modules.sys.dao.EamRoleDao">
+    
+    <resultMap id="roleResult" type="EamRole">
+		<id property="id" column="sysno" />
+		<result property="rolename" column="rolename" />
+		<result property="rolenote" column="rolenote" />
+		<result property="rolecode" column="rolecode" />
+		<collection property="menuList" ofType="EamMenu">
+			<id property="id" column="menuList.menuno" />
+		</collection>
+		<collection property="buttonList" ofType="EamButton">
+			<id property="id" column="buttonList.buttonno" />
+		</collection>
+		<collection property="dataScope" ofType="EamDataScope">
+			<id property="id" column="dataScope.id" />
+			<id property="role_id" column="dataScope.role_id" />
+			<id property="data_scope" column="dataScope.data_scope" />
+			<id property="custom_detail" column="dataScope.custom_detail" />
+		</collection>
+	</resultMap>
+
+    <sql id="roleColumns">
+    	a.sysno,
+    	a.rolename,
+    	a.rolenote,
+    	a.rolecode
+    </sql>
+    
+	<select id="getDataScopeByName" resultMap="roleResult">
+		SELECT
+			<include refid="roleColumns"/>,
+			d.role_id as "dataScope.role_id",
+			d.data_scope as "dataScope.data_scope",
+			d.custom_detail as "dataScope.custom_detail"
+		FROM ioms_role a
+		LEFT JOIN eam_role_data d ON a.rolecode = d.role_id
+		WHERE a.rolecode = #{rolecode}
+	</select>
+
+	<select id="getByName" resultMap="roleResult">
+		SELECT
+		<include refid="roleColumns"/>,
+		rm.menuno AS "menuList.menuno",
+		rb.buttonno AS "buttonList.buttonno",
+		d.role_id as "dataScope.role_id",
+		d.data_scope as "dataScope.data_scope",
+		d.custom_detail as "dataScope.custom_detail"
+		FROM ioms_role a
+		LEFT JOIN ioms_rolemenu rm ON rm.rolecode = a.rolecode
+		LEFT JOIN ioms_rolebutton rb ON rb.rolecode = a.rolecode
+		LEFT JOIN eam_role_data d ON a.rolecode = d.role_id
+		WHERE a.rolecode = #{rolecode}
+	</select>
+
+	<select id="findListByUser" resultMap="roleResult">
+		SELECT <!-- DISTINCT -->
+			<include refid="roleColumns"/>,
+			d.role_id as "dataScope.role_id",
+			d.data_scope as "dataScope.data_scope",
+			d.custom_detail as "dataScope.custom_detail"
+		FROM ioms_role a
+		LEFT JOIN ioms_roleuser ur ON ur.roleno = a.rolecode
+		LEFT JOIN ioms_user u ON u.loginname = ur.loginname
+		LEFT JOIN eam_role_data d ON a.rolecode = d.role_id
+		WHERE u.isdeleted = #{DEL_FLAG_NORMAL}
+		<if test="sysno != null and sysno != ''">
+			AND u.sysno = #{sysno}
+		</if>
+		<if test="loginname != null and loginname != ''">
+			AND u.loginname = #{loginname}
+		</if>
+	</select>
+
+	<select id="findList" resultMap="roleResult">
+		SELECT <!-- DISTINCT -->
+		<include refid="roleColumns"/>,
+		d.role_id as "dataScope.role_id",
+		d.data_scope as "dataScope.data_scope",
+		d.custom_detail as "dataScope.custom_detail"
+		FROM ioms_role a
+		LEFT JOIN eam_role_data d ON a.rolecode = d.role_id
+		order by a.rolecode
+	</select>
+
+	<select id="findAllList" resultType="EamRole">
+		SELECT
+			<include refid="roleColumns"/>
+		FROM ioms_role a
+	</select>
+
+	<select id="findListByMap" resultType="java.util.Map">
+		SELECT
+		<include refid="roleColumns"/>
+		FROM ioms_role a
+		<where>
+			1=1
+			<if test="rolecode != null and rolecode != ''">
+				AND a.rolecode LIKE
+				<if test="dbName == 'oracle'">'%'||#{rolecode}||'%'</if>
+				<if test="dbName == 'mssql'">'%'+#{rolecode}+'%'</if>
+				<if test="dbName == 'mysql'">concat('%',#{rolecode},'%')</if>
+			</if>
+			<if test="rolename != null and rolename != ''">
+				AND a.rolename LIKE
+				<if test="dbName == 'oracle'">'%'||#{rolename}||'%'</if>
+				<if test="dbName == 'mssql'">'%'+#{rolename}+'%'</if>
+				<if test="dbName == 'mysql'">concat('%',#{rolename},'%')</if>
+			</if>
+			<if test="rolenames != null and rolenames != ''">
+				AND a.rolename IN (${rolenames})
+			</if>
+		</where>
+	</select>
+
+	<select id="roleSelect" resultType="java.util.Map">
+		  SELECT
+			rolecode AS id,
+			rolename AS name
+		  FROM ioms_role
+	</select>
+
+	<!--根据角色名查询所属用户-->
+	<select id="getUserIdByRole" resultType="java.lang.String">
+		SELECT loginname FROM ioms_roleuser WHERE roleno=#{roleno}
+	</select>
+</mapper>

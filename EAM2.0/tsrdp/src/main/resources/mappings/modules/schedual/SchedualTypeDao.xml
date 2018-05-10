@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tiansu.eam.modules.schedual.dao.SchedualTypeDao">
+
+
+    <resultMap id="schedualTypeTimeResult" type="com.tiansu.eam.modules.schedual.entity.SchedualType">
+        <id property="id" column="id" />
+        <result property="type_code" column="type_code" />
+        <result property="type_name" column="type_name" />
+        <result property="type_desc" column="type_desc" />
+        <result property="type_remark" column="type_remark" />
+        <result property="type_status" column="type_status" />
+        <collection property="schedual_time_list" ofType="com.tiansu.eam.modules.schedual.entity.SchedualTypeTime">
+            <id property="id" column="schedual_time_list.id" />
+            <id property="type_id" column="schedual_time_list.type_id" />
+            <id property="schedual_begin" column="schedual_time_list.schedual_begin" />
+            <id property="schedual_end" column="schedual_time_list.schedual_end" />
+        </collection>
+    </resultMap>
+
+    <resultMap id="schedualTypeResult" type="com.tiansu.eam.modules.schedual.entity.SchedualType">
+        <id property="id" column="id" />
+        <result property="type_code" column="type_code" />
+        <result property="type_name" column="type_name" />
+        <result property="type_desc" column="type_desc" />
+        <result property="type_remark" column="type_remark" />
+        <result property="type_status" column="type_status" />
+    </resultMap>
+
+<!--    <resultMap id="schedualTimeResult" type="com.tiansu.eam.modules.schedual.entity.SchedualTypeTime">
+        <id property="id" column="t_id" />
+        <result property="type_id" column="t_type_id" />
+        <result property="schedual_begin" column="t_schedual_begin" />
+        <result property="schedual_end" column="t_schedual_end" />
+    </resultMap>-->
+
+    <sql id="schedualJoins">
+        eam_schedual_type a
+        left join eam_schedual_type_time ti ON a.id = ti.type_id
+    </sql>
+
+    <sql id="SchedualTypeColumns">
+        a.id AS "id",
+        a.type_code AS "type_code",
+        a.type_name AS "type_name",
+        a.type_desc AS "type_desc",
+        a.type_remark AS "type_remark",
+        a.type_status AS "type_status",
+        ti.id AS "schedual_time_list.id",
+        ti.type_id AS "schedual_time_list.type_id",
+        ti.schedual_begin AS "schedual_time_list.schedual_begin",
+        ti.schedual_end AS "schedual_time_list.schedual_end"
+    </sql>
+
+    <select id="get" resultMap="schedualTypeTimeResult">
+        SELECT
+        <include refid="SchedualTypeColumns"/>
+        FROM
+        <include refid="schedualJoins"/>
+        WHERE a.id = #{id}
+        and isdelete != '1'
+    </select>
+
+    <select id="findList" resultMap="schedualTypeTimeResult">
+        SELECT
+        <include refid="SchedualTypeColumns"/>
+        FROM
+        <include refid="schedualJoins"/>
+        <where>
+            a.isdelete != '1'
+            <if test="type_code != null and type_code != ''">
+                AND a.type_code LIKE
+                <if test="dbName == 'oracle'">'%'||#{type_code}||'%'</if>
+                <if test="dbName == 'mssql'">'%'+#{type_code}+'%'</if>
+                <if test="dbName == 'mysql'">concat('%',#{type_code},'%')</if>
+            </if>
+            <if test="type_name != null and type_name != ''">
+                AND a.type_name LIKE
+                <if test="dbName == 'oracle'">'%'||#{type_name}||'%'</if>
+                <if test="dbName == 'mssql'">'%'+#{type_name}+'%'</if>
+                <if test="dbName == 'mysql'">concat('%',#{type_name},'%')</if>
+            </if>
+            <if test="type_status != null and type_status != ''">
+                AND a.type_status = #{type_status}
+            </if>
+        </where>
+        <choose>
+            <when test="page !=null and page.orderBy != null and page.orderBy != ''">
+                ORDER BY ${page.orderBy}
+            </when>
+            <otherwise>
+            </otherwise>
+        </choose>
+    </select>
+
+
+    <!--分页查询无法适配一对多的主子表查询，需分为两个查询-->
+    <select id="findListByMap" resultMap="schedualTypeResult" parameterType="Map">
+        SELECT
+        a.id AS "id",
+        a.type_code AS "type_code",
+        a.type_name AS "type_name",
+        a.type_desc AS "type_desc",
+        a.type_remark AS "type_remark",
+        a.type_status AS "type_status"
+        FROM
+        eam_schedual_type a
+        <where>
+            a.isdelete != '1'
+            <if test="type_code != null and type_code != ''">
+                AND a.type_code LIKE
+                <if test="dbName == 'oracle'">'%'||#{type_code}||'%'</if>
+                <if test="dbName == 'mssql'">'%'+#{type_code}+'%'</if>
+                <if test="dbName == 'mysql'">concat('%',#{type_code},'%')</if>
+            </if>
+            <if test="type_name != null and type_name != ''">
+                AND a.type_name LIKE
+                <if test="dbName == 'oracle'">'%'||#{type_name}||'%'</if>
+                <if test="dbName == 'mssql'">'%'+#{type_name}+'%'</if>
+                <if test="dbName == 'mysql'">concat('%',#{type_name},'%')</if>
+            </if>
+            <if test="type_status != null and type_status != ''">
+                AND a.type_status = #{type_status}
+            </if>
+            <if test="ids != null and ids != ''">
+                AND a.id in
+                <foreach item="ids" index="index" collection="ids" open="(" separator="," close=")">
+                    #{ids}
+                </foreach>
+            </if>
+        </where>
+        <choose>
+            <when test="page !=null and page.orderBy != null and page.orderBy != ''">
+                ORDER BY ${page.orderBy}
+            </when>
+            <otherwise>
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="getSchedualTimes" parameterType="com.tiansu.eam.modules.schedual.entity.SchedualType"
+            resultType="com.tiansu.eam.modules.schedual.entity.SchedualTypeTime">
+        SELECT id,type_id,schedual_begin,schedual_end
+        FROM
+        eam_schedual_type_time ti
+        WHERE ti.type_id in
+        <foreach item="item" index="index" collection="list" open="(" separator="," close=")">
+            #{item.id}
+        </foreach>
+    </select>
+
+    <insert id="insert" parameterType="com.tiansu.eam.modules.schedual.entity.SchedualType">
+        INSERT INTO eam_schedual_type(
+        id,type_code,type_name,type_desc,type_remark,type_status,
+        create_by,create_time,isdelete
+        ) VALUES (
+        #{id},#{type_code},#{type_name},#{type_desc},#{type_remark},#{type_status},#{createBy.loginname},#{createDate},0
+        )
+    </insert>
+
+
+    <insert id="insertBatch">
+        INSERT INTO eam_schedual_type(
+        id,type_code,type_name,type_desc,type_remark,type_status,
+        create_by,create_time,isdelete
+        ) VALUES
+        <foreach collection="list" item="item" index="index" separator="," >
+            (
+             #{item.id},#{item.type_code},#{item.type_name},#{item.type_desc},#{item.type_remark},#{item.type_status},#{item.createBy.loginname},#{item.createDate},0
+            )
+        </foreach>
+    </insert>
+    <update id="update" parameterType="com.tiansu.eam.modules.schedual.entity.SchedualType">
+        UPDATE eam_schedual_type
+        <trim prefix="set" suffixOverrides=",">
+            <if test="type_code != null ">type_code = #{type_code},</if>
+            <if test="type_name != null ">type_name = #{type_name},</if>
+            <if test="type_desc != null ">type_desc = #{type_desc},</if>
+            <if test="type_remark != null ">type_remark = #{type_remark},</if>
+            <if test="type_status != null ">type_status = #{type_status},</if>
+            <if test="updateBy != null ">update_by = #{updateBy.loginname},</if>
+            <if test="updateDate != null ">update_time = #{updateDate},</if>
+        </trim>
+        WHERE id = #{id}
+    </update>
+
+    <update id="delete" parameterType="com.tiansu.eam.modules.schedual.entity.SchedualType">
+        UPDATE eam_schedual_type SET
+        isdelete = '1',
+        update_by = #{updateBy.loginname},
+        update_time = #{updateDate}
+        WHERE id = #{id}
+    </update>
+
+
+
+    <!--            排班时间相关sql                  -->
+
+    <insert id="batchSaveTime" parameterType="java.util.List">
+        INSERT INTO eam_schedual_type_time(
+        id,type_id,schedual_begin,schedual_end)
+        VALUES
+        <foreach collection="list" item="item" index="index" separator="," >
+            (#{item.id},#{item.type_id},#{item.schedual_begin},#{item.schedual_end})
+        </foreach>
+    </insert>
+
+    <update id="deleteByTypeId" parameterType="java.lang.String">
+        delete from eam_schedual_type_time
+        where type_id = #{type_id}
+    </update>
+
+
+
+
+</mapper>

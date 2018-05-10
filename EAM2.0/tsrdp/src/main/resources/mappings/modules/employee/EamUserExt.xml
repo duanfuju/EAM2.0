@@ -1,0 +1,326 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tiansu.eam.modules.employee.dao.EamUserExtDao">
+    
+	<sql id="eamUserExtColumnsById">
+		a.id AS "id_key",
+		a.loginname,
+		a.own_area,
+		a.duty_area,
+		a.birth_date,
+		a.major,
+		a.higher_author,
+		a.hiredate,
+		a.expirydate,
+		a.remark,
+ 		a.update_time,
+        a.update_by,
+		a.status
+	</sql>
+	<sql id="eamUserExtColumns">
+	a.id AS "id_key",
+	a.id,
+	a.loginname,
+	a.own_area,
+	a.own_area AS  "own_area_name",
+	a.duty_area,
+	a.duty_area AS "duty_area_name",
+	a.birth_date,
+	a.major,
+	(select realname from ioms_user where loginname=(select loginname from eam_user_ext where a.higher_author=loginname)) AS higher_author,
+	a.higher_author AS  "higher_author_id",
+	a.hiredate,
+	a.expirydate,
+	a.remark,
+	a.update_time,
+	a.update_by,
+	a.status
+</sql>
+	<!--下拉框所有人员12-06-->
+	<sql id="getAllUserColumns">
+		a.id AS "id_key",
+		a.loginname as "id",
+		a.loginname,
+		a.own_area,
+		a.own_area AS  "own_area_name",
+		a.duty_area,
+		a.duty_area AS "duty_area_name",
+		a.birth_date,
+		a.major,
+		(select realname from ioms_user where loginname=(select loginname from eam_user_ext where a.higher_author=loginname)) AS higher_author,
+		a.higher_author AS  "higher_author_id",
+		a.hiredate,
+		a.expirydate,
+		a.remark,
+		a.update_time,
+		a.update_by,
+		a.status
+	</sql>
+	<sql id="eamUserExtColumnsForExport">
+		a.id AS "id_key",
+		a.loginname,
+		a.own_area,
+		a.own_area AS  "own_area_name",
+		a.duty_area,
+		a.duty_area AS "duty_area_name",
+		a.birth_date,
+		a.major,
+		a.higher_author,
+		a.hiredate,
+		a.expirydate,
+		a.remark,
+		a.update_time,
+        a.update_by,
+		a.status
+	</sql>
+	<sql id="iomsUserColumns">
+		b.sysno AS "b_sysno",
+		b.loginname AS "b_loginname",
+		b.userpwd AS "b_userpwd",
+		b.status AS "b_status",
+		b.realname AS "b_realname",
+		b.realname AS "text",
+		b.loginphone AS "b_loginphone",
+		b.loginemail AS "b_loginemail",
+		b.userbakphone AS "b_userbakphone",
+		b.userbakemail AS "b_userbakemail",
+		b.userpic AS "b_userpic",
+		b.userjobno AS "b_userjobno",
+		b.usernickname AS "b_usernickname",
+		b.usersex AS "b_usersex",
+		b.useridentification AS "b_useridentification",
+		b.identificationtype AS "b_identificationtype",
+		b.userdeptno AS "b_userdeptno",
+		b.isdeptmanager AS "b_isdeptmanager",
+		b.isoutsource AS "b_isoutsource",
+		b.usercallphone AS "b_usercallphone",
+		b.userqq AS "b_userqq",
+		b.userwechat AS "b_userwechat",
+		b.usernotetext AS "b_usernotetext",
+		b.isdeleted AS "b_isdeleted"
+	</sql>
+	
+	<sql id="eamUserExtJoins">
+		INNER  JOIN  ioms_user b ON a.loginname =b.loginname
+	</sql>
+
+	<select id="findById" resultType="java.util.Map">
+		SELECT
+		<include refid="eamUserExtColumnsById"/>
+		FROM eam_user_ext a
+		WHERE a.id = #{id}
+	</select>
+
+	<select id="findByLoginName" resultType="java.util.Map">
+		SELECT
+		<include refid="eamUserExtColumns"/>
+		,
+		<include refid="iomsUserColumns"/>
+		FROM eam_user_ext a
+		<include refid="eamUserExtJoins"/>
+		WHERE a.loginname=#{loginname}
+	</select>
+	
+
+
+	<select id="findListByMap" resultType="java.util.Map">
+		SELECT
+		<choose>
+			<when test="export !=null and export != ''">
+				<include refid="eamUserExtColumnsForExport"/>,
+				<include refid="iomsUserColumns"/>
+			</when>
+			<otherwise>
+				<include refid="eamUserExtColumns"/>
+			</otherwise>
+		</choose>
+		FROM eam_user_ext a 
+		<choose>
+			<when test="export !=null and export != ''">
+				<include refid="eamUserExtJoins"/>
+			</when>
+		</choose>
+		<where>
+			EXISTS(select loginname from ioms_user b where a.loginname=b.loginname)
+			<if test="dept != null and dept != ''">
+				AND a.create_by IN
+				<if test="dbName == 'mssql'">(SELECT loginname FROM ioms_user WHERE dbo.find_in_set(userdeptno, #{dept})>0)</if>
+				<if test="dbName == 'mysql'">(SELECT loginname FROM ioms_user WHERE find_in_set(userdeptno, #{dept})>0)</if>
+			</if>
+
+			<if test="own_area != null and own_area != ''">
+				AND a.own_area LIKE '%${own_area}%'
+			</if>
+            <if test="duty_area != null and duty_area != ''">
+                AND a.duty_area LIKE '%${duty_area}%'
+                <!--<if test="dbName == 'oracle'">and instr(#{duty_area},t.loc_seq) > 0</if>
+                <if test="dbName == 'mssql'">and  charindex(#{duty_area},t.loc_seq) > 0</if>
+                <if test="dbName == 'mysql'">and FIND_IN_SET(#{duty_area},t.loc_seq) > 0</if>-->
+            </if>
+			<if test="loginname != null and loginname != ''">
+				AND a.loginname LIKE
+				<if test="dbName == 'oracle'">'%'||#{loginname}||'%'</if>
+				<if test="dbName == 'mssql'">'%'+#{loginname}+'%'</if>
+				<if test="dbName == 'mysql'">concat('%',#{loginname},'%')</if>
+			</if>
+			<if test="major != null and major != ''">
+				AND a.major LIKE '%${major}%'
+				<!--<if test="dbName == 'oracle'">'%'||#{major}||'%'</if>
+				<if test="dbName == 'mssql'">concat('%',#{major},'%')</if>
+				<if test="dbName == 'mysql'">concat('%',#{major},'%')</if>-->
+			</if>
+			<if test="higher_author != null and higher_author != ''">
+				AND a.higher_author LIKE
+				<if test="dbName == 'oracle'">'%'||#{higher_author}||'%'</if>
+				<if test="dbName == 'mssql'">'%'+#{higher_author}+'%'</if>
+				<if test="dbName == 'mysql'">concat('%',#{higher_author},'%')</if>
+			</if>
+			<if test="status != null and status != ''">
+				AND a.status LIKE
+				<if test="dbName == 'oracle'">'%'||#{status}||'%'</if>
+				<if test="dbName == 'mssql'">'%'+#{status}+'%'</if>
+				<if test="dbName == 'mysql'">concat('%',#{status},'%')</if>
+			</if>
+
+			<if test="ids != null and ids != ''">
+				AND a.id in
+				<foreach item="ids" index="index" collection="ids" open="(" separator="," close=")">
+					#{ids}
+				</foreach>
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				order by a.id desc
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="com.tiansu.eam.modules.employee.entity.EamUserExt">
+		SELECT
+			<include refid="eamUserExtColumns"/>
+		FROM eam_user_ext a
+		<where>
+			1=1
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				 order by a.update_time desc
+			</otherwise>
+		</choose>
+	</select>
+	<select id="getAllUser" resultType="java.util.Map">
+		SELECT
+		<include refid="getAllUserColumns"/>
+		,
+		<include refid="iomsUserColumns"/>
+		FROM eam_user_ext a
+		<include refid="eamUserExtJoins"/>
+		order by a.update_time desc
+	</select>
+	<insert id="insert">
+		INSERT INTO eam_user_ext(
+			id,
+			loginname,
+			own_area,
+			duty_area,
+			birth_date,
+			major,
+			higher_author,
+			hiredate,
+			expirydate,
+			remark,
+			update_time,
+        	update_by,
+			status
+		) VALUES (
+			#{id},
+			#{loginname},
+			#{own_area},
+			#{duty_area},
+			#{birth_date},
+			#{major},
+			#{higher_author},
+			#{hiredate},
+			#{expirydate},
+			#{remark},
+			#{updateDate},
+        	#{updateBy.loginname},
+			#{status}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE eam_user_ext SET
+			loginname=#{loginname},
+			own_area=#{own_area},
+			duty_area=#{duty_area},
+			birth_date=#{birth_date},
+			major=#{major},
+			higher_author=#{higher_author},
+			hiredate=#{hiredate},
+			expirydate=#{expirydate},
+			remark=#{remark},
+			status=#{status},
+			update_by = #{updateBy.loginname},
+        	update_time = #{updateDate}
+		WHERE id = #{id_key}
+	</update>
+
+
+
+	<update id="delete" parameterType="java.util.Map">
+		UPDATE eam_user_ext SET
+		WHERE id IN
+		<foreach item="ids" index="index" collection="ids" open="(" separator="," close=")">
+			#{ids}
+		</foreach>
+	</update>
+	<insert id="insertBatch" >
+
+		INSERT INTO eam_user_ext(id,loginname,own_area,duty_area,birth_date,major,higher_author,hiredate,expirydate,remark,status,update_time,update_by)
+		VALUES
+		 <foreach collection="list" item="item" index="index" separator="," >
+			 (
+				 #{item.id},#{item.loginname},#{item.own_area},#{item.duty_area},#{item.birth_date},#{item.major},#{item.higher_author},
+				 #{item.hiredate},#{item.expirydate},#{item.remark},#{item.status}, #{item.updateDate},#{item.updateBy.loginname}
+			 )
+		 </foreach>
+	</insert>
+
+	<select id="selectNeedLoadData"  resultType="java.util.Map">
+		select
+			c.loginname,c.realname as 'b_realname',c.useridentification as 'b_useridentification'
+		from
+			ioms_user c
+		where
+			c.loginname NOT in(select a.loginname from eam_user_ext a INNER  JOIN  ioms_user b ON a.loginname =b.loginname)
+	</select>
+
+	<select id="findDept" resultType="java.util.Map">
+	SELECT
+		a.deptno AS id,
+		a.deptname AS name,
+		a.parentid AS pid
+	FROM
+		ioms_dept a
+	</select>
+	
+	<select id="findUser" resultType="java.util.Map">
+		SELECT
+				b.loginname AS id,
+				b.realname AS name,
+				b.userdeptno AS pid
+		FROM
+			ioms_user b
+		WHERE b.userdeptno = #{id}
+
+	</select>
+
+</mapper>

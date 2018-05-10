@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tiansu.eam.modules.device.dao.EamDevSparePartsDao">
+    <sql id="fieldColumns">
+        a.dev_id,
+        b.dev_code,
+        b.dev_name,
+        a.material_id,
+        c.material_code,
+        c.material_name,
+        c.material_desc,
+        c.material_unit,
+        c.material_price,
+        c.material_model
+    </sql>
+
+    <sql id="deviceJoins">
+        join eam_dev_material a on a.dev_id = b.id
+        join eam_material c on a.material_id = c.id
+    </sql>
+
+    <insert id="insert">
+        insert into eam_dev_material(
+            id,
+            dev_id,
+            material_id,
+            type_flag
+        ) VALUES
+        (
+          #{id},
+          #{dev_id},
+          #{material_id},
+          #{type_flag}
+        )
+    </insert>
+
+    <delete id="delete">
+        delete from eam_dev_material
+        where dev_id = #{dev_id}
+    </delete>
+
+    <select id="findListByMap" resultType="java.util.Map">
+        select
+        <include refid="fieldColumns"/>
+        from eam_device b
+        <include refid="deviceJoins"/>
+        where 1 = 1
+        <if test="type_flag != null and type_flag != ''">
+            AND a.type_flag = #{type_flag}
+        </if>
+        <if test="dev_id != null and dev_id != ''">
+            AND a.dev_id = #{dev_id}
+        </if>
+        <if test="key_word != null and key_word != ''">
+            AND c.material_name like
+            <if test="dbName == 'oracle'">'%'||#{key_word}||'%'</if>
+            <if test="dbName == 'mssql'">'%'+#{key_word}+'%'</if>
+            <if test="dbName == 'mysql'">CONCAT('%', #{key_word}, '%')</if>
+        </if>
+    </select>
+
+</mapper>

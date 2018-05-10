@@ -1,0 +1,341 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tiansu.eam.interfaces.inspection.dao.InspectionRestDao">
+
+
+    <sql id="inspectionTaskColumns">
+        a.id AS "inspectionId",
+        a.route_id AS "routeId",
+        b.route_code AS "routeCode",
+        b.route_name AS "routeName",
+        b.route_object AS "routeObject",
+        b.route_period AS "period",
+        dic.dict_name AS "cycleType",
+        b.route_period_detail AS "routeCycle",
+        h.dict_name AS "routeType",
+        j.dict_name as "routeMode",
+        a.task_time_plan_begin AS "planStartTime",
+        a.task_time_plan_finish AS "planFinishTime",
+        a.task_time_begin AS "startTime",
+        a.task_time_finish AS "finishTime",
+        a.task_isoverdue AS "isoverdue",
+        a.task_status AS "status",
+        f.dict_name as "statusName",
+        a.pstid
+    </sql>
+
+    <sql id="toolsColumns">
+        a.id AS "id",
+        a.material_id AS "toolId",
+        b.material_name AS "name",
+        b.material_unit AS "unit",
+        b.material_model AS "model",
+        b.material_price AS "price",
+        a.tools_num AS "number",
+        a.tools_remark AS "note"
+    </sql>
+
+    <sql id="sparepartColumns">
+        a.id AS "id",
+        a.material_id AS "toolId",
+        b.material_name AS "name",
+        b.material_unit AS "unit",
+        b.material_model AS "model",
+        b.material_price AS "price",
+        a.spareparts_num AS "number",
+        a.spareparts_remark AS "note",
+        a.spareparts_total AS "total"
+    </sql>
+
+    <sql id="safetyColumns">
+        id as "id",
+        safety_code,
+        safety_desc,
+        safety_standard,
+        safety_remark
+    </sql>
+    <sql id="procedureColumns">
+        a.id as "id",
+        a.procedure_code,
+        a.procedure_desc,
+        a.procedure_standard,
+        a.procedure_remark
+    </sql>
+    <sql id="personColumns">
+        a.id AS "id",
+        a.loginname AS "userId",
+        b.realname AS "name",
+        a.person_hours AS "hour",
+        a.person_hourprice AS "price",
+        a.person_postskill AS "skill",
+        a.person_hourtotal AS "hourTotal",
+        a.person_remark AS "note"
+    </sql>
+    <sql id="othersColumns">
+        a.id as "id",
+        a.otherexpenses AS "name",
+        a.otherexpenses_amount AS "price",
+        a.otherexpenses_remark AS "note"
+    </sql>
+
+    <sql id="inspectionTaskJoins">
+        left join eam_inspection_route b on a.route_id = b.id
+        left join (select dict_value, dict_name from eam_dict where dict_type_code = 'route_period') dic on b.route_period = dic.dict_value
+        left join (select dict_value, dict_name from eam_dict where dict_type_code = 'inspection_task_status') f on a.task_status = f.dict_value
+        left join (select dict_value, dict_name from eam_dict where dict_type_code = 'route_type') h on b.route_type = h.dict_value
+        left join (select dict_value, dict_name from eam_dict where dict_type_code = 'route_mode') j on b.route_mode = j.dict_value
+    </sql>
+
+    <select id="findMyInspection" parameterType="java.util.Map"
+            resultType="com.tiansu.eam.interfaces.inspection.entity.InspectionListJson">
+
+        SELECT
+        <include refid="inspectionTaskColumns"/>
+        FROM eam_inspection_task a
+        <include refid="inspectionTaskJoins"/>
+        <where>
+            a.pstid IN
+            <foreach item="list" collection="list" open="(" separator="," close=")">
+                #{list,jdbcType=VARCHAR}
+            </foreach>
+        </where>
+        <choose>
+            <when test="orderBy != null and orderBy != ''">
+                ORDER BY ${orderBy}
+            </when>
+            <otherwise>
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="getInspectionById" parameterType="java.lang.String"
+            resultType="com.tiansu.eam.interfaces.inspection.entity.InspectionDetailJson">
+
+        SELECT
+        <include refid="inspectionTaskColumns"/>
+        FROM eam_inspection_task a
+        <include refid="inspectionTaskJoins"/>
+        <where>
+            a.pstid = #{pstid}
+        </where>
+    </select>
+
+    <select id="getAreaByTaskPstid" parameterType="java.lang.String"
+            resultType="com.tiansu.eam.interfaces.inspection.entity.AreaDetailJson">
+        select distinct
+        d.id AS "areaId",
+        d.area_code AS "areaCode",
+        d.area_name AS "areaName",
+        d.area_status AS "areaStatus"
+        from eam_inspection_task a
+        join eam_inspection_route b on a.route_id = b.id
+        join eam_route_area c on a.route_id = c.route_id
+        join eam_inspection_area d on c.area_id = d.id
+        where a.pstid = #{pstid}
+    </select>
+
+    <select id="getSubjectDeviceByAreaId" resultType="com.tiansu.eam.interfaces.inspection.entity.SubjectDetailJson">
+        select DISTINCT
+        device.id AS "devId",
+        device.dev_name AS "devName",
+        dbo.getLocName(device.dev_location,'') AS "locationName",
+        "subjectName"=stuff((select ','+subject_name from eam_inspection_subject
+
+        where dev_id = device.id AND id in (select subject_id from eam_area_subject where area_id = #{areaId}) for xml path('')),1,1,'')
+        FROM eam_device device
+        LEFT  JOIN eam_inspection_subject subject ON device.id = subject.dev_id
+        LEFT JOIN eam_area_subject area_subject ON subject.id = area_subject.subject_id
+        WHERE area_subject.area_id = #{areaId}
+
+    </select>
+
+    <select id="getSubjectIsFeebBack" resultType="int">
+
+        SELECT COUNT(a.id) FROM eam_inspectiontask_feedback a
+        LEFT JOIN eam_area_subject b ON a.subject_id = b.subject_id
+        LEFT JOIN eam_inspection_subject c ON c.id = a.subject_id
+        WHERE a.inspectiontask_id = #{inpectionId}
+        AND b.area_id = #{areaId}
+        AND c.dev_id = #{devId}
+
+    </select>
+
+    <select id="getRouteTools" resultType="com.tiansu.eam.interfaces.inspection.entity.InspectionToolsJson">
+        select
+        <include refid="toolsColumns"/>
+        from eam_inspectionroute_tools a
+        join eam_material b on a.material_id = b.id
+        where inspectionroute_id = #{id}
+        and b.isdelete = '0'
+        order by a.id
+    </select>
+
+    <select id="getInspectionTools" resultType="com.tiansu.eam.interfaces.inspection.entity.InspectionToolsJson">
+        select
+        <include refid="toolsColumns"/>
+        from eam_inspectiontask_tools a
+        join eam_material b on a.material_id = b.id
+        where inspectiontask_id = #{id}
+        and b.isdelete = '0'
+        order by a.id
+    </select>
+
+    <select id="getRouteSpareparts" resultType="com.tiansu.eam.interfaces.common.Tool_MaterialsJson">
+        select
+        <include refid="sparepartColumns"/>
+        from eam_inspectionroute_spareparts a
+        join eam_material b on a.material_id = b.id
+        where inspectionroute_id = #{id}
+        and b.isdelete = '0'
+        order by a.id
+    </select>
+
+    <select id="getInspectionSpareparts" resultType="com.tiansu.eam.interfaces.common.Tool_MaterialsJson">
+        select
+        <include refid="sparepartColumns"/>
+        from eam_inspectiontask_spareparts a
+        join eam_material b on a.material_id = b.id
+        where inspectiontask_id = #{id}
+        and b.isdelete = '0'
+        order by a.id
+    </select>
+
+    <select id="getInspectionSafety" resultType="com.tiansu.eam.interfaces.common.SafetyJson">
+        SELECT
+        <include refid="safetyColumns"/>
+        from eam_inspectiontask_safety
+        where inspectiontask_id = #{id}
+        order by safety_code
+    </select>
+
+    <select id="getRouteSafety" resultType="com.tiansu.eam.interfaces.common.SafetyJson">
+        select
+        <include refid="safetyColumns"/>
+        from eam_inspectionroute_safety
+        where inspectionroute_id = #{id}
+        order by safety_code
+    </select>
+
+    <select id="getRouteProcedure" resultType="com.tiansu.eam.interfaces.common.ProcedureJson">
+        select
+        <include refid="procedureColumns"/>
+        from eam_inspectionroute_procedure a
+        where inspectionroute_id = #{id}
+        order by a.procedure_code
+    </select>
+
+    <select id="getInspectionProcedure" resultType="com.tiansu.eam.interfaces.common.ProcedureJson">
+        select
+        <include refid="procedureColumns"/>
+        from eam_inspectiontask_procedure a
+        where inspectiontask_id = #{id}
+        order by a.procedure_code
+    </select>
+
+    <select id="getRoutePerson" resultType="com.tiansu.eam.interfaces.common.PersonJson">
+        select
+        <include refid="personColumns"/>
+        from eam_inspectionroute_person a
+        join ioms_user b on a.loginname = b.loginname
+        where inspectionroute_id = #{id}
+        order by a.id
+    </select>
+
+    <select id="getInspectionPerson" resultType="com.tiansu.eam.interfaces.common.PersonJson">
+        select
+        <include refid="personColumns"/>
+        from eam_inspectiontask_person a
+        join ioms_user b on a.loginname = b.loginname
+        where inspectiontask_id = #{id}
+        order by a.id
+    </select>
+
+    <select id="getRouteOthers" resultType="com.tiansu.eam.interfaces.common.OtherChargesJosn">
+        select
+        <include refid="othersColumns"/>
+        from eam_inspectionroute_others a
+        where inspectionroute_id = #{id}
+        order by a.id
+    </select>
+
+    <select id="getInspectionOthers" resultType="com.tiansu.eam.interfaces.common.OtherChargesJosn">
+        select
+        <include refid="othersColumns"/>
+        from eam_inspectiontask_others a
+        where inspectiontask_id = #{id}
+        order by a.id
+    </select>
+
+    <select id="getInspectionFKDetail" resultType="com.tiansu.eam.interfaces.inspection.entity.InspectionFKDetailJson">
+        select distinct
+            ir.route_code AS "routeCode",
+            ir.route_name AS "routeName",
+            d.dev_name AS "devName",
+            dbo.getLocName(d.dev_location,'') AS "locationName",
+            iar.area_name AS "areaName",
+            ia.id AS "inspectionId",
+            ia.task_time_plan_begin AS "planStartTime",
+            ia.task_time_plan_finish AS "planFinishTime",
+            ia.task_status AS "status"
+        from eam_inspection_task ia
+        join eam_inspection_route ir ON ir.id = ia.route_id
+        join eam_route_area ra on ia.route_id = ra.route_id
+        join eam_inspection_area iar on iar.id = ra.area_id
+        join eam_area_subject asu on asu.area_id = iar.id
+        join eam_inspection_subject isu on asu.subject_id = isu.id
+        join eam_device d on isu.dev_id = d.id
+        where d.id = #{devId}
+              AND iar.id = #{areaId}
+              AND ia.id = #{inspectionId}
+              AND ia.task_isoverdue = '0'
+    </select>
+
+    <select id="getSubjectFKDetail" resultType="com.tiansu.eam.interfaces.inspection.entity.SubjectFKDetailJson">
+
+        select distinct
+            c.id AS "subjectId",
+            c.subject_code AS "subjectCode",
+            c.subject_name AS "subjectName",
+            c.subject_content AS "subjectContent",
+            c.subject_ck_value,
+            c.subject_unit,
+            c.subject_value1,
+            c.subject_value2,
+            c.subject_value3,
+            c.subject_sx_value,
+            c.subject_xx_value,
+            c.subject_ck_value,
+            c.subject_valuetype,
+            g.check_picture,
+            g.check_video,
+            g.check_value,
+            g.check_time,
+            g.check_result,
+            g.appearance,
+            g.issubmit,
+            g.isclose,
+            g.remark
+        from eam_inspection_area a
+        join eam_route_area h on a.id = h.area_id
+        join eam_inspection_task m on h.route_id = m.route_id
+        join eam_area_subject b on a.id = b.area_id
+        join eam_inspection_subject c on b.subject_id = c.id
+        join eam_device d on c.dev_id = d.id
+        join eam_dev_location f on d.dev_location = f.id
+        left join eam_inspectiontask_feedback g on b.subject_id = g.subject_id and m.id = g.inspectiontask_id
+        where c.dev_id =  #{devId}
+          and m.id = #{inspectionId}
+    </select>
+
+    <select id="getFaultSwitch" resultType="com.tiansu.eam.modules.inspection.entity.InspectionTaskSwitch">
+        SELECT
+            TOP 1 *
+        FROM
+            eam_inspectiontask_switch
+        WHERE
+            inspectiontask_id = #{inspId}
+            AND	switch_status = '1'
+            AND switch_result = '1'
+        ORDER BY relieve_time DESC
+    </select>
+</mapper>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tiansu.eam.modules.faultOrder.dao.FaultSwitchDao">
+
+    <sql id="orderColumns">
+        a.id, a.order_id, a.switch_type,a.switch_time, a.approve_time, a.relieve_time,a.approve_status, a.switch_person, a.request_person,
+        a.approve_person,a.switch_reason, a.approve_info
+    </sql>
+
+    <sql id="orderJoins">
+        
+    </sql>
+
+    <select id="get" resultType="com.tiansu.eam.modules.faultOrder.entity.FaultSwitch">
+        SELECT
+        <include refid="orderColumns"/>
+        FROM eam_fault_order_switch a
+        <include refid="orderJoins"/>
+        WHERE a.id = #{id}
+        and a.isdelete != '1'
+    </select>
+
+
+
+    <select id="findListByMap" resultType="com.tiansu.eam.modules.faultOrder.entity.FaultSwitch">
+        SELECT
+        <include refid="orderColumns"/>
+        FROM eam_fault_order_switch a
+        <include refid="orderJoins"/>
+        <where>
+            a.isdelete != '1'
+        </where>
+        <choose>
+            <when test="page !=null and page.orderBy != null and page.orderBy != ''">
+                ORDER BY ${page.orderBy}
+            </when>
+            <otherwise>
+            </otherwise>
+        </choose>
+    </select>
+
+
+
+    <insert id="insert" parameterType="com.tiansu.eam.modules.faultOrder.entity.FaultSwitch">
+        INSERT INTO eam_fault_order_switch(
+        id,order_id,switch_type,switch_time,approve_time,relieve_time,approve_status,switch_person,request_person
+        ,approve_person,switch_reason,approve_info,create_by,create_time,isdelete
+        ) VALUES (
+        #{id},#{order_id},#{switch_type},#{switch_time},#{approve_time},#{relieve_time},#{approve_status},#{switch_person},#{request_person},
+        #{approve_person},#{switch_reason},#{approve_info},#{createBy.loginname},#{createDate},0
+        )
+    </insert>
+
+    <update id="update" parameterType="com.tiansu.eam.modules.faultOrder.entity.FaultSwitch">
+        UPDATE eam_fault_order_switch
+        <trim prefix="set" suffixOverrides=",">
+            <if test="order_id != null ">order_id = #{order_id},</if>
+            <if test="switch_type != null ">switch_type = #{switch_type},</if>
+            <if test="switch_time != null ">switch_time = #{switch_time},</if>
+            <if test="approve_time != null ">approve_time = #{approve_time},</if>
+            <if test="relieve_time != null ">relieve_time = #{relieve_time},</if>
+            <if test="approve_status != null ">approve_status = #{approve_status},</if>
+            <if test="switch_person != null ">switch_person = #{switch_person},</if>
+            <if test="request_person != null ">request_person = #{request_person},</if>
+            <if test="approve_person != null ">approve_person = #{approve_person},</if>
+            <if test="switch_reason != null ">switch_reason = #{switch_reason},</if>
+            <if test="approve_info != null ">approve_info = #{approve_info},</if>
+            <if test="updateBy != null ">update_by = #{updateBy.loginname},</if>
+            <if test="updateDate != null ">update_time = #{updateDate},</if>
+        </trim>
+        WHERE id = #{id}
+    </update>
+
+
+    <!--<update id="deleteByOrderId" parameterType="java.lang.String">
+        delete from eam_schedual
+        where order_id = #{order_id}
+    </update>-->
+
+
+</mapper>

@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tiansu.eam.modules.sys.dao.EamBusinessDictDao">
+    <sql id="fieldColumns">
+        id as "id_key",
+        dict_pid,
+        dict_seq,
+        dict_value,
+        dict_name,
+        dict_desc,
+        id id,
+        dict_name text
+    </sql>
+
+    <sql id="fieldColumns1">
+        a.id as id_key,
+        a.id,
+        a.dict_pid as "parent.id",
+        a.dict_value,
+        p.dict_value as "dict_pvalue",
+        a.dict_name,
+        p.dict_name as "dict_pname",
+        a.dict_pid,
+        a.dict_level,
+        a.dict_desc,
+        a.dict_status,
+        a.dict_seq,
+        a.isleaf
+    </sql>
+
+    <sql id="businessDictJoins">
+        LEFT JOIN eam_business_dict p ON p.id = a.dict_pid
+    </sql>
+
+    <select id="getEdit" resultType="java.util.Map">
+        SELECT
+        <include refid="fieldColumns1"/>
+        FROM eam_business_dict a
+        <include refid="businessDictJoins" />
+        where a.id = #{id}
+        order by a.dict_value
+    </select>
+
+    <select id="findList" resultType="com.tiansu.eam.modules.sys.entity.EamBusinessDict">
+        select a.id id_key,
+        a.dict_pid,
+        a.dict_name
+        from eam_business_dict a
+        order by a.dict_pid, a.dict_value
+
+    </select>
+
+    <select id="findListByMap" resultType="java.util.Map">
+        select
+        <include refid="fieldColumns1" />
+        from eam_business_dict a
+        <include refid="businessDictJoins"/>
+        where 1 = 1
+        <if test="id != null and id != ''" >
+            and
+            <if test="dbName == 'oracle'">'%'||#{id}||'%'</if>
+            <if test="dbName == 'mssql'">CHARINDEX(#{id}, a.dict_seq) > 0</if>
+            <if test="dbName == 'mysql'">find_in_set(#{id}, a.dict_seq)</if>
+        </if>
+        <if test="dict_value != null and dict_value != ''" >
+            AND EXISTS (
+              SELECT
+                1
+              FROM
+              (
+                SELECT
+                b.id
+                FROM
+                eam_business_dict b
+                WHERE
+                b.dict_value LIKE
+            <if test="dbName == 'oracle'">'%'||#{dict_value}||'%'</if>
+            <if test="dbName == 'mssql'">'%'+#{dict_value}+'%'</if>
+            <if test="dbName == 'mysql'">CONCAT('%', #{dict_value}, '%')</if>
+                ) b
+              WHERE
+              CHARINDEX(',' + b.id + ',', a.dict_seq) > 0
+            )
+        </if>
+        <if test="dict_name != null and dict_name != ''" >
+            AND EXISTS (
+            SELECT
+            1
+            FROM
+            (
+            SELECT
+            b.id
+            FROM
+            eam_business_dict b
+            WHERE
+            b.dict_name LIKE
+            <if test="dbName == 'oracle'">'%'||#{dict_name}||'%'</if>
+            <if test="dbName == 'mssql'">'%'+#{dict_name}+'%'</if>
+            <if test="dbName == 'mysql'">CONCAT('%', #{dict_name}, '%')</if>
+            ) b
+            WHERE
+            CHARINDEX(',' + b.id + ',', a.dict_seq) > 0
+            )
+        </if>
+        order by a.dict_level, a.dict_pid, a.dict_value
+    </select>
+
+    <select id="getByValue" parameterType="java.util.Map" resultType="java.util.Map">
+        select
+          a.id as "id_key",
+          a.dict_value id,
+          a.dict_name as "text",
+          a.dict_pid as pId,
+          a.dict_seq,
+          a.dict_value,
+          a.dict_name,
+          a.dict_value as "value",
+          a.dict_name as "name",
+          a.dict_desc as "desc"
+        from
+          eam_business_dict a
+        where (a.dict_status is null or a.dict_status != '1')
+        <if test="dict_value != null and dict_value != ''" >
+            AND EXISTS (
+            SELECT
+            1
+            FROM
+            (
+            SELECT
+            b.id
+            FROM
+            eam_business_dict b
+            WHERE
+            b.dict_value = #{dict_value}
+            ) b
+            WHERE CHARINDEX(',' + b.id + ',', a.dict_seq) > 0
+            )
+        </if>
+        order by a.dict_value
+    </select>
+
+    <update id="update">
+        UPDATE eam_business_dict SET
+        dict_value = #{dict_value},
+        dict_name = #{dict_name},
+        dict_desc = #{dict_desc}
+        WHERE id = #{id_key}
+    </update>
+
+    <update id="close">
+        UPDATE eam_business_dict SET
+        dict_status = '1'
+        WHERE id = #{id_key}
+    </update>
+
+    <update id="updateBusinessDictTree" statementType="CALLABLE">
+        <![CDATA[
+        {call setBusinessDictLevel()}
+        ]]>
+    </update>
+
+    <insert id="insert">
+        INSERT INTO eam_business_dict(
+        id,
+        dict_pid,
+        dict_value,
+        dict_name,
+        dict_desc,
+        dict_status
+        ) VALUES (
+        #{id},
+        #{dict_pid},
+        #{dict_value},
+        #{dict_name},
+        #{dict_desc},
+        #{dict_status}
+        )
+    </insert>
+
+    <select id="getBusinessDictTree" resultType="java.util.Map">
+        SELECT
+        id as id,
+        dict_pid as pId,
+        dict_name as name,
+        dict_value as "value",
+        dict_desc as "desc"
+        FROM eam_business_dict
+        where 1 = 1
+        <if test="id_key != null and id_key != ''" >
+            and
+            <if test="dbName == 'mssql'">
+                CHARINDEX( ','+ #{id_key} + ',' ,dict_seq ) > 0
+            </if>
+            <if test="dbName == 'mysql'">}find_in_set(#{id_key}, dict_seq) </if>
+        </if>
+        order by dict_level, dict_value
+
+    </select>
+
+</mapper>

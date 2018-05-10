@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tiansu.eam.modules.sys.dao.EamSystemDao">
+
+
+    <!--/**
+    *@Create
+    *@Description :获取子系统注册需要系统信息
+    *@Param :  * @param null
+    *@author : suven
+    *@Date : 15:50 2017/10/11
+    */-->
+    <select id="findRelatedList" resultType="EamSystemInfo">
+        select
+     a.subsystemno,
+	 a.version,
+	 a.subsystemname,
+	 a.subsystemlink,
+	 a.orderid,
+	 a.dataconfiglink,
+	 a.datashowlink,
+	 a.hosturl,
+	 a.subcallbackurl
+from ioms_subsystem a
+where a.subsystemno='eam'
+    </select>
+
+
+</mapper>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:activiti="http://activiti.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://www.activiti.org/processdef">
+  <process id="process_test" name="process_test" isExecutable="true">
+    <startEvent id="start" name="启动节点" activiti:formKey="modules/material/testMaterialFormAdd">
+      <documentation>启动节点</documentation>
+    </startEvent>
+    <endEvent id="end" name="结束节点">
+      <documentation>结束节点</documentation>
+    </endEvent>
+    <userTask id="solve" name="处理节点1" activiti:candidateUsers="D692E219-A3C3-43DF-87D3-881B5B88E49E" activiti:formKey="process_test.bpmn20/approveTest.jsp">
+      <documentation>处理节点1</documentation>
+    </userTask>
+    <sequenceFlow id="sid-C80EE862-D322-4F9A-A2B7-F5D234EB26E5" sourceRef="start" targetRef="solve"></sequenceFlow>
+    <sequenceFlow id="sid-25E5856F-5D87-459A-987E-A4152F29C08A" sourceRef="solve" targetRef="end"></sequenceFlow>
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_process_test">
+    <bpmndi:BPMNPlane bpmnElement="process_test" id="BPMNPlane_process_test">
+      <bpmndi:BPMNShape bpmnElement="start" id="BPMNShape_start">
+        <omgdc:Bounds height="30.0" width="30.0" x="195.5" y="111.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="end" id="BPMNShape_end">
+        <omgdc:Bounds height="28.0" width="28.0" x="974.5" y="87.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="solve" id="BPMNShape_solve">
+        <omgdc:Bounds height="80.0" width="100.0" x="525.0" y="105.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="sid-C80EE862-D322-4F9A-A2B7-F5D234EB26E5" id="BPMNEdge_sid-C80EE862-D322-4F9A-A2B7-F5D234EB26E5">
+        <omgdi:waypoint x="225.47966287908085" y="126.78083290727719"></omgdi:waypoint>
+        <omgdi:waypoint x="525.0" y="142.3936899862826"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-25E5856F-5D87-459A-987E-A4152F29C08A" id="BPMNEdge_sid-25E5856F-5D87-459A-987E-A4152F29C08A">
+        <omgdi:waypoint x="625.0" y="139.6795646916566"></omgdi:waypoint>
+        <omgdi:waypoint x="974.5785928959687" y="102.48135891796224"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

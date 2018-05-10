@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tiansu.eam.modules.sys.dao.EamDataScopeDao">
+
+    <resultMap id="dataScope" type="EamDataScope">
+            <id property="id" column="id" />
+            <id property="role_id" column="role_id" />
+            <id property="data_scope" column="data_scope" />
+            <id property="custom_detail" column="custom_detail" />
+    </resultMap>
+
+    <select id="findAllByRoleIds" resultMap="dataScope">
+        select
+            a.id,
+            a.role_id,
+            a.data_scope,
+            a.custom_detail
+        from eam_role_data a
+        where a.role_id IN (#{roleids});
+    </select>
+
+    <delete id="deleteDataScope">
+        DELETE FROM eam_role_data WHERE role_id = #{role_id}
+    </delete>
+
+    <insert id="insertDataScopeInfo" parameterType="EamDataScope">
+        INSERT INTO eam_role_data(id, role_id, data_scope, custom_detail)
+        values(newid(), #{role_id}, #{data_scope}, #{custom_detail})
+    </insert>
+
+    <update id="updateDataScope" parameterType="EamDataScope">
+        update eam_role_data set data_scope = #{data_scope}, custom_detail = #{custom_detail}
+        where role_id = #{role_id}
+    </update>
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

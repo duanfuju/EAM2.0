@@ -1,0 +1,693 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tiansu.eam.modules.inspection.dao.InspectionTaskDao">
+
+    <sql id="inspectionTaskColumns">
+        a.id AS "id_key",
+        a.route_id,
+        b.route_code,
+        b.route_name,
+        b.route_object,
+        b.route_type,
+        h.dict_name as "type_name",
+        b.route_mode,
+        j.dict_name as "mode_name",
+        b.route_isstandard,
+        a.task_time_plan_begin,
+        a.task_time_plan_finish,
+        a.task_time_begin,
+        a.task_time_finish,
+        a.task_isoverdue,
+        a.task_totalhour_plan,
+        a.task_totalhour,
+        a.task_status,
+        f.dict_name as "status_name",
+        a.task_processor,
+        g.realname,
+        a.task_processor_plan,
+        a.create_by,
+        a.create_time,
+        a.update_by,
+        a.update_time,
+        a.pstid
+    </sql>
+
+    <sql id="inspectionTaskJoins">
+        left join eam_inspection_route b on a.route_id = b.id
+        left join (select dict_value, dict_name from eam_dict where dict_type_code = 'inspection_task_status') f on a.task_status = f.dict_value
+        left join (select dict_value, dict_name from eam_dict where dict_type_code = 'route_type') h on b.route_type = h.dict_value
+        left join (select dict_value, dict_name from eam_dict where dict_type_code = 'route_mode') j on b.route_mode = j.dict_value
+        left join ioms_user g on a.task_processor = g.loginname
+    </sql>
+
+    <select id="findListByMap" resultType="java.util.Map">
+        select
+        <include refid="inspectionTaskColumns"/>
+        from eam_inspection_task a
+        <include refid="inspectionTaskJoins"/>
+        where a.isdelete = '0'
+        <if test="task_status != null and task_status != ''">
+            AND a.task_status = #{task_status}
+        </if>
+        <if test="task_isoverdue != null and task_isoverdue != ''">
+            AND a.task_isoverdue = #{task_isoverdue}
+        </if>
+        <if test="task_time_plan_begin != null and task_time_plan_begin != ''
+        and task_time_plan_finish != null and task_time_plan_finish != ''">
+            AND a.task_time_plan_begin between (#{task_time_plan_begin}, #{task_time_plan_finish})
+        </if>
+        <if test="route_code != null and route_code != ''">
+            AND b.route_code = #{route_code}
+        </if>
+        <if test="route_name != null and route_name != ''">
+            AND b.route_name = #{route_name}
+        </if>
+        <if test="ids != null and ids != ''">
+            AND a.id in
+            <foreach item="ids" index="index" collection="ids" open="(" separator="," close=")">
+                #{ids}
+            </foreach>
+        </if>
+        <choose>
+            <when test="page !=null and page.orderBy != null and page.orderBy != ''">
+                ORDER BY a.${page.orderBy}
+            </when>
+            <otherwise>
+                order by a.update_time desc
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="getInspectionTaskByPIid" resultType="java.util.Map">
+        select
+        <include refid="inspectionTaskColumns"/>
+        from eam_inspection_task a
+        <include refid="inspectionTaskJoins"/>
+        where a.isdelete = '0'
+        AND a.pstid = #{pstid}
+    </select>
+
+    <select id="getInspectionTaskById" resultType="java.util.Map">
+        select
+        <include refid="inspectionTaskColumns"/>
+        from eam_inspection_task a
+        <include refid="inspectionTaskJoins"/>
+        where a.isdelete = '0'
+        AND a.id = #{inspectionTask_id}
+    </select>
+
+    <select id="getEdit" resultType="java.util.Map">
+        select
+        <include refid="inspectionTaskColumns"/>
+        from eam_inspection_task a
+        <include refid="inspectionTaskJoins"/>
+        where a.isdelete = '0'
+        AND a.id = #{id_key}
+    </select>
+
+    <select id="getProcedure" resultType="java.util.Map">
+        select
+        a.id as "procedure_id",
+        a.inspectiontask_id,
+        a.procedure_code,
+        a.procedure_desc,
+        a.procedure_standard,
+        a.procedure_remark
+        from eam_inspectiontask_procedure a
+        where inspectiontask_id = #{inspectiontask_id}
+        order by a.procedure_code
+    </select>
+
+    <select id="getSafety" resultType="java.util.Map">
+        select
+        id as "safety_id",
+        inspectiontask_id,
+        safety_code,
+        safety_desc,
+        safety_standard,
+        safety_remark
+        from eam_inspectiontask_safety a
+        where inspectiontask_id = #{id}
+        order by safety_code
+    </select>
+
+    <select id="getWorkTools" resultType="java.util.Map">
+        select
+        a.id as "tools_id",
+        a.inspectiontask_id,
+        a.material_id,
+        b.material_code as "tools_code",
+        b.material_name as "tools_name",
+        b.material_unit,
+        b.material_qty,
+        b.material_model,
+        a.tools_num,
+        a.tools_remark
+        from eam_inspectiontask_tools a
+        join eam_material b on a.material_id = b.id
+        where inspectiontask_id = #{id}
+        and b.isdelete = '0'
+        order by a.id
+    </select>
+
+    <select id="getSpareparts" resultType="java.util.Map">
+        select
+        a.id as "spareparts_id",
+        a.inspectiontask_id,
+        a.material_id,
+        b.material_code as "spareparts_code",
+        b.material_name as "spareparts_name",
+        b.material_unit,
+        b.material_qty,
+        b.material_model,
+        b.material_price,
+        a.spareparts_num,
+        a.spareparts_remark,
+        a.spareparts_total
+        from eam_inspectiontask_spareparts a
+        join eam_material b on a.material_id = b.id
+        where inspectiontask_id = #{id}
+        and b.isdelete = '0'
+        order by a.id
+    </select>
+
+    <select id="getPersonhours" resultType="java.util.Map">
+        select
+        a.id as "personhours_id",
+        a.inspectiontask_id,
+        a.loginname,
+        b.realname,
+        a.person_hours,
+        a.person_hourprice,
+        a.person_postskill,
+        a.person_hourtotal,
+        a.person_remark
+        from eam_inspectiontask_person a
+        join ioms_user b on a.loginname = b.loginname
+        where inspectiontask_id = #{id}
+        order by a.id
+    </select>
+
+    <select id="getOtherexpenses" resultType="java.util.Map">
+        select
+        a.id as "otherexpenses_id",
+        a.inspectiontask_id,
+        a.otherexpenses,
+        a.otherexpenses_amount,
+        a.otherexpenses_remark
+        from eam_inspectiontask_others a
+        where inspectiontask_id = #{id}
+        order by a.id
+    </select>
+
+    <insert id="insertProcedure">
+        INSERT INTO eam_inspectiontask_procedure
+        (id,inspectiontask_id,procedure_code,procedure_desc,procedure_standard,procedure_remark)
+        VALUES
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.id},#{item.inspectiontask_id},#{item.procedure_code},#{item.procedure_desc},#{item.procedure_standard},#{item.procedure_remark})
+        </foreach>
+    </insert>
+
+    <insert id="insertSafety">
+        INSERT INTO eam_inspectiontask_safety
+        (id,inspectiontask_id,safety_code,safety_desc,safety_standard,safety_remark)
+        VALUES
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.id},#{item.inspectiontask_id},#{item.safety_code},#{item.safety_desc},#{item.safety_standard},#{item.safety_remark})
+        </foreach>
+    </insert>
+
+    <insert id="insertTools">
+        INSERT INTO eam_inspectiontask_tools
+        (id,inspectiontask_id,material_id,tools_num,tools_remark)
+        VALUES
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.id},#{item.inspectiontask_id},#{item.material_id},#{item.tools_num},#{item.tools_remark})
+        </foreach>
+    </insert>
+
+    <insert id="insertSpareparts">
+        INSERT INTO eam_inspectiontask_spareparts
+        (id,inspectiontask_id,material_id,spareparts_num,spareparts_remark,spareparts_total)
+        VALUES
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.id},#{item.inspectiontask_id},#{item.material_id},#{item.spareparts_num},#{item.spareparts_remark},#{item.spareparts_total})
+        </foreach>
+    </insert>
+
+    <insert id="insertPersonHours">
+        INSERT INTO eam_inspectiontask_person
+        (id,inspectiontask_id,loginname,person_hours,person_hourprice,person_postskill,person_hourtotal,person_remark)
+        VALUES
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.id},#{item.inspectiontask_id},#{item.loginname},#{item.person_hours},#{item.person_hourprice},#{item.person_postskill},#{item.person_hourtotal},#{item.person_remark})
+        </foreach>
+    </insert>
+
+    <insert id="insertOthers">
+        INSERT INTO eam_inspectiontask_others
+        (id,inspectiontask_id,otherexpenses,otherexpenses_amount,otherexpenses_remark)
+        VALUES
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.id},#{item.inspectiontask_id},#{item.otherexpenses},#{item.otherexpenses_amount},#{item.otherexpenses_remark})
+        </foreach>
+    </insert>
+
+    <insert id="insert">
+        INSERT INTO eam_inspection_task
+        (id,task_code,route_id,task_time_plan_begin,task_time_plan_finish,task_time_begin,task_time_finish,task_isoverdue,task_totalhour_plan,task_totalhour,task_status,task_processor,task_processor_plan,create_by,create_time,update_by,update_time,isdelete,
+        pstid)
+        VALUES
+        <foreach collection="list" item="item" index="index" separator=",">
+            (
+            #{item.id},
+            #{item.task_code},
+            #{item.route_id},
+            #{item.task_time_plan_begin},
+            #{item.task_time_plan_finish},
+            #{item.task_time_begin},
+            #{item.task_time_finish},
+            '0',
+            #{item.task_totalhour_plan},
+            #{item.task_totalhour},
+            '0',
+            #{item.task_processor},
+            #{item.task_processor_plan},
+            #{item.createBy.loginname},
+            #{item.createDate},
+            #{item.updateBy.loginname},
+            #{item.updateDate},
+            #{item.isDelete},
+            #{item.pstid}
+            )
+        </foreach>
+    </insert>
+
+    <delete id="deleteProcedure">
+        DELETE FROM eam_inspectiontask_procedure where inspectiontask_id = #{inspectiontask_id}
+    </delete>
+    <delete id="deleteSafety">
+        DELETE FROM eam_inspectiontask_safety where inspectiontask_id = #{inspectiontask_id}
+    </delete>
+    <delete id="deleteTools">
+        DELETE FROM eam_inspectiontask_tools where inspectiontask_id = #{inspectiontask_id}
+    </delete>
+    <delete id="deleteSpareparts">
+        DELETE FROM eam_inspectiontask_spareparts where inspectiontask_id = #{inspectiontask_id}
+    </delete>
+    <delete id="deletePersonhours">
+        DELETE FROM eam_inspectiontask_person where inspectiontask_id = #{inspectiontask_id}
+    </delete>
+    <delete id="deleteOthers">
+        DELETE FROM eam_inspectiontask_others where inspectiontask_id = #{inspectiontask_id}
+    </delete>
+
+    <select id="getInspectionIdByPIid" parameterType="String" resultType="Map">
+        SELECT id,route_id,pstid, task_status
+        FROM eam_inspection_task
+        WHERE pstid = #{pstid}
+    </select>
+
+    <!--工作流通过实例ID更新表单-->
+    <update id="updateAprByPIid" parameterType="Map">
+        UPDATE eam_inspection_task
+        SET update_by = #{update_by},
+        update_time = #{update_time},
+        <if test="task_processor != null and task_processor != ''">
+            task_processor = #{task_processor},
+        </if>
+        <if test="task_processor_plan != null and task_processor_plan != ''">
+            task_processor_plan = #{task_processor_plan},
+        </if>
+        <if test="task_time_begin != null and task_time_begin != ''">
+            task_time_begin = #{task_time_begin},
+        </if>
+        <if test="task_time_finish != null and task_time_finish != ''">
+            task_time_finish = #{task_time_finish},
+        </if>
+        task_status = #{task_status}
+        where pstid = #{pstid}
+    </update>
+
+    <update id="updateSwitchByInsId" parameterType="com.tiansu.eam.modules.inspection.entity.InspectionTaskSwitch">
+        UPDATE eam_inspectiontask_switch
+        SET approve_time = #{approve_time},
+            approve_reason = #{approve_reason},
+            approve_person = #{approve_person},
+            relieve_time = #{relieve_time},
+            switch_result = #{switch_result}
+        where inspectiontask_id = #{inspectiontask_id}
+          and (switch_result = '0' or (switch_result = '1' and switch_status = '1' and (relieve_time is null or relieve_time = '')))
+    </update>
+
+    <update id="updateRelieveTimeByInsId" parameterType="com.tiansu.eam.modules.inspection.entity.InspectionTaskSwitch">
+        UPDATE eam_inspectiontask_switch
+        SET relieve_time = #{relieve_time}
+        where inspectiontask_id = #{inspectiontask_id}
+        and (switch_result = '0' or (switch_result = '1' and switch_status = '1' and (relieve_time is null or relieve_time = '')))
+    </update>
+
+    <!--根据巡检任务id获取到当前任务所要巡检的设备的专业和控件信息-->
+    <select id="getDeviceInfos" resultType="java.util.Map">
+        select
+        distinct g.dev_id, h.dev_code, h.dev_name, h.dev_major, j.id, j.loc_code, j.loc_name
+        from eam_inspection_task a
+        join eam_inspection_route b on a.route_id = b.id
+        join eam_route_area c on a.route_id = c.route_id
+        join eam_inspection_area d on c.area_id = d.id
+        join eam_area_subject f on d.id = f.area_id
+        join eam_inspection_subject g on f.subject_id = g.id
+        left join eam_device h on g.dev_id = h.id
+        left join eam_dev_location j on h.dev_location = j.id
+        where 1 = 1
+        <if test="pstid != null and pstid != ''">
+            AND a.pstid = #{pstid}
+        </if>
+        <if test="id != null and id != ''">
+            AND a.id = #{id}
+        </if>
+        <if test="area_id != null and area_id != ''">
+            AND d.id = #{area_id}
+        </if>
+    </select>
+
+    <insert id="insertTaskSwitch">
+        INSERT INTO eam_inspectiontask_switch
+        (id,inspectiontask_id,switch_status,switch_time,switch_reason, apply_person, switch_person, approve_time,approve_reason,approve_person,
+        relieve_time,switch_result)
+        VALUES
+        (#{id_key},#{inspectiontask_id},#{switch_status},#{switch_time},#{switch_reason}, #{apply_person}, #{switch_person}, #{approve_time},
+        #{approve_reason}, #{approve_person}, #{relieve_time}, '0')
+    </insert>
+
+    <select id="getInspectionTaskSwitch" parameterType="Map"
+            resultType="com.tiansu.eam.modules.inspection.entity.InspectionTaskSwitch">
+        select a.id,
+                a.inspectiontask_id,
+                a.switch_status,
+                a.switch_time,
+                a.switch_reason,
+                a.apply_person,
+                a.switch_person,
+                a.approve_time,
+                a.approve_reason,
+                a.approve_person,
+                a.relieve_time,
+                a.switch_result
+          from eam_inspectiontask_switch a
+          where a.inspectiontask_id = #{inspectiontask_id}
+            and (switch_result = '0' or (switch_result = '1' and switch_status = '1' and (relieve_time is null or relieve_time = '')))
+    </select>
+
+    <select id="getAreaInfoByTaskPstid" resultType="java.util.Map">
+        select distinct
+          d.id,
+          d.area_code,
+          d.area_name,
+          d.area_remark,
+          d.area_status,
+          a.id as "inspectiontask_id"
+        from eam_inspection_task a
+        join eam_inspection_route b on a.route_id = b.id
+        join eam_route_area c on a.route_id = c.route_id
+        join eam_inspection_area d on c.area_id = d.id
+        where a.pstid = #{pstid}
+    </select>
+
+    <select id="getSubjectInfos" resultType="java.util.Map">
+        select distinct
+            a.id area_id,
+            a.area_code,
+            a.area_name,
+            c.id,
+            c.subject_name,
+            c.subject_content,
+            c.subject_ck_value,
+            c.subject_unit,
+            n.dict_name unit_name,
+            c.subject_value1,
+            c.subject_value2,
+            c.subject_value3,
+            c.subject_sx_value,
+            c.subject_xx_value,
+            c.subject_ck_value,
+            g.inspectiontask_id,
+            g.check_value,
+            g.check_time,
+            g.check_result,
+            g.check_picture,
+            g.check_video,
+            g.appearance,
+            g.issubmit,
+            g.isclose,
+            g.remark
+        from eam_inspection_area a
+        join eam_route_area h on a.id = h.area_id
+        join eam_inspection_task m on h.route_id = m.route_id
+        join eam_area_subject b on a.id = b.area_id
+        join eam_inspection_subject c on b.subject_id = c.id
+        join eam_device d on c.dev_id = d.id
+        join eam_dev_location f on d.dev_location = f.id
+        left join eam_inspectiontask_feedback g on b.subject_id = g.subject_id and m.id = g.inspectiontask_id
+        left join (select dict_value, dict_name from eam_dict where dict_type_code = 'UNIT') n on c.subject_unit = n.dict_value
+        where a.id = #{area_id}
+          and c.dev_id = #{dev_id}
+          and m.id = #{inspectiontask_id}
+    </select>
+
+    <insert id="insertFeedBackList">
+        insert into eam_inspectiontask_feedback
+        (id,inspectiontask_id,subject_id,check_value,check_time,check_result,check_picture,check_video,appearance,issubmit,isclose,remark,create_by,create_time,update_by,update_time)
+        VALUES
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.id},#{item.inspectiontask_id},#{item.subject_id},#{item.check_value},#{item.check_time},#{item.check_result},#{item.check_picture},
+            #{item.check_video},#{item.appearance},#{item.issubmit},#{item.isclose},#{item.remark},#{item.createBy.loginname},#{item.createDate},
+            #{item.createBy.loginname},#{item.createDate})
+        </foreach>
+    </insert>
+
+    <delete id="deleteFeedBack">
+        delete from eam_inspectiontask_feedback
+        where inspectiontask_id = #{inspectiontask_id}
+        <if test="subject_id != null and subject_id != ''">
+            and subject_id = #{subject_id}
+        </if>
+    </delete>
+
+    <select id="getFeedBackInfoByTaskId" resultType="com.tiansu.eam.modules.inspection.entity.InspectiontaskFeedback">
+        select
+        a.id,
+        a.inspectiontask_id,
+        a.subject_id,
+        a.check_value,
+        a.check_time,
+        a.check_result,
+        a.check_picture,
+        a.check_video,
+        a.appearance,
+        a.issubmit,
+        a.isclose,
+        a.remark
+        from eam_inspectiontask_feedback a
+        where inspectiontask_id = #{inspectiontask_id}
+        <if test="subject_id != null and subject_id != ''">
+            and subject_id = #{subject_id}
+        </if>
+    </select>
+
+    <select id="getFailureList" resultType="com.tiansu.eam.modules.opestandard.entity.StandardFailure">
+        select
+          a.id failure_id,
+          a.failure_phenomena_code,
+          a.failure_phenomena_priority,
+          a.failure_phenomena_desc,
+          a.failure_cause_code,
+          a.failure_cause_serverity,
+          a.failure_cause_desc,
+          a.failure_measures_code,
+          a.failure_measures_desc
+        from eam_failure_standard a
+        join eam_operation_device b on a.library_id = b.library_id
+        where b.dev_id = #{dev_id}
+     </select>
+    <!-- 根据 inspectiontask_id 更新表eam_inspectiontask_feedback字段issubmit为1 add by wangr start -->
+    <!-- 巡检任务反馈时 -->
+    <update id="updateIssubmit" parameterType="java.util.Map">
+        UPDATE inspectiontask_id
+        SET issubmit = '1', update_by = #{update_by} ,update_time = #{update_time}
+        WHERE inspectiontask_id = #{inspectiontask_id}
+    </update>
+    <!-- add end -->
+
+    <select id="getToolInfos" resultType="java.util.Map">
+        select
+            case when a.material_id is not null then a.material_id
+            else b.material_id end material_id,
+            convert(int,ISNULL(a.tools_num, 0)) as "tools_num1",
+            convert(int,ISNULL(b.tools_num, 0)) as "tools_num2",
+            a.tools_remark as "tools_remark1",
+            b.tools_remark as "tools_remark2"
+        from
+        (
+          select
+                material_id,
+                tools_num,
+                tools_remark
+                from eam_inspectiontask_tools
+                where inspectiontask_id = #{inspectiontask_id}
+                  and material_id is not null
+        ) a
+        full join
+        (
+          select
+                material_id,
+                tools_num,
+                tools_remark
+                from eam_inspectionroute_tools
+                where inspectionroute_id = #{route_id}
+                  and material_id is not null
+        ) b
+        on a.material_id = b.material_id
+
+    </select>
+
+    <select id="getSparepartsInfos" resultType="java.util.Map">
+        select
+            case when a.material_id is not null then a.material_id
+            else b.material_id end material_id,
+            convert(int,ISNULL(a.spareparts_num, 0)) as "spareparts_num1",
+            convert(int,ISNULL(b.spareparts_num, 0)) as "spareparts_num2",
+            a.spareparts_remark as "spareparts_remark1",
+            b.spareparts_remark as "spareparts_remark2",
+            ISNULL(a.spareparts_total, 0) as "spareparts_total1",
+            ISNULL(b.spareparts_total, 0) as "spareparts_total2"
+        from
+        (
+          select
+                material_id,
+                spareparts_num,
+                spareparts_remark,
+                spareparts_total
+                from eam_inspectiontask_spareparts
+                where inspectiontask_id = #{inspectiontask_id}
+                  and material_id is not null and material_id != ''
+        ) a
+        full join
+        (
+          select
+                material_id,
+                spareparts_num,
+                spareparts_remark,
+                spareparts_total
+                from eam_inspectionroute_spareparts
+                where inspectionroute_id = #{route_id}
+                  and material_id is not null and material_id != ''
+        ) b
+        on a.material_id = b.material_id
+    </select>
+
+    <select id="getPersonInfos" resultType="java.util.Map">
+        select
+            case when a.loginname is not null then a.loginname
+            else b.loginname end loginname,
+            ISNULL(a.person_hours, 0) person_hours1,
+            ISNULL(b.person_hours, 0) person_hours2,
+            ISNULL(a.person_hourprice, 0) person_hourprice1,
+            ISNULL(b.person_hourprice, 0) person_hourprice2,
+            a.person_postskill person_postskill1,
+            b.person_postskill person_postskill2,
+            ISNULL(a.person_hourtotal, 0) person_hourtotal1,
+            ISNULL(b.person_hourtotal, 0) person_hourtotal2,
+            a.person_remark person_remark1,
+            b.person_remark person_remark2
+        from
+        (
+            select
+                loginname,
+                person_hours,
+                person_hourprice,
+                person_postskill,
+                person_hourtotal,
+                person_remark
+            FROM
+                eam_inspectiontask_person
+            WHERE
+                loginname IS NOT NULL
+            and inspectiontask_id = #{inspectiontask_id}
+        ) a
+        full join
+        (
+            select
+                loginname,
+                person_hours,
+                person_hourprice,
+                person_postskill,
+                person_hourtotal,
+                person_remark
+            FROM
+                eam_inspectionroute_person
+            WHERE
+                loginname IS NOT NULL
+            and inspectionroute_id = #{route_id}
+        ) b
+        on a.loginname = b.loginname
+    </select>
+
+    <select id="getOtherexpenseInfos" resultType="java.util.Map">
+        select
+            case when a.otherexpenses is not null then a.otherexpenses
+            else b.otherexpenses end otherexpenses,
+            ISNULL(a.otherexpenses_amount, 0) otherexpenses_amount1,
+            ISNULL(b.otherexpenses_amount, 0) otherexpenses_amount2,
+            a.otherexpenses_remark otherexpenses_remark1,
+            b.otherexpenses_remark otherexpenses_remark2
+        from
+        (
+            select
+                otherexpenses,
+                otherexpenses_amount,
+                otherexpenses_remark
+            FROM
+                eam_inspectiontask_others
+            WHERE
+                otherexpenses IS NOT NULL and otherexpenses != ''
+            and inspectiontask_id = #{inspectiontask_id}
+        ) a
+        full join
+        (
+            select
+                otherexpenses,
+                otherexpenses_amount,
+                otherexpenses_remark
+            FROM
+                eam_inspectionroute_others
+            WHERE
+                otherexpenses IS NOT NULL and otherexpenses != ''
+            and inspectionroute_id = #{route_id}
+        ) b
+        on a.otherexpenses = b.otherexpenses
+    </select>
+
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

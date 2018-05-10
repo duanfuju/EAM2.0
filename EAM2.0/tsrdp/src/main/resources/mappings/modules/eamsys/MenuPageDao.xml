@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tiansu.eam.modules.sys.dao.MenuPageDao">
+
+    <select id="findList" resultType="MenuPage">
+        select * from eam_menu_pages
+       <if test="menu_id !=null and menu_id !=''">
+           where menu_id=#{}
+       </if>
+    </select>
+</mapper>
+

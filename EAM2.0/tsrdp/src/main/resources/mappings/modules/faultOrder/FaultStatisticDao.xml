@@ -1,0 +1,589 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tiansu.eam.modules.faultOrder.dao.FaultStatisticDao">
+
+      <!--id,order_code,notifier_tel,notifier,notifier_dept,notifier_no,notifier_loc,order_device,notifier_appearance
+    ,notifier_source,order_level,order_expect_time,detail_location,notifier_remark,order_source,order_source_id
+    ,order_status,order_plan_start_time,order_plan_end_time,order_taking_time,order_finish_time,order_dispatch_time
+    ,arrive_img,order_receiver,order_solver,isovertime,order_dispatcher,order_fk_result,order_fk_photo,order_fk_video
+    ,order_fk_reason,pstid,create_by,create_time,isdelete,-->
+
+    <!--统计某段期间各个部门产生的故障工单数-->
+    <select id="getOccupancyByDept" parameterType="Map" resultType="Map">
+        select dept.deptname,count(o.id) as total_num from eam_fault_order o
+        left join ioms_dept dept on o.notifier_dept = dept.deptno
+        where o.create_time BETWEEN #{start} AND #{end}
+        and o.notifier_dept is not null and o.notifier_dept!=''
+        and dept.deptname is not null and dept.deptname!=''
+        and o.isdelete != '1'
+        GROUP BY dept.deptname
+    </select>
+
+
+
+
+
+    <!--统计某段期间工单来源占比-->
+    <select id="getOrderCountsBySource" parameterType="Map" resultType="Map">
+        select o.order_source,count(o.id) as total_num from eam_fault_order o
+        where o.create_time BETWEEN #{start} AND #{end}
+        and o.isdelete != '1'
+        GROUP BY o.order_source
+    </select>
+        <!--查询所有设备跟类别-->
+    <select id="getDeviceTree" resultType="Map">
+            SELECT
+        cat_id AS id,
+        cat_name AS name,
+        cat_code as code,
+        cat_pid AS pId,
+        id AS baseid,
+        'devCategory' AS type
+        FROM
+        eam_dev_category a
+        where isdelete = '0'
+        UNION ALL
+        SELECT
+        id AS id,
+        dev_name AS name,
+        dev_code as code,
+        dev_category AS pId,
+        id AS baseid,
+        'device' AS type
+        FROM
+        eam_device
+        where isdelete = '0'
+    </select>
+    <select id="getPersonTree" resultType="Map">
+        select deptno as id, deptname as name,parentid as pId,'dept' as type from ioms_dept
+              union all
+        select loginname as id,loginname as name,userdeptno as pId, 'emp' as type from ioms_user where isdeleted='0'
+    </select>
+    <!--根据设备id查询工单消耗-->
+    <select id="getCostsByDev" parameterType="Map" resultType="Map">
+        select tool_name,sum(tool_num) num,(sum(tool_num)*tool_price) total
+            from
+        (
+            SELECT
+                material_name tool_name,
+                tool_num,
+                cast(material_price as float) tool_price,
+                material_code
+            FROM
+                eam_fault_tools_fk a,
+                eam_material b
+            WHERE
+                a.tool_id = b.id
+            AND order_id IN (
+                SELECT id FROM eam_fault_order WHERE isdelete='0'and order_device =#{deviceId}and create_time between #{start} and #{end})
+                UNION ALL
+            SELECT
+                material_name tool_name,
+                part_num tool_num,
+                cast(material_price as float) tool_price,
+                material_code
+            FROM
+                eam_fault_spareparts_fk a,
+                eam_material b
+            WHERE
+                a.part_id = b.id
+            AND order_id IN (
+                SELECT id FROM eam_fault_order WHERE isdelete='0'and order_device =#{deviceId}and create_time between #{start} and #{end}))t
+                    GROUP BY
+                        t.material_code,t.tool_name,t.tool_price
+    </select>
+    <!--根据设备类别查询工单消耗-->
+    <select id="getCostsByDevCategory" parameterType="Map" resultType="Map">
+        SELECT
+	tool_name,
+	sum(tool_num) num,
+	(sum(tool_num) * tool_price) total
+  FROM
+	(
+		SELECT
+			material_name tool_name,
+			tool_num,
+			cast(material_price as float) tool_price,
+			material_code
+		FROM
+			eam_fault_tools_fk a,
+			eam_material b
+		WHERE
+			a.tool_id = b.id
+		AND order_id IN (
+			SELECT
+				id FROM eam_fault_order WHERE isdelete='0'
+			AND order_device IN (
+				SELECT
+					id FROM eam_device a
+				WHERE
+					a.dev_category
+						in(
+							SELECT
+								cat_id
+							FROM
+								eam_dev_category
+							WHERE
+								charindex(
+									(
+										SELECT
+											cat_seq
+										FROM
+											eam_dev_category
+										WHERE
+											id = #{categoryId}),cat_seq)>0))and create_time between #{start} and #{end})
+										UNION ALL
+											SELECT
+												material_name tool_name,
+												part_num tool_num,
+												cast(material_price as float) tool_price,
+												material_code
+											FROM
+												eam_fault_spareparts_fk a,
+												eam_material b
+											WHERE
+												a.part_id = b.id
+											AND order_id IN (
+												SELECT
+													id
+												FROM
+													eam_fault_order
+												WHERE
+													isdelete='0'
+												AND order_device IN (
+													SELECT
+														id
+													FROM
+														eam_device a
+													WHERE
+															a.dev_category in
+															(
+																SELECT
+																	cat_id
+																FROM
+																	eam_dev_category
+																WHERE
+																	charindex(
+																		(
+																			SELECT
+																				cat_seq
+																			FROM
+																				eam_dev_category
+																			WHERE
+																				id = #{categoryId}),cat_seq)>0))and create_time between #{start} and #{end}))t
+																			GROUP BY
+																				 t.material_code,t.tool_name,t.tool_price
+
+    </select>
+    <!--根据人员部门查询工单消耗-->
+    <select id="getoolDetByEmpcategory" parameterType="Map" resultType="Map">
+select tool_name,sum(tool_num) num,(sum(tool_num)*tool_price) total
+	from
+(
+	SELECT
+		material_name tool_name,
+		tool_num,
+		cast(material_price as float) tool_price,
+		material_code
+	FROM
+		eam_fault_tools_fk a,
+		eam_material b
+	WHERE
+		a.tool_id = b.id
+	AND order_id IN (
+		SELECT
+			id
+		FROM
+			eam_fault_order
+		WHERE
+			isdelete='0'
+		AND order_solver IN (
+            (select loginname from ioms_user a
+            where a.userdeptno in
+            <foreach item="depts" index="index" collection="dept" open="(" separator="," close=")">
+                #{depts}
+            </foreach>
+
+            )
+			) and create_time between #{start} and #{end})
+					  UNION ALL
+      SELECT
+        material_name tool_name,
+        part_num tool_num,
+        cast(material_price as float) tool_price,
+        material_code
+    FROM
+        eam_fault_spareparts_fk a,
+        eam_material b
+    WHERE
+        a.part_id = b.id
+    AND order_id IN (
+        SELECT
+            id
+        FROM
+            eam_fault_order
+        WHERE
+            isdelete='0'
+        AND order_solver IN (
+        (select loginname from ioms_user a
+        where a.userdeptno in
+        <foreach item="depts" index="index" collection="dept" open="(" separator="," close=")">
+            #{depts}
+        </foreach>
+
+        )
+            ) and create_time between #{start} and #{end}))t
+				GROUP BY
+				t.material_code,t.tool_name,t.tool_price
+    </select>
+    <!--根据人员查询工单消耗-->
+    <select id="getoolDetByEmp" parameterType="Map" resultType="Map">
+select tool_name,sum(tool_num) num,(sum(tool_num)*tool_price) total
+	from
+(
+	SELECT
+		material_name tool_name,
+		tool_num,
+		 cast(material_price as float) tool_price,
+		material_code
+	FROM
+		eam_fault_tools_fk a,
+		eam_material  b
+	WHERE
+		a.tool_id = b.id
+	AND order_id IN (
+		SELECT id FROM eam_fault_order WHERE isdelete = '0' AND order_solver = #{empid} and create_time between #{start} and #{end})
+	  UNION ALL
+          SELECT
+            material_name att_name, part_num tool_num, cast(material_price as float) tool_price, material_code
+            FROM
+            eam_fault_spareparts_fk a,
+            eam_material b
+            WHERE
+            a.part_id = b.id
+            AND order_id IN (
+            SELECT
+                id
+            FROM
+                eam_fault_order
+            WHERE
+                isdelete='0'
+            AND order_solver = #{empid} and create_time between #{start} and #{end}))t
+            GROUP BY
+		      t.material_code,t.tool_name,t.tool_price
+    </select>
+    <!--通过上级部门查找下级部门-->
+    <select id="getDeptByno" parameterType="String" resultType="Map">
+          select deptno from ioms_dept where parentid=#{pid}
+    </select>
+
+    <!--统计某段期间工单各个状态下的工单数-->
+    <select id="getOrderCountsByStatus" parameterType="Map" resultType="Map">
+        select o.order_status,count(o.id) as total_num from eam_fault_order o
+        where o.create_time BETWEEN #{start} AND #{end}
+        and o.isdelete != '1'
+        GROUP BY o.order_status
+    </select>
+    <!--查询统计级别下设备大类-->
+    <select id="getDevCatalogStaticLevel" parameterType="String" resultType="Map">
+        select cat_id,cat_name from eam_dev_category where cat_level = #{level}
+        and isdelete != '1'
+    </select>
+
+    <!--统计工单类别下设备所属大类及其数量-->
+    <select id="getDevCatalogOrderCount" parameterType="Map" resultType="Map">
+        SELECT count(o.id) as total_num,
+        <if test="dbName == 'mssql'">
+            SUBSTRING(c.cat_seq, len(cat_id)+3, len(cat_id)) as static_id
+        </if>
+        <if test="dbName == 'mysql'">
+            SUBSTRING(c.cat_seq, length(cat_id)+3, length(cat_id)) as static_id
+        </if>
+        from eam_fault_order o,eam_device d,eam_dev_category c
+        where d.dev_category = c.cat_id
+        and o.order_device = d.id
+        <if test="order_status != null and order_status != ''">
+          and o.order_status = #{order_status}
+        </if>
+        and o.isdelete != '1'
+        and o.create_time BETWEEN #{start} AND #{end}
+        <if test="dbName == 'mssql'">
+            group by SUBSTRING(c.cat_seq, LEN(cat_id)+3, LEN(cat_id))
+        </if>
+        <if test="dbName == 'mysql'">
+            group by SUBSTRING(c.cat_seq, length(cat_id)+3, length(cat_id))
+        </if>
+
+
+    </select>
+    <!--根据设备id或人员Id查总消耗-->
+    <select id="queryTotalCost" parameterType="Map" resultType="Map">
+    SELECT
+    (select SUM(tool_num) from
+    (select * from eam_fault_tools_fk union ALL select * from eam_fault_spareparts_fk)t,eam_fault_order o
+    where t.order_id=o.id and o.isdelete='0' and o.create_time between #{start} and #{end}
+    <if test="deviceId != null and deviceId != ''">
+       and o.order_device=#{deviceId}
+    </if>
+    <if test="empid != null and empid != ''">
+       and o.order_solver=#{empid}
+    </if>
+    ) as total_num,
+    (select SUM(cast(hour as int)) from eam_fault_person_fk t,eam_fault_order o
+    where
+    t.order_id =o.id and o.isdelete='0' and o.create_time between #{start} and #{end}
+    <if test="deviceId != null and deviceId != ''">
+       and o.order_device=#{deviceId}
+    </if>
+    <if test="empid != null and empid != ''">
+       and o.order_solver=#{empid}
+    </if>
+    ) as total_hour,
+    (select SUM(pri) from
+    (select order_id,(cast(hour as int)*cast(charge as int)) pri from eam_fault_person_fk
+    union ALL
+    SELECT
+    order_id,
+    (tool_num * cast(material_price as float)) pri
+    FROM
+    eam_fault_tools_fk f,
+    eam_material o
+    WHERE
+    f.tool_id = o.id
+    UNION ALL
+    SELECT
+    order_id,
+    (part_num * cast(material_price as float)) pri
+    FROM
+    eam_fault_spareparts_fk f,
+    eam_material o
+    WHERE
+    f.part_id = o.id
+    union All
+    select order_id,charge_price pri from eam_fault_othercharges_fk)t,eam_fault_order o
+    where t.order_id=o.id and o.isdelete='0' and o.create_time between #{start} and #{end}
+    <if test="deviceId != null and deviceId != ''">
+       and o.order_device=#{deviceId}
+    </if>
+    <if test="empid != null and empid != ''">
+       and o.order_solver=#{empid}
+    </if>
+    ) as total_pay
+    </select>
+<!--通过类别查询总消耗-->
+    <select id="queryTotalCostBycagory" parameterType="Map" resultType="Map">
+        SELECT
+        (select SUM(tool_num) from
+        (select * from eam_fault_tools_fk union ALL select * from eam_fault_spareparts_fk)t,eam_fault_order o
+        where t.order_id=o.id and o.isdelete='0' and o.create_time between #{start} and #{end}
+        <if test="categoryId != null and categoryId != ''">
+           and o.order_device in(SELECT id FROM eam_device a
+            WHERE
+            a.dev_category in
+            (
+            SELECT
+            cat_id
+            FROM
+            eam_dev_category
+            WHERE
+            charindex(
+            (
+            SELECT
+            cat_seq
+            FROM
+            eam_dev_category
+            WHERE
+            id = #{categoryId}),cat_seq)>0))
+        </if>
+        <if test="dept != null and dept != ''">
+            and o.order_solver in(select loginname from ioms_user a
+            where a.userdeptno in
+            <foreach item="depts" index="index" collection="dept" open="(" separator="," close=")">
+                #{depts}
+            </foreach>
+
+            )
+        </if>
+        ) as total_num,
+        (select SUM(cast(hour as int)) from eam_fault_person_fk t,eam_fault_order o
+        where
+        t.order_id =o.id and o.isdelete='0' and o.create_time between #{start} and #{end}
+        <if test="categoryId != null and categoryId != ''">
+           and o.order_device in(SELECT id FROM eam_device a
+            WHERE
+            a.dev_category in
+            (
+            SELECT
+            cat_id
+            FROM
+            eam_dev_category
+            WHERE
+            charindex(
+            (
+            SELECT
+            cat_seq
+            FROM
+            eam_dev_category
+            WHERE
+            id = #{categoryId}),cat_seq)>0))
+        </if>
+        <if test="dept != null and dept != ''">
+            and o.order_solver in(select loginname from ioms_user a
+             where a.userdeptno in
+            <foreach item="depts" index="index" collection="dept" open="(" separator="," close=")">
+                #{depts}
+            </foreach>
+
+            )
+        </if>
+        ) as total_hour,
+        (select SUM(pri) from
+        (select order_id,(cast(hour as int)*cast(charge as int)) pri from eam_fault_person_fk
+        union ALL
+        SELECT
+        order_id,
+        (tool_num * cast(material_price as float)) pri
+        FROM
+        eam_fault_tools_fk f,
+        eam_material o
+        WHERE
+        f.tool_id = o.id
+        UNION ALL
+        SELECT
+        order_id,
+        (part_num * cast(material_price as float)) pri
+        FROM
+        eam_fault_spareparts_fk f,
+        eam_material o
+        WHERE
+        f.part_id = o.id
+        union All
+        select order_id,charge_price pri from eam_fault_othercharges_fk)t,eam_fault_order o
+        where t.order_id=o.id and o.isdelete='0'
+        and o.create_time between #{end} and #{end}
+        <if test="categoryId != null and categoryId != ''">
+           and o.order_device in (SELECT id FROM eam_device a
+            WHERE
+            a.dev_category in
+            (
+            SELECT
+            cat_id
+            FROM
+            eam_dev_category
+            WHERE
+            charindex(
+            (
+            SELECT
+            cat_seq
+            FROM
+            eam_dev_category
+            WHERE
+            id = #{categoryId}),cat_seq)>0))
+        </if>
+        <if test="dept != null and dept != ''">
+            and o.order_solver in(select loginname from ioms_user a
+            where a.userdeptno in
+            <foreach item="depts" index="index" collection="dept" open="(" separator="," close=")">
+                #{depts}
+            </foreach>
+
+            )
+        </if>
+        ) as total_pay
+    </select>
+    <!--统计某段期间工单总数-->
+    <select id="getOrderCount" parameterType="Map" resultType="Int">
+        select count(o.id) as total_num from eam_fault_order o
+        where o.create_time BETWEEN #{start} AND #{end}
+        and o.isdelete != '1'
+    </select>
+
+
+    <!--统计完成率信息-->
+    <select id="countFinishOrdersByUser" parameterType="Map" resultType="Map">
+        select count(o.id) as total_num,o.order_solver as user_name from eam_fault_order o
+        where o.isdelete != '1'
+        and o.order_finish_time is not null
+        <if test="start != null and end != null">
+            and o.create_time BETWEEN #{start} AND #{end}
+        </if>
+        <if test="userStr != null">
+            and o.order_solver in (${userStr})
+        </if>
+        group by o.order_solver
+    </select>
+
+    <select id="countAcceptOrdersByUser" parameterType="Map" resultType="Map">
+        select count(o.id) as total_num,o.order_solver as user_name from eam_fault_order o
+        where o.isdelete != '1'
+        and o.order_taking_time is not null
+        <if test="start != null and end != null">
+            and o.create_time BETWEEN #{start} AND #{end}
+        </if>
+        <if test="userStr != null">
+            and o.order_solver in (${userStr})
+        </if>
+        group by o.order_solver
+    </select>
+
+    <!--统计及时率信息-->
+    <select id="countTimelyOrdersByUser" parameterType="Map" resultType="Map">
+        select count(o.id) as total_num,o.order_solver as user_name from eam_fault_order o
+        where o.isdelete != '1'
+        and o.order_taking_time is not null
+        and o.order_dispatch_time is not null
+        <if test="dbName == 'mssql'">
+            and DATEDIFF(Minute, o.order_dispatch_time, o.order_taking_time) &lt;= 30
+        </if>
+        <if test="dbName == 'mysql'">
+            and TIMESTAMPDIFF(Minute, o.order_dispatch_time, o.order_taking_time) &lt;= 30
+        </if>
+
+        <if test="start != null and end != null">
+            and o.create_time BETWEEN #{start} AND #{end}
+        </if>
+        <if test="userStr != null">
+            and o.order_solver in (${userStr})
+        </if>
+        group by o.order_solver
+    </select>
+
+
+    <!--统计工时信息-->
+    <select id="countWorkHoursByUser" parameterType="Map" resultType="Map">
+        select o.order_solver as user_name,
+        <if test="dbName == 'mssql'">
+            sum(DATEDIFF(Minute, o.order_taking_time, o.order_finish_time)) as total_num
+        </if>
+        <if test="dbName == 'mysql'">
+            sum(TIMESTAMPDIFF(Minute, o.order_taking_time, o.order_finish_time)) as total_num
+        </if>
+        from eam_fault_order o
+        where o.isdelete != '1'
+        and o.order_taking_time is not null
+        and o.order_finish_time is not null
+        <if test="start != null and end != null">
+            and o.create_time BETWEEN #{start} AND #{end}
+        </if>
+        <if test="userStr != null">
+            and o.order_solver in (${userStr})
+        </if>
+        group by o.order_solver
+    </select>
+
+    <!--统计评分信息-->
+    <select id="countEvaluateScoreByUser" parameterType="Map" resultType="Map">
+        select avg(cast(o.evaluate_score as float)) as total_num,o.order_solver as user_name from eam_fault_order o
+        where o.isdelete != '1'
+        and o.evaluate_score is not null
+        <if test="start != null and end != null">
+            and o.create_time BETWEEN #{start} AND #{end}
+        </if>
+        <if test="userStr != null">
+            and o.order_solver in (${userStr})
+        </if>
+        group by o.order_solver
+    </select>
+
+
+</mapper>

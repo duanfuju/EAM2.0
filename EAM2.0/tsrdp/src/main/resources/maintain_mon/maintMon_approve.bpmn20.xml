@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:activiti="http://activiti.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://www.activiti.org/processdef">
+  <process id="maintMon_approve" name="保养月计划审批" isExecutable="true">
+    <documentation>保养月计划审批</documentation>
+    <startEvent id="start" name="开始"></startEvent>
+    <endEvent id="end" name="结束"></endEvent>
+    <userTask id="approve" name="审批" activiti:async="true" activiti:candidateUsers="tiger" activiti:formKey="maintain_mon/standardLibraryApr.jsp">
+      <documentation>保养月计划审批</documentation>
+      <extensionElements>
+        <activiti:taskListener event="complete" class="com.tiansu.eam.modules.maintain.service.ActMaintainProjectSubAfter">
+          <activiti:field name="approveReason">
+            <activiti:expression><![CDATA[${approveReason}]]></activiti:expression>
+          </activiti:field>
+          <activiti:field name="pIid">
+            <activiti:expression><![CDATA[${pIid}]]></activiti:expression>
+          </activiti:field>
+          <activiti:field name="deptLeaderApproved">
+            <activiti:expression><![CDATA[${deptLeaderApproved}]]></activiti:expression>
+          </activiti:field>
+        </activiti:taskListener>
+      </extensionElements>
+    </userTask>
+    <sequenceFlow id="sid-62739991-95DE-4743-B60B-4B49FACADE61" sourceRef="start" targetRef="approve"></sequenceFlow>
+    <sequenceFlow id="sid-F94316F1-12B3-4B3F-9F9B-B116CF6AD984" sourceRef="approve" targetRef="end"></sequenceFlow>
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_maintMon_approve">
+    <bpmndi:BPMNPlane bpmnElement="maintMon_approve" id="BPMNPlane_maintMon_approve">
+      <bpmndi:BPMNShape bpmnElement="start" id="BPMNShape_start">
+        <omgdc:Bounds height="30.0" width="30.0" x="225.00000000000003" y="147.99999841054282"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="end" id="BPMNShape_end">
+        <omgdc:Bounds height="28.0" width="28.0" x="852.0972149132947" y="148.99999841054282"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="approve" id="BPMNShape_approve">
+        <omgdc:Bounds height="79.99999999999999" width="99.99999999999994" x="465.00000000000006" y="122.99999841054283"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="sid-62739991-95DE-4743-B60B-4B49FACADE61" id="BPMNEdge_sid-62739991-95DE-4743-B60B-4B49FACADE61">
+        <omgdi:waypoint x="255.00000000000003" y="162.99999841054282"></omgdi:waypoint>
+        <omgdi:waypoint x="465.00000000000006" y="162.99999841054282"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-F94316F1-12B3-4B3F-9F9B-B116CF6AD984" id="BPMNEdge_sid-F94316F1-12B3-4B3F-9F9B-B116CF6AD984">
+        <omgdi:waypoint x="565.0" y="162.99999841054282"></omgdi:waypoint>
+        <omgdi:waypoint x="852.0972149132947" y="162.99999841054282"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

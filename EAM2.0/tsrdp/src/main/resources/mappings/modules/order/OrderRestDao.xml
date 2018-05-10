@@ -1,0 +1,305 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tiansu.eam.interfaces.order.dao.OrderRestDao">
+    <sql id="orderColumns">
+        a.id                  AS orderId,
+        a.order_code          AS code,
+        a.notifier_tel        AS bugLinkManPhone,
+        a.notifier            AS bugLinkMan,
+        a.notifier_loc        AS location,
+        dbo.getLocName(a.notifier_loc,'') AS locationName,
+        dev.dev_name        AS devName,
+        a.notifier_appearance AS bugAppearance,
+        a.order_level         AS orderLevel,
+        (select dict_name from eam_dict where dict_type_code = 'repair_order_level' and dict_value = a.order_level) AS  orderLevelName,
+        a.order_expect_time   AS expectTime,
+        a.detail_location     AS detailLocation,
+        a.order_status AS orderStatus,
+        (select dict_name from eam_dict where dict_type_code = 'repair_order_status' and dict_value = a.order_status) AS  orderStatusName,
+        a.order_plan_start_time AS planStartTime,
+        a.order_plan_end_time AS planFinishTime,
+        a.order_taking_time AS takingTime,
+        a.order_finish_time AS finishTime,
+        a.order_dispatch_time AS dispatchTime,
+        a.order_arrivetime AS arriveTime,
+        a.create_time AS createTime,
+        a.isovertime ,
+        a.notifier_source AS source,
+        a.pstid
+    </sql>
+
+
+    <sql id="orderDetailsColumns">
+        a.arrive_img AS arriveImg,
+        a.order_fk_reason AS reason,
+        a.order_fk_result AS orderResult,
+        a.notifier_photo AS bugImg,
+        a.notifier_video AS bugVideo,
+        a.order_fk_photo AS fkImg,
+        a.order_fk_video AS fkVideo,
+        a.evaluate_score AS score,
+        a.evaluate_remark AS evaluate
+    </sql>
+
+    <sql id="orderTool">
+        tool.id AS "id",
+        tool.tool_id AS "toolId",
+        material.material_name AS "name",
+        material.material_unit AS "unit",
+        material.material_model AS "model",
+        tool.tool_num AS "number",
+        material.material_price AS "price",
+        tool.tool_remark AS  "note"
+    </sql>
+
+    <sql id="orderSpareparts">
+        spareparts.id AS "id",
+        spareparts.part_id AS "toolId" ,
+        spareparts.part_num AS "number",
+        spareparts.part_remark AS "note",
+        material.material_name AS "name",
+        material.material_unit AS "unit",
+        material.material_model AS "model",
+        material.material_price AS "price"
+    </sql>
+
+    <sql id="orderPerson">
+        id AS "id",
+        emp_id AS "userId",
+        hour AS "hour",
+        charge AS "price",
+        remark AS "note"
+    </sql>
+
+    <sql id="orderOtherCharges">
+        id AS "id",
+        charge_name AS "name",
+        charge_price AS "price",
+        charge_remark AS "note"
+    </sql>
+
+    <sql id="orderJoins">
+        LEFT JOIN eam_device dev ON dev.id = a.order_device
+    </sql>
+
+    <sql id="myOrderJoins">
+        LEFT JOIN ACT_RU_TASK RES ON RES.PROC_INST_ID_ = a.pstid
+        LEFT JOIN ACT_RU_IDENTITYLINK I ON I.TASK_ID_ = RES.ID_
+        LEFT JOIN ACT_RE_PROCDEF P ON P.ID_ = RES.PROC_DEF_ID_
+    </sql>
+
+    <sql id="orderToolJoins">
+        LEFT JOIN eam_material material ON tool.tool_id = material.id
+    </sql>
+
+    <sql id="orderSparepartsJoins">
+        LEFT JOIN eam_material material ON spareparts.part_id = material.id
+    </sql>
+
+    <sql id="whereJoins">
+        AND RES.SUSPENSION_STATE_ = '1' AND
+        (RES.ASSIGNEE_ = #{userId} OR
+        (RES.ASSIGNEE_ IS NULL AND
+        (I.USER_ID_ = #{userId} OR I.GROUP_ID_ IN (select G.roleno from ioms_roleuser G where G.loginname = #{userId}))))
+    </sql>
+
+
+    <select id="findMyRepList" resultType="com.tiansu.eam.interfaces.order.entity.OrderListJson">
+        SELECT
+
+        <include refid="orderColumns"/>
+        FROM eam_fault_order a
+        <include refid="orderJoins"/>
+        <where>
+            a.isdelete != '1' AND a.create_by = #{userId}
+
+            <if test="list!=null and list.size()>0">
+                AND a.order_status IN
+                <foreach item="list" collection="list" open="(" separator="," close=")">
+                    #{list}
+                </foreach>
+            </if>
+
+            <if test="dbName == 'oracle'">
+                AND a.create_time BETWEEN to_date(sysdate-30, 'yyyy-mm-dd') AND to_date(sysdate,'yyyy-mm-dd')
+            </if>
+
+            <if test="dbName == 'mssql'">
+                <![CDATA[AND DateDiff(DD, a.create_time, getdate()) <= 30]]>
+            </if>
+
+            <if test="dbName == 'mysql'">
+                <![CDATA[AND TO_DAYS(NOW()) - TO_DAYS(a.create_time) <= 30]]>
+            </if>
+
+        </where>
+        <choose>
+            <when test="page !=null and page.orderBy != null and page.orderBy != ''">
+                ORDER BY ${page.orderBy}
+            </when>
+            <otherwise>
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="findMyOrderList" resultType="com.tiansu.eam.interfaces.order.entity.OrderListJson">
+        SELECT
+        <include refid="orderColumns"/>
+        FROM eam_fault_order a
+        <include refid="orderJoins"/>
+        <where>
+            a.pstid IN
+            <foreach item="list" collection="list" open="(" separator="," close=")">
+                #{list,jdbcType=VARCHAR}
+            </foreach>
+        </where>
+        <choose>
+            <when test="orderBy != null and orderBy != ''">
+                ORDER BY ${orderBy}
+            </when>
+            <otherwise>
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="findMyOrderDetail" parameterType="java.util.Map"
+            resultType="com.tiansu.eam.interfaces.order.entity.OrderDetailsJson">
+
+        SELECT DISTINCT
+        <include refid="orderColumns"/>
+        ,
+        <include refid="orderDetailsColumns"/>
+        <if test="flag == 1">
+            ,RES.ID_ AS taskId ,RES.TASK_DEF_KEY_ AS taskDefKey
+        </if>
+        FROM eam_fault_order a
+
+        <include refid="orderJoins"/>
+        <if test="flag == 1">
+            <include refid="myOrderJoins"/>
+        </if>
+        <where>
+            a.isdelete != '1'
+            <choose>
+                <when test="orderId!=null and orderId!=''">
+                    AND a.id = #{orderId}
+                </when>
+                <otherwise>
+                    AND a.order_device = #{devId} AND a.order_status IN ('2','4','6','7')
+                </otherwise>
+            </choose>
+
+            <if test="flag==1">
+                <include refid="whereJoins"/>
+            </if>
+
+        </where>
+        <choose>
+            <when test="page!=null and page!=''">
+                ORDER BY #{page.orderBy}
+            </when>
+            <otherwise>
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="findOrderTool" parameterType="java.lang.String"
+            resultType="com.tiansu.eam.interfaces.common.Tool_MaterialsJson">
+        SELECT
+        <include refid="orderTool"/>
+        FROM eam_fault_tools tool
+        <include refid="orderToolJoins"/>
+        <where>
+            material.isdelete != '1' AND tool.order_id = #{orderId}
+        </where>
+
+    </select>
+
+    <select id="findOrderToolFK" parameterType="java.lang.String"
+            resultType="com.tiansu.eam.interfaces.common.Tool_MaterialsJson">
+        SELECT
+        <include refid="orderTool"/>
+        FROM eam_fault_tools_fk tool
+        <include refid="orderToolJoins"/>
+        <where>
+            material.isdelete != '1' AND tool.order_id = #{orderId}
+        </where>
+
+    </select>
+
+    <select id="findOrderSpareparts" parameterType="java.lang.String"
+            resultType="com.tiansu.eam.interfaces.common.Tool_MaterialsJson">
+        SELECT
+        <include refid="orderSpareparts"/>
+        FROM eam_fault_spareparts spareparts
+        <include refid="orderSparepartsJoins"/>
+        <where>
+            material.isdelete != '1' AND spareparts.order_id = #{orderId}
+        </where>
+
+    </select>
+
+    <select id="findOrderSparepartsFK" parameterType="java.lang.String"
+            resultType="com.tiansu.eam.interfaces.common.Tool_MaterialsJson">
+        SELECT
+        <include refid="orderSpareparts"/>
+        FROM eam_fault_spareparts_fk spareparts
+        <include refid="orderSparepartsJoins"/>
+        <where>
+            material.isdelete != '1' AND spareparts.order_id = #{orderId}
+        </where>
+
+    </select>
+
+
+    <select id="findOrderPerson" parameterType="java.lang.String"
+            resultType="com.tiansu.eam.interfaces.common.OtherChargesJosn">
+        SELECT
+        <include refid="orderPerson"/>
+        FROM eam_fault_person
+        WHERE order_id = #{orderId}
+
+    </select>
+
+    <select id="findOrderPersonFK" parameterType="java.lang.String"
+            resultType="com.tiansu.eam.interfaces.common.OtherChargesJosn">
+        SELECT
+        <include refid="orderPerson"/>
+        FROM eam_fault_person_fk
+        WHERE order_id = #{orderId}
+
+    </select>
+
+    <select id="findOrderOtherCharges" parameterType="java.lang.String"
+            resultType="com.tiansu.eam.interfaces.common.PersonJson">
+        SELECT
+        <include refid="orderOtherCharges"/>
+        FROM eam_fault_othercharges
+        WHERE order_id = #{orderId}
+
+    </select>
+
+    <select id="findOrderOtherChargesFK" parameterType="java.lang.String"
+            resultType="com.tiansu.eam.interfaces.common.PersonJson">
+        SELECT
+        <include refid="orderOtherCharges"/>
+        FROM eam_fault_othercharges_fk
+        WHERE order_id = #{orderId}
+
+    </select>
+    <select id="getFaultSwitch" resultType="com.tiansu.eam.modules.faultOrder.entity.FaultSwitch">
+        SELECT
+	      TOP 1 *
+        FROM
+            eam_fault_order_switch
+        WHERE
+            order_id = #{orderId}
+            AND switch_type = #{switchType}
+            AND approve_status = #{approveStatus}
+            AND isdelete = 0
+        ORDER BY
+            relieve_time DESC
+    </select>
+</mapper>
+
+

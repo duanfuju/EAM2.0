@@ -1,0 +1,53 @@
+<div class="guide"></div>
+<section class="content module2">
+    <input type="button" class="queryBtn" value="请选择查询条件">
+    <div class="queryTable hide">
+        <form id="searchForm"  class="form-horizontal">
+            查询条件项和按钮显示区域
+        </form>
+    </div>
+    <div style="display: flex">
+
+        <div class="treeContainer">
+                <div class="ztreeInputCont">
+                    <input type="text" id="posA" placeholder="请输入A"/>
+                    <i id="findNodeA"></i>
+                </div>
+                <div class="zTreeLeft">
+                    <ul id="materTreeA" class="ztree"></ul>
+                </div>
+        </div>
+        <div class="hideTree"><i class="hideTreeBtn-show"></i></div>
+        <div class="row" style="flex: 1;">
+            <div class="col-xs-12">
+                <div class="box">
+                    <div class="box-body">
+                        <span class="record" id="rowsCount">共0条记录</span>
+                        <div class="btnArea" style="float: right;">
+                            <input type="button" value="编辑" id="edit">
+                            <input type="button" value="删除" id="delete">
+                            <input type="button" value="增加" id="add">
+                        </div>
+                        <table id="mytable" class="table table-bordered table-hover mytable">
+                            <thead>
+                            <tr>
+                                <th>物料编码</th>
+                                <th>物料名称</th>
+                                <th>库存数量</th>
+                                <th>单位</th>
+                                <th>标准成本</th>
+                                <th>物料类别</th>
+                                <th>供应商</th>
+                                <th>重要程度</th>
+                                <th>采购方式</th>
+                                <th>状态</th>
+                            </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="footerC">我是版权信息</div>
+</section>

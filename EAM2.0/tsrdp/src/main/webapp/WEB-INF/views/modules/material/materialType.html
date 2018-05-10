@@ -1,0 +1,46 @@
+<link href="/resource/plugins/ligerUI/skins/Aqua/css/ligerui-all.css" rel="stylesheet" type="text/css" />
+
+
+<section class="content module2">
+    <input type="file" name="fileField" class="file" id="fileField" onChange=""/>
+    <form id="searchForm"  class="form-horizontal">
+        <!--查询条件项和按钮显示区域-->
+    </form>
+    <input type="button" class="queryBtn" value="请选择查询条件">
+    <ul class="queryInfo"></ul>
+    <div class="guide"></div>
+    <div class="queryTable hide">
+
+    </div>
+    <div style="display: flex">
+        <div class="hideTree"></div>
+        <div class="treeContainer">
+            <div class="ztreeInputCont">
+                <input type="text" id="posA" placeholder="请输入物料类别名称"/>
+                <i id="findNodeA"></i>
+            </div>
+            <div class="zTreeLeft">
+                <ul id="materTreeA" class="ztree"></ul>
+            </div>
+        </div>
+        <div class="hideTree"><i class="hideTreeBtn-show"></i></div>
+        <div class="row" style="flex: 1;">
+            <div class="col-xs-12">
+                <div class="box">
+                    <div class="box-body">
+                        <span class="record" id="rowsCount">共0条记录</span>
+                        <div class="btnArea" style="float: right;">
+
+                        </div>
+                        <table id="mytable" class="table table-bordered table-hover mytable">
+                            <thead>
+
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="footerC"></div>
+</section>

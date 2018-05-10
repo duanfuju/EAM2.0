@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tiansu.eam.modules.schedual.dao.SchedualDao">
+
+    <sql id="SchedualColumns">
+        a.id AS "id",
+        a.schedual_type_id AS "schedual_type.id",
+        t.type_name AS "schedual_type.type_name",
+        a.schedual_emp AS "schedual_emp",
+        a.schedule_date AS "schedule_date",
+        a.order_id,
+        t.type_code,t.type_name
+    </sql>
+
+    <sql id="schedualJoins">
+         LEFT JOIN eam_schedual_type t ON t.id = a.schedual_type_id
+         LEFT JOIN eam_schedual_order o ON o.id = a.order_id
+    </sql>
+
+    <select id="get" resultType="com.tiansu.eam.modules.schedual.entity.Schedual">
+        SELECT
+        <include refid="SchedualColumns"/>
+        FROM eam_schedual a
+        <include refid="schedualJoins"/>
+        WHERE a.id = #{id}
+        and a.isdelete != '1'
+    </select>
+
+    <select id="findList" resultType="com.tiansu.eam.modules.schedual.entity.Schedual">
+        SELECT
+        <include refid="SchedualColumns"/>
+        FROM eam_schedual a
+        <include refid="schedualJoins"/>
+        <where>
+            t.isdelete == 0
+            and a.isdelete == 0
+        </where>
+        <choose>
+            <when test="page !=null and page.orderBy != null and page.orderBy != ''">
+                ORDER BY ${page.orderBy}
+            </when>
+            <otherwise>
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="getSchedualsByDate" parameterType="java.lang.String" resultType="com.tiansu.eam.modules.schedual.entity.Schedual">
+        SELECT
+        <include refid="SchedualColumns"/>
+        FROM eam_schedual a
+        <include refid="schedualJoins"/>
+        <where>
+            t.isdelete = 0
+            and o.approve_status=2
+            and a.isdelete = 0
+            and a.schedule_date = #{dateStr}
+        </where>
+
+    </select>
+
+    <select id="findListByMap" resultType="com.tiansu.eam.modules.schedual.entity.Schedual">
+        SELECT
+        <include refid="SchedualColumns"/>
+        FROM eam_schedual a
+        <include refid="schedualJoins"/>
+        <where>
+            a.isdelete != '1'
+        </where>
+        <choose>
+            <when test="page !=null and page.orderBy != null and page.orderBy != ''">
+                ORDER BY ${page.orderBy}
+            </when>
+            <otherwise>
+            </otherwise>
+        </choose>
+    </select>
+
+    <insert id="insert" parameterType="com.tiansu.eam.modules.schedual.entity.Schedual">
+        INSERT INTO eam_schedual(
+        id,schedual_type_id,schedual_emp,schedule_date,order_id,
+        create_by,create_time,isdelete
+        ) VALUES (
+        #{id},#{schedual_type.id},#{schedual_emp},#{schedule_date},#{order_id},#{createBy.loginname},#{createDate},0
+        )
+    </insert>
+
+
+    <insert id="batchInsert" parameterType="java.util.List">
+        INSERT INTO eam_schedual(
+        id,schedual_type_id,schedual_emp,schedule_date,order_id,create_by,create_time,isdelete)
+        VALUES
+        <foreach collection="list" item="item" index="index" separator="," >
+            (#{item.id},#{item.schedual_type.id},#{item.schedual_emp},#{item.schedule_date},#{item.order_id},#{item.createBy.loginname},#{item.createDate},0)
+        </foreach>
+    </insert>
+    <!--
+        insertBatch 有别于batchInsert
+        所有的导入sql都是insertBatch
+        排班和排班单的导入用共同的一个javaBean
+        个别属性名称不同，但是代表的是一个意思
+                            by  dfj
+    -->
+    <insert id="insertBatch">
+        INSERT INTO eam_schedual(
+        id,schedual_type_id,schedual_emp,schedule_date,order_id,create_by,create_time,isdelete)
+        VALUES
+        <foreach collection="list" item="item" index="index" separator="," >
+            (
+            #{item.id},#{item.schedual_type_code},#{item.schedual_emp},#{item.schedule_date},#{item.order_id},
+            #{item.createBy.loginname},#{item.createDate},0
+            )
+        </foreach>
+    </insert>
+    <update id="update" parameterType="com.tiansu.eam.modules.schedual.entity.Schedual">
+        UPDATE eam_schedual SET
+        <if test="schedual_type != null ">schedual_type_id = #{schedual_type.id}</if>
+        <if test="schedual_emp != null ">,schedual_emp = #{schedual_emp}</if>
+        <if test="schedule_date != null ">,schedule_date = #{schedule_date}</if>
+        <if test="order_id != null ">,order_id = #{order_id}</if>
+        <if test="updateBy != null ">,update_by = #{updateBy.loginname}</if>
+        <if test="updateDate != null ">,update_time = #{updateDate}</if>
+        WHERE id = #{id}
+    </update>
+
+    <update id="delete" parameterType="com.tiansu.eam.modules.schedual.entity.Schedual">
+        UPDATE eam_schedual SET
+        isdelete = '1',
+        update_by = #{updateBy.loginname},
+        update_time = #{updateDate}
+        WHERE id = #{id}
+    </update>
+
+    <update id="deleteByOrderId" parameterType="java.lang.String">
+        delete from eam_schedual
+        where order_id = #{order_id}
+    </update>
+
+
+</mapper>

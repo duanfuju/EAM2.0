@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tiansu.eam.modules.opestandard.dao.StandardOrderDao">
+    <sql id="columns">
+        id as 'id_key',order_code,order_content,order_priority,order_work,order_desc,approve_status,order_status
+    </sql>
+    <sql id="columnsForExport">
+        id as 'id_key',
+        order_code,
+        order_content,
+        order_priority,
+        REPLACE(order_work,';',',') order_work_code,
+        REPLACE(order_work,';',',') order_work_name,
+        order_major,
+        order_totalhours,
+        order_desc,
+        order_remark,
+        approve_status,
+        order_status
+    </sql>
+
+    <select id="findListByMap" parameterType="Map" resultType="Map">
+        select
+        <choose>
+            <when test="export !=null and export != ''">
+                <include refid="columnsForExport"/>
+            </when>
+            <otherwise>
+                <include refid="columns"/>
+            </otherwise>
+        </choose>
+        FROM
+        eam_operation_orders a
+        <where>
+            a.isdelete=0
+            <if test="dept != null and dept != ''">
+                AND a.create_by IN
+                <if test="dbName == 'mssql'">(SELECT loginname FROM ioms_user WHERE dbo.find_in_set(userdeptno, #{dept})>0)</if>
+                <if test="dbName == 'mysql'">(SELECT loginname FROM ioms_user WHERE find_in_set(userdeptno, #{dept})>0)</if>
+            </if>
+            <if test="order_code != null and order_code != ''">
+                AND
+                a.order_code LIKE
+                <if test="dbName == 'mssql'">'%'+#{order_code}+'%'</if>
+                <if test="dbName == 'mysql'">concat('%',#{order_code},'%')</if>
+
+            </if>
+            <if test="order_content != null and order_content != ''">
+                AND
+                a.library_name LIKE
+                <if test="dbName == 'mssql'">'%'+#{order_content}+'%'</if>
+                <if test="dbName == 'mysql'">concat('%',#{order_content},'%')</if>
+            </if>
+            <if test="approve_status !=null and approve_status !=''">
+                 AND
+                a.approve_status=#{approve_status}
+            </if>
+            <if test="order_priority !=null and order_priority !=''">
+                AND
+                a.order_priority=#{order_priority}
+            </if>
+            <if test="ids != null and ids != ''">
+                AND a.id in
+                <foreach item="ids" index="index" collection="ids" open="(" separator="," close=")">
+                    #{ids}
+                </foreach>
+            </if>
+        </where>
+        <choose>
+            <when test="page !=null and page.orderBy != null and page.orderBy != ''">
+                ORDER BY ${page.orderBy}
+            </when>
+            <otherwise>
+                order by create_time desc
+            </otherwise>
+        </choose>
+
+    </select>
+
+    <select id="getAllCodes" parameterType="Map" resultType="Map">
+        select DISTINCT id,order_code as 'code'
+        from  eam_operation_orders
+        where  isdelete = 0
+        <if test="approve_status != null and approve_status != ''">
+            and approve_status = #{approve_status}
+        </if>
+    </select>
+
+
+    <insert id="insert">
+        INSERT INTO eam_operation_orders
+        (id,order_code,order_content,order_priority,order_work,order_totalhours,order_desc,order_remark,order_status,order_major,create_by,create_time,isdelete,pstid,approve_status)
+        VALUES
+        (#{id},#{order_code},#{order_content},#{order_priority},#{order_work},#{order_totalhours},#{order_desc},#{order_remark},#{order_status},#{order_major},#{createBy.loginname},#{createDate},'0',#{pstid},#{approve_status})
+    </insert>
+
+    <!--获取单个-->
+    <select id="get" parameterType="String" resultType="com.tiansu.eam.modules.opestandard.entity.StandardOrder">
+        SELECT
+      id as id_key,order_code,order_content,order_priority,order_work,order_totalhours,order_desc,order_remark,order_status,order_major,create_by,create_time,isdelete,pstid,approve_status
+        FROM
+        eam_operation_orders a
+        WHERE id=#{id}
+    </select>
+
+    <!--编辑,先删除再添加-->
+    <update id="update">
+        update eam_operation_orders
+        SET order_content=#{order_content},
+            order_priority=#{order_priority},
+            order_work=#{order_work},order_desc=#{order_desc},order_status=#{order_status},order_major=#{order_major},order_totalhours=#{order_totalhours},
+             update_by=#{updateBy.loginname},
+             update_time=#{updateDate}
+        WHERE
+        id=#{id_key}
+    </update>
+
+    <!--逻辑删除-->
+    <update id="deleteByids">
+        update eam_operation_orders
+        SET isdelete =1,update_by=#{updateBy.loginname},
+             update_time=#{updateDate}
+        where id=#{id_key}
+    </update>
+    <!--通过编码获取-->
+    <select id="getByCode" parameterType="String" resultType="Map">
+        SELECT
+        count(1) cou
+        FROM
+        eam_operation_orders s
+        WHERE order_code=#{code} and isdelete=0;
+    </select>
+    <select id="getOrderwork" resultType="Map">
+     SELECT id,operationwork_code,operationwork_content
+         FROM eam_operation_work
+    </select>
+    <select id="getMajorByWork" parameterType="Map" resultType="Map">
+        SELECT DISTINCT a.dev_major,b.dict_name
+        FROM eam_device a,
+        (select dict_value, dict_name from eam_dict where dict_type_code = 'dev_major') b
+        where a.dev_major = b.dict_value and a.id in
+        (select DISTINCT dev_id from eam_operationwork_device where operationwork_id in
+        <foreach item="ids" index="index" collection="ids" open="(" separator="," close=")">
+            #{ids}
+        </foreach>)
+    </select>
+    <select id="getDevinfo" parameterType="Map" resultType="Map">
+        select a.dev_code,a.dev_name,c.loc_name,b.cat_name
+        from eam_device a LEFT JOIN eam_dev_category b on a.dev_category=b.id  LEFT JOIN eam_dev_location c  on a.dev_location=c.id
+        where a.id in
+        (select DISTINCT dev_id from eam_operationwork_device where operationwork_id in
+        <foreach item="ids" index="index" collection="ids" open="(" separator="," close=")">
+            #{ids}
+        </foreach>)
+    </select>
+
+    <!--工作流通过实例ID查-->
+    <select id="getLibByPIid" parameterType="String" resultType="Map">
+            SELECT id,order_code,pstid,order_content,order_priority,order_work,order_desc,approve_status,order_status,order_remark,order_totalhours,order_major
+            FROM eam_operation_orders WHERE pstid=#{pstid}
+    </select>
+    <!--工作流通过实例ID更新表单-->
+    <update id="updateAprByPIid" parameterType="Map">
+         UPDATE eam_operation_orders
+           SET approve_by=#{approve_by},approve_reason=#{approve_reason},approve_time=#{approve_time},approve_status=#{approve_status}
+           where pstid=#{pstid}
+    </update>
+
+    <!--有无被引用-->
+    <select id="deleBefore" parameterType="java.lang.String" resultType="Map">
+
+    </select>
+</mapper>

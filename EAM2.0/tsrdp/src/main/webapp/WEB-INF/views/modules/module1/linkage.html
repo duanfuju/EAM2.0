@@ -1,0 +1,19 @@
+<head>
+    <meta charset="UTF-8">
+    <title>linkage</title>
+    <script type="text/javascript" src="/resource/plugins/jQuery/jquery-2.2.3.min.js"></script>
+</head>
+<body>
+
+</body>
+<script>
+    debugger;
+//    var findiframe = parent.layero.find("iframe")[0].contentWindow.document;
+//    alert($('#name',findiframe).text());
+//    $('#name',findiframe).text("1111111");
+//    parent.layer.getFrameIndex(window.name);
+//    parent.layer.close(index);
+//    alert(parent.$('#name').text());
+    alert(parent.layer.getChildFrame('#name').text());
+    parent.layer.getChildFrame('#name').text('111');
+</script>

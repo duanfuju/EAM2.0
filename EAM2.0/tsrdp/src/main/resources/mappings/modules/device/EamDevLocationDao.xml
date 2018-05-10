@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tiansu.eam.modules.device.dao.EamDevLocDao">
+    <sql id="fieldColumns">
+        a.id  AS "id_key",
+        a.id AS "id",
+        a.loc_id,
+        a.loc_pid,
+        a.loc_pid AS "pId",
+        a.loc_code,
+        (select loc_code from eam_dev_location  where id=a.loc_pid )AS "pCode",
+        (select loc_name from eam_dev_location  where id=a.loc_pid ) AS "pName",
+        a.loc_name,
+        a.loc_name AS "name",
+        a.loc_name AS "text",
+        a.loc_desc,
+        a.loc_level,
+        a.loc_seq,
+        a.loc_tel,
+        a.loc_dept,
+        a.isleaf,
+        (SELECT dict_name FROM eam_dict WHERE dict_type_code='common' AND dict_value=a.loc_status) AS "loc_status",
+        a.loc_funcprop,
+        a.loc_area
+    </sql>
+    <sql id="fieldForExportColumns">
+        a.id  AS "id_key",
+        a.id AS "id",
+        a.loc_id,
+        a.loc_pid,
+        a.loc_pid AS "pId",
+        a.loc_code,
+      (select loc_code from eam_dev_location  where id=a.loc_pid )AS "pCode",
+      (select loc_name from eam_dev_location  where id=a.loc_pid ) AS "pName",
+        a.loc_name,
+        a.loc_name AS "name",
+        a.loc_name AS "text",
+        a.loc_desc,
+        a.loc_level,
+        a.loc_seq,
+        a.loc_tel,
+        a.loc_dept,
+        a.isleaf,
+        a.loc_status,
+        a.loc_funcprop,
+        a.loc_area,
+        a.create_by AS "createBy",
+		a.create_time AS "createDate",
+		a.update_by AS "updateBy",
+		a.update_time AS "updateDate",
+		a.isdelete AS "isDelete"
+    </sql>
+
+    <sql id="devLocationJoins">
+
+    </sql>
+
+    <select id="findAllList" resultType="com.tiansu.eam.modules.device.entity.DevLocation">
+        select
+          <include refid="fieldForExportColumns"/>
+        from eam_dev_location a
+          <include refid="devLocationJoins"/>
+        <where>
+            where a.isdelete != '1'
+        </where>
+        <choose>
+            <when test="page !=null and page.orderBy != null and page.orderBy != ''">
+                ORDER BY ${page.orderBy}
+            </when>
+            <otherwise>
+                order by a.create_time
+            </otherwise>
+        </choose>
+    </select>
+
+
+    <select id="findById" resultType="java.util.Map">
+        SELECT
+        <include refid="fieldForExportColumns"/>
+        from eam_dev_location a
+        <include refid="devLocationJoins"/>
+        WHERE a.id = #{id}
+    </select>
+
+    <select id="findByLocId" resultType="java.util.Map">
+        SELECT
+        a.id as id,
+        a.loc_pid as loc_pid,
+        a.loc_name as loc_name
+        from eam_dev_location a
+        WHERE a.loc_pid = #{id}
+    </select>
+
+    <select id="findListByMap" resultType="java.util.Map">
+        SELECT
+        <choose>
+            <when test="export !=null and export != ''">
+                <include refid="fieldForExportColumns"/>
+            </when>
+            <otherwise>
+                <include refid="fieldColumns"/>
+            </otherwise>
+        </choose>
+
+        FROM eam_dev_location a
+        <include refid="devLocationJoins"/>
+
+        <where>
+            a.isdelete!=1
+            <if test="dept != null and dept != ''">
+                AND a.create_by IN
+                <if test="dbName == 'mssql'">(SELECT loginname FROM ioms_user WHERE dbo.find_in_set(userdeptno, #{dept})>0)</if>
+                <if test="dbName == 'mysql'">(SELECT loginname FROM ioms_user WHERE find_in_set(userdeptno, #{dept})>0)</if>
+            </if>
+
+            <if test="loc_code != null and loc_code != ''">
+                AND a.loc_code LIKE
+                <if test="dbName == 'oracle'">'%'||#{loc_code}||'%'</if>
+                <if test="dbName == 'mssql'">'%'+#{loc_code}+'%'</if>
+                <if test="dbName == 'mysql'">concat('%',#{loc_code},'%')</if>
+            </if>
+            <if test="loc_name != null and loc_name != ''">
+                AND a.loc_name LIKE
+                <if test="dbName == 'oracle'">'%'||#{loc_name}||'%'</if>
+                <if test="dbName == 'mssql'">'%'+#{loc_name}+'%'</if>
+                <if test="dbName == 'mysql'">concat('%',#{loc_name},'%')</if>
+            </if>
+            <if test="loc_dept != null and loc_dept != ''">
+                AND a.loc_dept LIKE
+                <if test="dbName == 'oracle'">'%'||#{loc_dept}||'%'</if>
+                <if test="dbName == 'mssql'">'%'+#{loc_dept}+'%'</if>
+                <if test="dbName == 'mysql'">concat('%',#{loc_dept},'%')</if>
+            </if>
+            <if test="loc_status != null and loc_status != ''">
+                AND a.loc_status LIKE
+                <if test="dbName == 'oracle'">'%'||#{loc_status}||'%'</if>
+                <if test="dbName == 'mssql'">'%'+#{loc_status}+'%'</if>
+                <if test="dbName == 'mysql'">concat('%',#{loc_status},'%')</if>
+            </if>
+            <if test="loc_pid != null and loc_pid != ''">
+                AND a.loc_pid LIKE
+                <if test="dbName == 'oracle'">'%'||#{loc_pid}||'%'</if>
+                <if test="dbName == 'mssql'">'%'+#{loc_pid}+'%'</if>
+                <if test="dbName == 'mysql'">concat('%',#{loc_pid},'%')</if>
+            </if>
+            <if test="ids != null and ids != ''">
+                AND a.id in
+                <foreach item="ids" index="index" collection="ids" open="(" separator="," close=")">
+                    #{ids}
+                </foreach>
+            </if>
+            <if test="id != null and id != ''">
+                AND a.id=#{id}
+            </if>
+        </where>
+        <choose>
+            <when test="page !=null and page.orderBy != null and page.orderBy != ''">
+                ORDER BY ${page.orderBy}
+            </when>
+            <otherwise>
+                order by a.update_time desc
+            </otherwise>
+        </choose>
+    </select>
+
+    <update id="update">
+        UPDATE eam_dev_location SET
+        <trim prefix="set" suffixOverrides=",">
+            <if test="loc_id != null and loc_id != ''">loc_id=#{loc_id},</if>
+        </trim>
+        loc_pid=#{loc_pid},
+        loc_code=#{loc_code},
+        loc_name=#{loc_name},
+        loc_desc=#{loc_desc},
+        loc_tel=#{loc_tel},
+        loc_dept=#{loc_dept},
+        loc_funcprop=#{loc_funcprop},
+        loc_area=#{loc_area},
+        loc_status=#{loc_status},
+        update_by = #{updateBy.loginname},
+        update_time = #{updateDate}
+        WHERE id = #{id_key}
+    </update>
+
+    <insert id="insert">
+        INSERT INTO eam_dev_location(
+        id,
+        loc_id,
+        loc_pid,
+        loc_code,
+        loc_name,
+        loc_desc,
+        loc_tel,
+        loc_dept,
+        loc_funcprop,
+        loc_area,
+        loc_status,
+        create_time,
+        create_by,
+        update_time,
+        update_by,
+        isdelete
+        ) VALUES (
+        #{id},
+        #{loc_id},
+        #{loc_pid},
+        #{loc_code},
+        #{loc_name},
+        #{loc_desc},
+        #{loc_tel},
+        #{loc_dept},
+        #{loc_funcprop},
+        #{loc_area},
+        #{loc_status},
+        #{createDate},
+        #{createBy.loginname},
+        #{updateDate},
+        #{updateBy.loginname},
+        #{DEL_FLAG_NORMAL}
+        )
+    </insert>
+
+    <update id="updateDevLocationTree" statementType="CALLABLE">
+        <![CDATA[
+        {call setDevLocationLevel()}
+        ]]>
+    </update>
+
+    <update id="delete" parameterType="java.util.Map">
+        UPDATE eam_dev_location SET
+        isdelete = 1,
+        update_by=#{updateBy},
+        update_time=#{updateDate}
+        WHERE id IN
+        <foreach item="ids" index="index" collection="ids" open="(" separator="," close=")">
+            #{ids}
+        </foreach>
+    </update>
+
+    <select id="getDevLocationTree" resultType="java.util.Map">
+        SELECT
+            <include refid="fieldForExportColumns"/>
+        FROM
+            eam_dev_location a
+        WHERE
+           a.isdelete!=1
+        order by
+          a.update_time desc
+    </select>
+
+    <insert id="insertBatch" >
+
+        INSERT INTO eam_dev_location(id,loc_id,loc_pid,loc_code,loc_name,loc_desc,loc_tel,loc_dept,loc_funcprop,loc_area,loc_status,
+        create_time,create_by,update_time,update_by,isdelete )
+        VALUES
+        <foreach collection="list" item="item" index="index" separator="," >
+            (
+                #{item.id}, #{item.loc_id}, #{item.loc_pid}, #{item.loc_code}, #{item.loc_name}, #{item.loc_desc}, #{item.loc_tel},
+                #{item.loc_dept}, #{item.loc_funcprop}, #{item.loc_area}, #{item.loc_status}, #{item.createDate}, #{item.createBy.loginname},
+                #{item.updateDate},#{item.updateBy.loginname},#{item.DEL_FLAG_NORMAL}
+            )
+        </foreach>
+
+    </insert>
+
+    <select id="getDataByPId" resultType="java.util.Map">
+       with temp ( [Id], [loc_pid])
+        as
+        (
+        select Id, loc_pid
+        from eam_dev_location
+        where loc_pid =#{id}
+        union all
+        select a.Id, a.loc_pid
+        from eam_dev_location a
+        inner join temp on a.[loc_pid] = temp.[Id]
+        )
+        select id from temp
+
+    </select>
+</mapper>

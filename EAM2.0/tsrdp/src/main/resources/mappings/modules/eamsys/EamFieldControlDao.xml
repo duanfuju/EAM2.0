@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tiansu.eam.modules.sys.dao.EamFieldControlDao">
+
+    <sql id="fieldColumns">
+        a.id,
+        a.menu_id as menuno,
+        p.menuname as menuname,
+        a.content,
+        a.role_id as rolecode,
+        r.rolename as rolename
+    </sql>
+
+    <sql id="fieldJoins">
+        LEFT JOIN ioms_menu p ON p.menuno = a.menu_id
+        LEFT JOIN ioms_role r ON r.rolecode = a.role_id
+    </sql>
+
+    <select id="getFieldControlDetail" parameterType="java.util.Map" resultType="com.tiansu.eam.modules.sys.entity.FieldControl">
+        SELECT
+        <include refid="fieldColumns"/>
+        FROM eam_menu_pages a
+        <include refid="fieldJoins"/>
+        where 1=1
+        <if test="rolecode != null">
+            and role_id=#{rolecode}
+        </if>
+        <if test="menuno != null">
+            and menu_id=#{menuno}
+        </if>
+    </select>
+
+    <select id="getMenuFields" parameterType="java.lang.String" resultType="com.tiansu.eam.modules.sys.entity.MenuFields">
+        SELECT a.id,a.menu_id,a.field_name,a.display_name,a.field_type,a.is_basic,a.validate_type
+        FROM eam_menu_field a
+        where menu_id=#{menuno}
+        order by a.is_basic desc,a.sort_order asc
+    </select>
+
+
+    <insert id="insert">
+        INSERT INTO eam_menu_pages(id, menu_id,content,role_id)
+        values
+        <if test="dbName == 'mssql'">
+            (newid(),#{menuno},#{content},#{rolecode})
+        </if>
+        <if test="dbName == 'mysql'">
+            (uuid(),#{menuno},#{content},#{rolecode})
+        </if>
+    </insert>
+
+
+    <update id="update">
+        update eam_menu_pages
+        set menu_id = #{menuno},content = #{content},role_id = #{rolecode}
+        where id = #{id}
+    </update>
+
+
+
+</mapper>

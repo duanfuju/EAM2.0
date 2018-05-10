@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tiansu.eam.modules.sys.dao.EamButtonDao">
+
+    <sql id="buttonColumns">
+        a.sysno,
+        a.menuno as "menu.menuno",
+        c.menuname as "menu.menuname",
+        a.buttonno,
+        a.buttonname,
+        b.cssstyle as "buttonExt.cssstyle",
+        b.specialstyle as "buttonExt.specialstyle",
+        b.onclickevent as "buttonExt.onclickevent"
+
+    </sql>
+
+    <sql id="buttonjoins1">
+        left join eam_button_ext b on a.buttonno = b.buttonno
+        join ioms_menu c on a.menuno = c.menuno
+    </sql>
+
+    <sql id="buttonjoins2">
+        left join eam_button_ext b on a.buttonno = b.buttonno
+        join ioms_menu c on a.menuno = c.menuno
+        join ioms_rolebutton d on a.buttonno = d.buttonno and a.menuno = d.menuno
+        join ioms_roleuser e on d.rolecode = e.roleno
+    </sql>
+
+    <select id="findList" resultType="EamButton">
+        select
+          <include refid="buttonColumns"/>
+        from ioms_button a
+        <include refid="buttonjoins1"/>
+    </select>
+    <!--/**
+    *@Create
+    *@Description :获取子系统注册需要按钮信息
+    *@Param :  * @param null
+    *@author : suven
+    *@Date : 15:50 2017/10/11
+    */-->
+    <select id="findRelatedList" resultType="EamButtonInfo">
+        select
+                a.buttonno as buttoncode,
+				a.buttonname,
+				a.menuno as menucode,
+				a.subsystemno as subsystemcode,
+				a.orderid
+        from ioms_button a
+        where a.subsystemno='eam'
+
+    </select>
+
+    <select id="getByLoginname" resultType="EamButton">
+        select
+        <include refid="buttonColumns"/>
+        from ioms_button a
+        <include refid="buttonjoins2"/>
+        where e.loginname = #{loginname}
+    </select>
+    <select id="getButtonByRoleandMenu" parameterType="Map" resultType="Map">
+        select DISTINCT	b.buttonname,
+            b.buttonno,b.orderid,
+            ebt.onclickevent,ebt.icon
+        from ioms_user u,ioms_roleuser ru,ioms_rolebutton rb,ioms_menu m ,
+            ioms_button b left join eam_button_ext ebt on
+            SUBSTRING(b.buttonno,datalength(b.menuno)+2,datalength(b.buttonno))=ebt.buttonno
+--             b.buttonno=ebt.buttonno
+            where u.loginname = ru.loginname
+            and ru.roleno = rb.rolecode
+            and rb.buttonno = b.buttonno
+            and rb.menuno = m.menuno
+            and rb.menuno = b.menuno
+            and b.subsystemno = 'eam'
+            and m.menuno = #{id}
+            and u.loginname = #{loginname}
+            order by b.orderid
+    </select>
+</mapper>

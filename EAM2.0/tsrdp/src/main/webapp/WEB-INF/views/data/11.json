@@ -1,0 +1,376 @@
+{
+  "treeNodes": [
+    {
+      "children": [
+        {
+          "href": "eam/baseInfo/materialType.html",
+          "id": "1050",
+          "leaf": true,
+          "text": "物料类别",
+          "tip":"5"
+        },
+        {
+          "href": "eam/baseInfo/materialInfo.html",
+          "id": "1051",
+          "leaf": true,
+          "text": "物料信息"
+        },
+        {
+          "href": "eam/baseInfo/supplier.html",
+          "id": "1052",
+          "leaf": true,
+          "text": "供应商"
+        },
+        {
+          "href": "eam/baseInfo/supplierType.html",
+          "id": "1261",
+          "leaf": true,
+          "text": "供应商类型"
+        },
+        {
+          "href": "eam/baseInfo/supplierApproval.html",
+          "id": "1053",
+          "leaf": true,
+          "text": "供应商审批"
+        },
+        {
+          "href": "eam/baseInfo/customerInfo.html",
+          "id": "1054",
+          "leaf": true,
+          "text": "客户信息"
+        },
+        {
+          "children": [
+            {
+              "href": "eam/baseInfo/scheType.html",
+              "id": "1056",
+              "leaf": true,
+              "text": "排班类型"
+            },
+            {
+              "href": "eam/baseInfo/empManage.html",
+              "id": "1057",
+              "leaf": true,
+              "text": "人员管理"
+            },
+            {
+              "href": "eam/baseInfo/scheTable.html",
+              "id": "1058",
+              "leaf": true,
+              "text": "排班表"
+            },
+            {
+              "href": "eam/baseInfo/scheTableApproval.html",
+              "id": "1059",
+              "leaf": true,
+              "text": "排班表审批"
+            }
+          ],
+          "href": "/policy/access_rules_list.jsp",
+          "id": "1055",
+          "text": "排班管理"
+        }
+      ],
+      "href": "/policy/access_rules_list.jsp",
+      "id": "1044",
+      "text": "设备基础信息",
+      "tip":"10"
+    },
+    {
+      "children": [
+        {
+          "href": "eam/eqmInfo/equipType.html",
+          "id": "1060",
+          "leaf": true,
+          "text": "设备类别"
+        },
+        {
+          "href": "eam/eqmInfo/equipPos.html",
+          "id": "1061",
+          "leaf": true,
+          "text": "设备位置"
+        },
+        {
+          "href": "eam/eqmInfo/equipInfo.html",
+          "id": "1062",
+          "leaf": true,
+          "text": "设备信息"
+        }
+      ],
+      "href": "/policy/access_rules_list.jsp",
+      "id": "1045",
+      "text": "设备信息管理"
+    },
+    {
+      "children": [
+        {
+          "href": "eam/standard/standardLib.html",
+          "id": "1063",
+          "leaf": true,
+          "text": "标准库"
+        },
+        {
+          "href": "eam/standard/standardLibApproval.html",
+          "id": "1064",
+          "leaf": true,
+          "text": "标准库审批"
+        },
+        {
+          "href": "eam/standard/standardWord.html",
+          "id": "1065",
+          "leaf": true,
+          "text": "标准工作"
+        },
+        {
+          "href": "eam/standard/standardWordApproval.html",
+          "id": "1066",
+          "leaf": true,
+          "text": "标准工作审批"
+        },
+        {
+          "href": "eam/standard/standardWO.html",
+          "id": "1067",
+          "leaf": true,
+          "text": "标准工单"
+        },
+        {
+          "href": "eam/standard/standardWOApproval.html",
+          "id": "1068",
+          "leaf": true,
+          "text": "标准工单审批"
+        }
+      ],
+      "href": "/policy/access_rules_list.jsp",
+      "id": "1046",
+      "text": "运维标准管理"
+    },
+    {
+      "children": [
+        {
+          "href": "eam/trouble/excRepair.html",
+          "id": "1069",
+          "leaf": true,
+          "text": "缺陷故障报修"
+        },
+        {
+          "href": "eam/trouble/excRepairCount.html",
+          "id": "1070",
+          "leaf": true,
+          "text": "缺陷故障报修统计"
+        }
+      ],
+      "href": "/policy/access_rules_list.jsp",
+      "id": "1047",
+      "text": "缺陷故障管理"
+    },
+    {
+      "children": [
+        {
+          "href": "eam/workorder/repairDist.html",
+          "id": "1071",
+          "leaf": true,
+          "text": "报修派单"
+        },
+        {
+          "href": "eam/autoordersel/outoorder.html",
+          "id": "1302",
+          "leaf": true,
+          "text": "工单派单配置"
+        },
+        {
+          "href": "eam/trouble/myWorkOrder.html",
+          "id": "1072",
+          "leaf": true,
+          "text": "我的工单"
+        },
+        {
+          "href": "eam/workorder/workOrderAccept.html",
+          "id": "1073",
+          "leaf": true,
+          "text": "工单验收"
+        },
+        {
+          "href": "eam/workorder/WOGeneApproval.html",
+          "id": "1074",
+          "leaf": true,
+          "text": "工单生成审批"
+        },
+        {
+          "href": "eam/workorder/WOFileApproval.html",
+          "id": "1075",
+          "leaf": true,
+          "text": "工单归档审批"
+        },
+        {
+          "href": "eam/workorder/WOCount.html",
+          "id": "1076",
+          "leaf": true,
+          "text": "工单统计"
+        }
+      ],
+      "href": "/policy/access_rules_list.jsp",
+      "id": "1048",
+      "text": "工单管理"
+    },
+    {
+      "children": [
+        {
+          "href": "eam/patrol/patrolSort.html",
+          "id": "1122",
+          "leaf": true,
+          "text": "巡检分类"
+        },
+        {
+          "href": "eam/patrol/patrolType.html",
+          "id": "1141",
+          "leaf": true,
+          "text": "巡检类型"
+        },
+        {
+          "href": "eam/patrol/wordPatrol.html",
+          "id": "1161",
+          "leaf": true,
+          "text": "巡检项"
+        },
+        {
+          "href": "eam/patrol/patrolArea.html",
+          "id": "1162",
+          "leaf": true,
+          "text": "巡检区域"
+        },
+        {
+          "href": "eam/patrol/patrolRoute.html",
+          "id": "1201",
+          "leaf": true,
+          "text": "巡检路线"
+        },
+        {
+          "href": "eam/patrol/patrolRouteApproval.html",
+          "id": "1202",
+          "leaf": true,
+          "text": "巡检路线审批"
+        },
+        {
+          "href": "eam/patrol/patrolTask.html",
+          "id": "1203",
+          "leaf": true,
+          "text": "巡检任务"
+        },
+        {
+          "href": "eam/patrol/myPatrol.html",
+          "id": "1204",
+          "leaf": true,
+          "text": "我的巡检"
+        },
+        {
+          "href": "eam/patrol/patrolCount.html",
+          "id": "1205",
+          "leaf": true,
+          "text": "巡检统计"
+        }
+      ],
+      "href": "/policy/access_rules_list.jsp",
+      "id": "1121",
+      "text": "巡检管理"
+    },
+    {
+      "children": [
+        {
+          "href": "eam/maintenance/maintSort.html",
+          "id": "1101",
+          "leaf": true,
+          "text": "保养分类"
+        },
+        {
+          "href": "eam/maintenance/maintType.html",
+          "id": "1102",
+          "leaf": true,
+          "text": "保养类型"
+        },
+        {
+          "href": "eam/maintenance/maintSet.html",
+          "id": "1282",
+          "leaf": true,
+          "text": "保养设置"
+        },
+        {
+          "href": "eam/maintenance/maintAnnualApproval.html",
+          "id": "1104",
+          "leaf": true,
+          "text": "保养年计划审批"
+        },
+        {
+          "href": "eam/maintenance/maintAnnual.html",
+          "id": "1103",
+          "leaf": true,
+          "text": "保养年计划"
+        },
+        {
+          "href": "eam/maintenance/maintMon.html",
+          "id": "1105",
+          "leaf": true,
+          "text": "保养月计划"
+        },
+        {
+          "href": "eam/maintenance/maintMonApproval.html",
+          "id": "1106",
+          "leaf": true,
+          "text": "保养月计划审批"
+        },
+        {
+          "href": "eam/maintenance/maintTask.html",
+          "id": "1107",
+          "leaf": true,
+          "text": "保养任务"
+        },
+        {
+          "href": "eam/maintenance/myMaint.html",
+          "id": "1108",
+          "leaf": true,
+          "text": "我的保养"
+        },
+        {
+          "href": "eam/maintenance/maintCount.html",
+          "id": "1109",
+          "leaf": true,
+          "text": "保养统计"
+        }
+      ],
+      "href": "/policy/access_rules_list.jsp",
+      "id": "1081",
+      "text": "保养管理"
+    },
+    {
+      "children": [
+        {
+          "href": "eam/abnormal/excepApproval.html",
+          "id": "1078",
+          "leaf": true,
+          "text": "异常审批"
+        },
+        {
+          "href": "eam/abnormal/excepCount.html",
+          "id": "1079",
+          "leaf": true,
+          "text": "异常统计分析"
+        }
+      ],
+      "href": "/policy/access_rules_list.jsp",
+      "id": "1049",
+      "text": "异常管理"
+    },
+    {
+      "children": [
+        {
+          "href": "eam/abnormal/eqStandingBook.html",
+          "id": "1221",
+          "leaf": true,
+          "text": "设备台账"
+        }
+      ],
+      "href": "/policy/access_rules_list.jsp",
+      "id": "1241",
+      "text": "设备全生命周期"
+    }
+  ]
+}

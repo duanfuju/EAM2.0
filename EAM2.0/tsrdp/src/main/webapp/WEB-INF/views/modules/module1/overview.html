@@ -1,0 +1,693 @@
+<div class="overview">
+    <div class="timechoose">
+        <span>时间</span>
+        <ul class="timechooseBtn">
+            <li class="timechooseActive">本月</li>
+            <li>本周</li>
+            <li>本季</li>
+            <li>本年</li>
+        </ul>
+        <div class="timearea" >
+            <input type="text" class="begin"/>
+            <span>至</span>
+            <input type="text" class="end"/>
+        </div>
+        <div style="display: inline;">
+            <input type="button" value="查询" class="searchbtn">
+            <input type="button" value="重置" class="resetbtn">
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="box box-primary" ondrop="drop(event,this)" ondragover="allowDrop(event)" draggable="true" ondragstart="drag(event, this)">
+            <div class="box-header with-border">
+                <h3 class="box-title">工单占比</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
+                    </button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                </div>
+            </div>
+            <div class="box-body">
+                <div class="chart" >
+                    <div id="pieChart"></div>
+                </div>
+                <div class="loading">
+                    <span>L</span>
+                    <span>o</span>
+                    <span>a</span>
+                    <span>d</span>
+                    <span>i</span>
+                    <span>n</span>
+                    <span>g</span>
+                    <span>.</span>
+                    <span>.</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="box box-primary" ondrop="drop(event,this)" ondragover="allowDrop(event)" draggable="true" ondragstart="drag(event, this)">
+            <div class="box-header with-border">
+                <h3 class="box-title">工单总览</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
+                    </button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                </div>
+            </div>
+            <div class="box-body">
+                <div class="loading">
+                    <span>L</span>
+                    <span>o</span>
+                    <span>a</span>
+                    <span>d</span>
+                    <span>i</span>
+                    <span>n</span>
+                    <span>g</span>
+                    <span>.</span>
+                    <span>.</span>
+                </div>
+                <div class="numControls">
+                    <ul>
+                        <li>
+                            <span id="numBall" class="numBall">9</span>
+                            <p class="ballsBottom">工单总数</p>
+                        </li>
+                        <li>
+                            <span id="ballsTopone" class="ballsTop  ballsTopone">0</span>
+                            <p class="ballsBottom">已完成</p>
+                        </li>
+                        <li>
+                            <span id="ballsToptwo" class="ballsTop ballsToptwo">0</span>
+                            <p class="ballsBottom">未完成</p>
+                        </li>
+                        <li>
+                            <span id="ballsTopthree" class="ballsTop ballsTopthree">1</span>
+                            <p class="ballsBottom">待派单</p>
+                        </li>
+                        <li>
+                            <span id="ballsTopfour" class="ballsTop ballsTopfour">0</span>
+                            <p class="ballsBottom">待接单</p>
+                        </li>
+                        <li class="lisLast">
+                            <span id="ballsTopfive" class="ballsTop ballsTopfive">1</span>
+                            <p class="ballsBottom">待评价</p>
+                        </li>
+                    </ul>
+
+                </div>
+                <div class="chart">
+                    <div id="orderOv" ></div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="box box-primary" ondrop="drop(event,this)" ondragover="allowDrop(event)" draggable="true" ondragstart="drag(event, this)">
+            <div class="box-header with-border">
+                <h3 class="box-title">工单周期对比</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
+                    </button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                </div>
+            </div>
+            <div class="box-body periodDiff">
+                <div class="periodCata">
+                    <div class="periodLeft">日</div>
+                    <ul class="periodContent">
+                        <li>今日工单总数</li>
+                        <li>昨日工单总数</li>
+                    </ul>
+                    <ul class="periodNum">
+                        <li>0</li>
+                        <li>1</li>
+                    </ul>
+                    <div class="equal  center"></div>
+                    <div class="percentNum equalNum center">---</div>
+                </div>
+                <div class="periodCata">
+                    <div class="periodLeft">周</div>
+                    <ul class="periodContent">
+                        <li>本周工单总数</li>
+                        <li>上周工单总数</li>
+                    </ul>
+                    <ul class="periodNum">
+                        <li>10</li>
+                        <li>11</li>
+                    </ul>
+                    <div class="up center"></div>
+                    <div class="percentNum upNum center">---</div>
+                </div>
+                <div class="periodCata">
+                    <div class="periodLeft">月</div>
+                    <ul class="periodContent">
+                        <li>本月工单总数</li>
+                        <li>上月工单总数</li>
+                    </ul>
+                    <ul class="periodNum">
+                        <li>20</li>
+                        <li>21</li>
+                    </ul>
+                    <div class="down  center"></div>
+                    <div class="percentNum center downNum">96%</div>
+                </div>
+                <div class="periodCata">
+                    <div class="periodLeft">年</div>
+                    <ul class="periodContent">
+                        <li>今年工单总数</li>
+                        <li>去年工单总数</li>
+                    </ul>
+                    <ul class="periodNum">
+                        <li>50</li>
+                        <li>71</li>
+                    </ul>
+                    <div class="equal center"></div>
+                    <div class="percentNum center equalNum">---</div>
+                </div>
+                <div class="loading">
+                    <span>L</span>
+                    <span>o</span>
+                    <span>a</span>
+                    <span>d</span>
+                    <span>i</span>
+                    <span>n</span>
+                    <span>g</span>
+                    <span>.</span>
+                    <span>.</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="box box-primary" ondrop="drop(event,this)" ondragover="allowDrop(event)" draggable="true" ondragstart="drag(event, this)">
+            <div class="box-header with-border">
+                <h3 class="box-title">工单消耗统计</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
+                    </button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                </div>
+            </div>
+            <div class="box-body orderConsume">
+                <div class="loading">
+                    <span>L</span>
+                    <span>o</span>
+                    <span>a</span>
+                    <span>d</span>
+                    <span>i</span>
+                    <span>n</span>
+                    <span>g</span>
+                    <span>.</span>
+                    <span>.</span>
+                </div>
+                <div class="subLeft">
+                <div class="multisSpan">
+                    <span class="region">设备</span>
+                    <span>人员</span>
+                </div>
+                    <div class="ztreeInputCont" style="margin: 10px 0;left: 0;">
+                        <input type="text"  placeholder="请输入"/>
+                        <a id="findNodeA"></a>
+                    </div>
+                    <div class="zTreeLeftAdd">
+                        <ul id="materTreeA" class="ztree"></ul>
+                    </div>
+                </div>
+                <div class="subRight">
+                    <div class="costTotal">
+                        <div class="balls">
+                            <div>
+                                <span class="totalBall totalNumber">总数量</span>
+                                <span id="sumToolNum">2个</span>
+                            </div>
+                            <div class="middleDiv">
+                                <span class="totalBall totalHour">总工时</span>
+                                <span id="sumEmpHour">1小时</span>
+                            </div>
+                            <div class="costTotalLast">
+                                <span class="totalBall totalFee">总费用</span>
+                                <span id="sumCost">0元</span>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="subtable">
+                        <table>
+                            <thead>
+                            <tr>
+                                <th>耗材名称</th>
+                                <th>耗材数量</th>
+                                <th>费用</th>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td>12333333</td>
+                                <td>耗材123213123数量</td>
+                                <td>123213</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    </div>
+
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="box box-primary" ondrop="drop(event,this)" ondragover="allowDrop(event)" draggable="true" ondragstart="drag(event, this)">
+            <div class="box-header with-border">
+                <h3 class="box-title">绩效总览-检修组</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
+                    </button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                </div>
+            </div>
+            <div class="box-body">
+                <div class="loading">
+                    <span>L</span>
+                    <span>o</span>
+                    <span>a</span>
+                    <span>d</span>
+                    <span>i</span>
+                    <span>n</span>
+                    <span>g</span>
+                    <span>.</span>
+                    <span>.</span>
+                </div>
+                <div class="subTop">
+                    <span style="margin-left: 20px;">班组</span>
+                    <select id="stdTeam">
+                        <option>123</option>
+                        <option>324324</option>
+                    </select>
+                    <div class="multisSpan" style="float: right;">
+                        <span class="region">完成率</span>
+                        <span>及时率</span>
+                        <span>工时</span>
+                        <span>评分</span>
+                    </div>
+                </div>
+                <div class="subBot">
+                    <table class="table table-charts" id="scoreTable">
+                        <tbody>
+                        <tr>
+                            <td class="tr-num">1</td>
+                            <td width="45%">
+                                <div class="td-progress-bar">
+                                    <span class="td-progress-shape" style="width:50%;"></span>
+                                    <span class="td-progress-score">50%</span>
+                                </div>
+                            </td>
+                            <td class="tr-time txt-align-r">sysadmin</td>
+                        </tr>
+                        <tr>
+                            <td class="tr-num">2</td>
+                            <td width="45%">
+                                <div class="td-progress-bar">
+                                    <span class="td-progress-shape" style="width:100%;"></span>
+                                    <span class="td-progress-score">100%</span>
+                                </div></td><td class="tr-time txt-align-r">李久委</td></tr><tr><td class="tr-num">3</td><td width="45%"><div class="td-progress-bar"><span class="td-progress-shape" style="width:100%;"></span><span class="td-progress-score">100%</span></div></td><td class="tr-time txt-align-r">许平新</td></tr><tr><td class="tr-num">4</td><td width="45%"><div class="td-progress-bar"><span class="td-progress-shape" style="width:0%;"></span><span class="td-progress-score">0%</span></div></td><td class="tr-time txt-align-r">段福举</td></tr><tr><td class="tr-num">5</td><td width="45%"><div class="td-progress-bar"><span class="td-progress-shape" style="width:0%;"></span><span class="td-progress-score">0%</span></div></td><td class="tr-time txt-align-r">王主管</td></tr><tr><td class="tr-num">6</td><td width="45%"><div class="td-progress-bar"><span class="td-progress-shape" style="width:0%;"></span><span class="td-progress-score">0%</span></div></td><td class="tr-time txt-align-r">李班长</td></tr><tr><td class="tr-num">7</td><td width="45%"><div class="td-progress-bar"><span class="td-progress-shape" style="width:0%;"></span><span class="td-progress-score">0%</span></div></td><td class="tr-time txt-align-r">张运维</td></tr><tr><td class="tr-num">8</td><td width="45%"><div class="td-progress-bar"><span class="td-progress-shape" style="width:0%;"></span><span class="td-progress-score">0%</span></div></td><td class="tr-time txt-align-r">客服</td></tr><tr><td class="tr-num">9</td><td width="45%"><div class="td-progress-bar"><span class="td-progress-shape" style="width:0%;"></span><span class="td-progress-score">0%</span></div></td><td class="tr-time txt-align-r">小石头</td></tr><tr><td class="tr-num">10</td><td width="45%"><div class="td-progress-bar"><span class="td-progress-shape" style="width:0%;"></span><span class="td-progress-score">0%</span></div></td><td class="tr-time txt-align-r">siri</td></tr><tr><td class="tr-num">11</td><td width="45%"><div class="td-progress-bar"><span class="td-progress-shape" style="width:0%;"></span><span class="td-progress-score">0%</span></div></td><td class="tr-time txt-align-r">孙悟空</td></tr></tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="box box-primary" ondrop="drop(event,this)" ondragover="allowDrop(event)" draggable="true" ondragstart="drag(event, this)">
+            <div class="box-header with-border">
+                <h3 class="box-title">工单来源占比</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
+                    </button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                </div>
+            </div>
+            <div class="box-body">
+                <div class="loading">
+                    <span>L</span>
+                    <span>o</span>
+                    <span>a</span>
+                    <span>d</span>
+                    <span>i</span>
+                    <span>n</span>
+                    <span>g</span>
+                    <span>.</span>
+                    <span>.</span>
+                </div>
+                <div class="chart">
+                    <div id="pieChart2">An angular gauge will load here!</div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+<div class="indexOverview">
+    <div class="timechoose">
+        <span>时间</span>
+        <div class="multisSpan">
+            <span class="region">本月</span>
+            <span>本周</span>
+            <span>本季</span>
+            <span>本年</span>
+        </div>
+        <div style="float: right;">
+            <input type="button" value="布局保存" class="searchbtn savebtn">
+            <input type="button" value="布局重置" class="resetbtn">
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="box box-primary" data-id="performance" ondrop="drop(event,this)" ondragover="allowDrop(event)" draggable="true" ondragstart="drag(event, this)">
+            <div class="box-header with-border">
+                <h3 class="box-title">绩效总览</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
+                    </button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                </div>
+            </div>
+            <div class="box-body">
+                <div class="subTop">
+                    <div class="multisSpan" style="float: right;">
+                        <span class="region">完成率</span>
+                        <span>及时率</span>
+                        <span>工时</span>
+                        <span>评分</span>
+                    </div>
+                </div>
+                <div class="subBot">
+                    <table class="table table-charts" id="scoreTable">
+                        <tbody>
+                        <tr>
+                            <td class="tr-num">1</td>
+                            <td width="45%">
+                                <div class="td-progress-bar">
+                                    <span class="td-progress-shape" style="width:50%;"></span>
+                                    <span class="td-progress-score">50%</span>
+                                </div>
+                            </td>
+                            <td class="tr-time txt-align-r">sysadmin</td>
+                        </tr>
+                        <tr>
+                            <td class="tr-num">2</td>
+                            <td width="45%">
+                                <div class="td-progress-bar">
+                                    <span class="td-progress-shape" style="width:100%;"></span>
+                                    <span class="td-progress-score">100%</span>
+                                </div></td><td class="tr-time txt-align-r">李久委</td></tr><tr><td class="tr-num">3</td><td width="45%"><div class="td-progress-bar"><span class="td-progress-shape" style="width:100%;"></span><span class="td-progress-score">100%</span></div></td><td class="tr-time txt-align-r">许平新</td></tr><tr><td class="tr-num">4</td><td width="45%"><div class="td-progress-bar"><span class="td-progress-shape" style="width:0%;"></span><span class="td-progress-score">0%</span></div></td><td class="tr-time txt-align-r">段福举</td></tr><tr><td class="tr-num">5</td><td width="45%"><div class="td-progress-bar"><span class="td-progress-shape" style="width:0%;"></span><span class="td-progress-score">0%</span></div></td><td class="tr-time txt-align-r">王主管</td></tr><tr><td class="tr-num">6</td><td width="45%"><div class="td-progress-bar"><span class="td-progress-shape" style="width:0%;"></span><span class="td-progress-score">0%</span></div></td><td class="tr-time txt-align-r">李班长</td></tr><tr><td class="tr-num">7</td><td width="45%"><div class="td-progress-bar"><span class="td-progress-shape" style="width:0%;"></span><span class="td-progress-score">0%</span></div></td><td class="tr-time txt-align-r">张运维</td></tr><tr><td class="tr-num">8</td><td width="45%"><div class="td-progress-bar"><span class="td-progress-shape" style="width:0%;"></span><span class="td-progress-score">0%</span></div></td><td class="tr-time txt-align-r">客服</td></tr><tr><td class="tr-num">9</td><td width="45%"><div class="td-progress-bar"><span class="td-progress-shape" style="width:0%;"></span><span class="td-progress-score">0%</span></div></td><td class="tr-time txt-align-r">小石头</td></tr><tr><td class="tr-num">10</td><td width="45%"><div class="td-progress-bar"><span class="td-progress-shape" style="width:0%;"></span><span class="td-progress-score">0%</span></div></td><td class="tr-time txt-align-r">siri</td></tr><tr><td class="tr-num">11</td><td width="45%"><div class="td-progress-bar"><span class="td-progress-shape" style="width:0%;"></span><span class="td-progress-score">0%</span></div></td><td class="tr-time txt-align-r">孙悟空</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="box box-primary" data-id="repair" ondrop="drop(event,this)" ondragover="allowDrop(event)" draggable="true" ondragstart="drag(event, this)">
+            <div class="box-header with-border">
+                <h3 class="box-title">报修总览</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
+                    </button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                </div>
+            </div>
+            <div class="box-body">
+                <div class="numControls">
+                <!--<div class="ovTop">-->
+                    <ul>
+                        <li>
+                            <span class="numBall">9</span>
+                            <p class="ballsBottom">今日工单</p>
+                        </li>
+                        <li>
+                            <span class="ballsTop  ballsTopone">0</span>
+                            <p class="ballsBottom">已完成</p>
+                        </li>
+                        <li>
+                            <span class="ballsTop ballsToptwo">0</span>
+                            <p class="ballsBottom">未完成</p>
+                        </li>
+                        <li>
+                            <span class="ballsTop ballsTopsix">1</span>
+                            <p class="ballsBottom">逾期未完成</p>
+                        </li>
+                        <li>
+                            <span class="ballsTop ballsTopthree">0</span>
+                            <p class="ballsBottom">待派单</p>
+                        </li>
+                        <li>
+                            <span class="ballsTop ballsTopfour">1</span>
+                            <p class="ballsBottom">APP未接单</p>
+                        </li>
+                        <li class="lisLast">
+                            <span class="ballsTop ballsTopfive">1</span>
+                            <p class="ballsBottom">今日待评价</p>
+                        </li>
+                    </ul>
+                </div>
+                <div class="chart">
+                    <div id="orderOv1" >An angular gauge will load here!</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="box box-primary" data-id="workorder" ondrop="drop(event,this)" ondragover="allowDrop(event)" draggable="true" ondragstart="drag(event, this)">
+            <div class="box-header with-border">
+                <h3 class="box-title">工单总览</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
+                    </button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                </div>
+            </div>
+            <div class="box-body">
+                <div class="numControls">
+                    <!--<div class="ovTop">-->
+                    <ul>
+                        <li>
+                            <span class="numBall">9</span>
+                            <p class="ballsBottom">今日工单</p>
+                        </li>
+                        <li>
+                            <span class="ballsTop  ballsTopone">0</span>
+                            <p class="ballsBottom">已完成</p>
+                        </li>
+                        <li>
+                            <span class="ballsTop ballsToptwo">0</span>
+                            <p class="ballsBottom">未完成</p>
+                        </li>
+                        <li>
+                            <span class="ballsTop ballsTopsix">1</span>
+                            <p class="ballsBottom">逾期未完成</p>
+                        </li>
+                        <li>
+                            <span class="ballsTop ballsTopthree">0</span>
+                            <p class="ballsBottom">待派单</p>
+                        </li>
+                        <li>
+                            <span class="ballsTop ballsTopfour">1</span>
+                            <p class="ballsBottom">APP未接单</p>
+                        </li>
+                        <li class="lisLast">
+                            <span class="ballsTop ballsTopfive">1</span>
+                            <p class="ballsBottom">今日待评价</p>
+                        </li>
+                    </ul>
+                </div>
+                <div class="chart">
+                    <div id="orderOv2" >An angular gauge will load here!</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="box box-primary" data-id="maintain" ondrop="drop(event,this)" ondragover="allowDrop(event)" draggable="true" ondragstart="drag(event, this)">
+            <div class="box-header with-border">
+                <h3 class="box-title">保养总览</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
+                    </button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                </div>
+            </div>
+            <div class="box-body">
+                <div class="sub-box-body">
+                    <div class="overViewLf">
+                        <ul>
+                            <li style="margin-bottom: 50px;">
+                                <p>1</p>
+                                <span>保养设备总数</span>
+                            </li>
+                            <li>
+                                <p>0%</p>
+                                <span>保养覆盖率</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="overViewRT">
+                        <div class="subTop">
+                            <div class="multisSpan" style="float: right;">
+                                <span class="region">A类设备</span>
+                                <span>B类设备</span>
+                                <span>C类设备</span>
+                            </div>
+                        </div>
+                        <div class="chart">
+                            <div id="chart-container" >An angular gauge will load here!</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="box box-primary" data-id="inspection" ondrop="drop(event,this)" ondragover="allowDrop(event)" draggable="true" ondragstart="drag(event, this)">
+            <div class="box-header with-border">
+                <h3 class="box-title">巡检总览</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
+                    </button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                </div>
+            </div>
+            <div class="box-body">
+                <div class="sub-box-body">
+                    <div class="overViewLf">
+                        <ul>
+                            <li style="margin-bottom: 50px;">
+                                <p>1</p>
+                                <span>巡检设备总数</span>
+                            </li>
+                            <li>
+                                <p>0%</p>
+                                <span>巡检覆盖率</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="overViewRT">
+                        <div class="subTop">
+                            <div class="multisSpan" style="float: right;">
+                                <span class="region">A类设备</span>
+                                <span>B类设备</span>
+                                <span>C类设备</span>
+                            </div>
+                        </div>
+                        <div class="chart">
+                            <div id="chart-container2" >An angular gauge will load here!</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="box box-primary" data-id="maintenance" ondrop="drop(event,this)" ondragover="allowDrop(event)" draggable="true" ondragstart="drag(event, this)">
+            <div class="box-header with-border">
+                <h3 class="box-title">运维总览</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
+                    </button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                </div>
+            </div>
+            <div class="box-body">
+                <div class="subTop">
+                    <div class="multisSpan" style="float: right;">
+                        <span class="region">故障</span>
+                        <span>工单</span>
+                        <span>保养</span>
+                        <span>巡检</span>
+                        <span>异常</span>
+                    </div>
+                </div>
+                <div class="subBot">
+                    <table class="table table-charts" id="scoreTable">
+                        <tbody>
+                        <tr>
+                            <td class="tr-num">1</td>
+                            <td width="45%">
+                                <div class="td-progress-bar">
+                                    <span class="td-progress-shape" style="width:50%;"></span>
+                                    <span class="td-progress-score">50%</span>
+                                </div>
+                            </td>
+                            <td class="tr-time txt-align-r">sysadmin</td>
+                        </tr>
+                        <tr>
+                            <td class="tr-num">2</td>
+                            <td width="45%">
+                                <div class="td-progress-bar">
+                                    <span class="td-progress-shape" style="width:100%;"></span>
+                                    <span class="td-progress-score">100%</span>
+                                </div></td><td class="tr-time txt-align-r">李久委</td></tr><tr><td class="tr-num">3</td><td width="45%"><div class="td-progress-bar"><span class="td-progress-shape" style="width:100%;"></span><span class="td-progress-score">100%</span></div></td><td class="tr-time txt-align-r">许平新</td></tr><tr><td class="tr-num">4</td><td width="45%"><div class="td-progress-bar"><span class="td-progress-shape" style="width:0%;"></span><span class="td-progress-score">0%</span></div></td><td class="tr-time txt-align-r">段福举</td></tr><tr><td class="tr-num">5</td><td width="45%"><div class="td-progress-bar"><span class="td-progress-shape" style="width:0%;"></span><span class="td-progress-score">0%</span></div></td><td class="tr-time txt-align-r">王主管</td></tr><tr><td class="tr-num">6</td><td width="45%"><div class="td-progress-bar"><span class="td-progress-shape" style="width:0%;"></span><span class="td-progress-score">0%</span></div></td><td class="tr-time txt-align-r">李班长</td></tr><tr><td class="tr-num">7</td><td width="45%"><div class="td-progress-bar"><span class="td-progress-shape" style="width:0%;"></span><span class="td-progress-score">0%</span></div></td><td class="tr-time txt-align-r">张运维</td></tr><tr><td class="tr-num">8</td><td width="45%"><div class="td-progress-bar"><span class="td-progress-shape" style="width:0%;"></span><span class="td-progress-score">0%</span></div></td><td class="tr-time txt-align-r">客服</td></tr><tr><td class="tr-num">9</td><td width="45%"><div class="td-progress-bar"><span class="td-progress-shape" style="width:0%;"></span><span class="td-progress-score">0%</span></div></td><td class="tr-time txt-align-r">小石头</td></tr><tr><td class="tr-num">10</td><td width="45%"><div class="td-progress-bar"><span class="td-progress-shape" style="width:0%;"></span><span class="td-progress-score">0%</span></div></td><td class="tr-time txt-align-r">siri</td></tr><tr><td class="tr-num">11</td><td width="45%"><div class="td-progress-bar"><span class="td-progress-shape" style="width:0%;"></span><span class="td-progress-score">0%</span></div></td><td class="tr-time txt-align-r">孙悟空</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="box box-primary" data-id="device" ondrop="drop(event,this)" ondragover="allowDrop(event)" draggable="true" ondragstart="drag(event, this)">
+            <div class="box-header with-border">
+                <h3 class="box-title">设备总览</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
+                    </button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                </div>
+            </div>
+            <div class="box-body">
+                <div id="myCarousel" class="carousel slide">
+                    <!-- 轮播（Carousel）指标 -->
+                    <ol class="carousel-indicators">
+                        <li data-target="#myCarousel" data-slide-to="0" class="active"></li>
+                        <li data-target="#myCarousel" data-slide-to="1"></li>
+                        <li data-target="#myCarousel" data-slide-to="2"></li>
+                    </ol>
+                    <!-- 轮播（Carousel）项目 -->
+                    <div class="carousel-inner">
+                        <div class="item active">
+                            <div class="chart">
+                                <div id="deviceOv1" >11111</div>
+                            </div>
+                        </div>
+                        <div class="item">
+                            2222222
+                        </div>
+                        <div class="item">
+                            3333333
+                        </div>
+                    </div>
+                    <!-- 轮播（Carousel）导航 -->
+                    <a class="left carousel-control" href="#myCarousel" role="button" data-slide="prev">
+                        <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+                        <span class="sr-only">Previous</span>
+                    </a>
+                    <a class="right carousel-control" href="#myCarousel" role="button" data-slide="next">
+                        <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+                        <span class="sr-only">Next</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="box-body addModule">
+            <div class="subAddModule" style="cursor: pointer;">
+                <div class="indexAddBtn"></div>
+                <p>添加新模块</p>
+            </div>
+            <div class="moduleSlc" style="display: none;">
+                <ul style="display: flex;flex-wrap: wrap;">
+                </ul>
+                <div >
+                    <input type="button" value="确定" class="submit">
+                    <input type="button" value="取消" class="cancelbtn">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

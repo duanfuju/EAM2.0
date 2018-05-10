@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tiansu.eam.modules.faultOrder.dao.FaultOrderDao">
+
+      <!--id,order_code,notifier_tel,notifier,notifier_dept,notifier_no,notifier_loc,order_device,notifier_appearance
+    ,notifier_source,order_level,order_expect_time,detail_location,notifier_remark,order_source,order_source_id
+    ,order_status,order_plan_start_time,order_plan_end_time,order_taking_time,order_finish_time,order_dispatch_time
+    ,arrive_img,order_receiver,order_solver,isovertime,order_dispatcher,order_fk_result,order_fk_photo,order_fk_video
+    ,order_fk_reason,pstid,create_by,create_time,isdelete,-->
+
+    <sql id="orderColumns">
+                        a.id AS "id",
+                a.order_code AS "order_code",
+                a.notifier_tel AS "notifier_tel",
+                a.notifier AS "notifier",
+                a.notifier_dept AS "notifier_dept.deptno",
+                a.notifier_no AS "notifier_no",
+                a.notifier_loc AS "notifier_loc.id",
+                a.order_device AS "order_device.id",
+                a.notifier_appearance AS "notifier_appearance",
+                a.notifier_source AS "notifier_source",
+                a.order_level AS "order_level",
+                a.order_expect_time AS "order_expect_time",
+                a.detail_location AS "detail_location",
+                a.notifier_remark AS "notifier_remark",
+                a.order_source AS "order_source",
+                a.order_source_id AS "order_source_id",
+                notifier_photo,
+                notifier_video,
+                a.order_status,
+                a.order_plan_start_time,
+                a.order_plan_end_time,
+                a.order_arrivetime,
+                a.evaluate_score,
+                a.evaluate_remark,
+                a.order_taking_time,
+                a.order_finish_time,
+                a.order_dispatch_time,
+                a.arrive_img,
+                a.order_receiver,
+                a.order_solver AS "order_solver.loginname",
+                a.isovertime,
+                a.order_dispatcher AS "order_dispatcher.loginname",
+                a.order_fk_result,
+                a.order_fk_photo,
+                a.order_fk_video,
+                a.order_fk_reason,
+                a.pstid,
+                dept.deptname AS "notifier_dept.deptname",
+                el.loc_name AS "notifier_loc.loc_name",
+                dev.dev_name AS "order_device.dev_name",
+                u1.realname AS "order_solver.realname",
+                u2.realname AS "order_dispatcher.realname",
+                u3.realname AS "createBy.realname"
+    </sql>
+
+    <sql id="orderJoins">
+        LEFT JOIN ioms_dept dept ON dept.deptno = a.notifier_dept
+        LEFT JOIN ioms_user u1 ON u1.loginname = a.order_solver
+        LEFT JOIN ioms_user u2 ON u2.loginname = a.order_dispatcher
+        LEFT JOIN ioms_user u3 ON u3.loginname = a.create_by
+        LEFT JOIN eam_dev_location el ON el.id = a.notifier_loc
+        LEFT JOIN eam_device dev ON dev.id = a.order_device
+    </sql>
+
+    <select id="get" resultType="com.tiansu.eam.modules.faultOrder.entity.FaultOrder">
+        SELECT
+        <include refid="orderColumns"/>,a.create_by as "createBy.loginname",a.create_time as createDate
+        FROM eam_fault_order a
+        <include refid="orderJoins"/>
+        WHERE a.id = #{id}
+        or pstid = #{id}
+        and a.isdelete != '1'
+    </select>
+
+
+
+    <select id="findListByMap" resultType="com.tiansu.eam.modules.faultOrder.entity.FaultOrder">
+        SELECT
+        <include refid="orderColumns"/>
+        FROM eam_fault_order a
+        <include refid="orderJoins"/>
+        <where>
+            a.isdelete != '1'
+            <if test="order_code != null and order_code != ''">
+                AND a.order_code LIKE
+                <if test="dbName == 'oracle'">'%'||#{order_code}||'%'</if>
+                <if test="dbName == 'mssql'">'%'+#{order_code}+'%'</if>
+                <if test="dbName == 'mysql'">concat('%',#{order_code},'%')</if>
+            </if>
+            <if test="notifier != null and notifier != ''">
+                AND a.notifier = #{notifier}
+            </if>
+            <if test="order_device != null and order_device != ''">
+                AND a.order_device = #{order_device}
+            </if>
+            <if test="order_source != null and order_source != ''">
+                AND a.order_source in (#{order_source})
+            </if>
+            <if test="order_status != null and order_status != ''">
+                AND a.order_status in (#{order_status})
+            </if>
+        </where>
+        <choose>
+            <when test="page !=null and page.orderBy != null and page.orderBy != ''">
+                ORDER BY ${page.orderBy}
+            </when>
+            <otherwise>
+            </otherwise>
+        </choose>
+    </select>
+
+
+
+    <insert id="insert" parameterType="com.tiansu.eam.modules.faultOrder.entity.FaultOrder">
+        INSERT INTO eam_fault_order(
+        id,order_code,notifier_tel,notifier,notifier_dept,notifier_no,notifier_loc,order_device,notifier_appearance
+        ,notifier_source,order_level,notifier_photo,notifier_video,order_expect_time,detail_location,notifier_remark,order_source,order_source_id
+        ,order_status,order_plan_start_time,order_plan_end_time,order_taking_time,order_finish_time,order_dispatch_time
+        ,order_arrivetime,arrive_img,order_receiver,order_solver,isovertime,order_dispatcher,order_fk_result,order_fk_photo
+        ,order_fk_video,order_fk_reason,pstid,evaluate_score,evaluate_remark,create_by,create_time,isdelete
+        ) VALUES (
+        #{id},#{order_code},#{notifier_tel},#{notifier},#{notifier_dept.deptno},#{notifier_no},#{notifier_loc.id},#{order_device.id},#{notifier_appearance},
+        #{notifier_source},#{order_level},#{notifier_photo},#{notifier_video},#{order_expect_time},#{detail_location},#{notifier_remark},#{order_source},#{order_source_id},
+        #{order_status},#{order_plan_start_time},#{order_plan_end_time},#{order_taking_time},#{order_finish_time},#{order_dispatch_time},
+        #{order_arrivetime},#{arrive_img},#{order_receiver},#{order_solver.loginname},#{isovertime},#{order_dispatcher.loginname},
+        #{order_fk_result},#{order_fk_photo},#{order_fk_video},#{order_fk_reason},#{pstid},#{evaluate_score},#{evaluate_remark},#{createBy.loginname},#{createDate},0
+        )
+    </insert>
+
+    <update id="update" parameterType="com.tiansu.eam.modules.faultOrder.entity.FaultOrder">
+        UPDATE eam_fault_order
+        <trim prefix="set" suffixOverrides=",">
+            <if test="order_code != null ">order_code = #{order_code},</if>
+            <if test="notifier_tel != null ">notifier_tel = #{notifier_tel},</if>
+            <if test="notifier != null ">notifier = #{notifier},</if>
+            <if test="notifier_dept != null ">notifier_dept = #{notifier_dept.deptno},</if>
+            <if test="notifier_no != null ">notifier_no = #{notifier_no},</if>
+            <if test="notifier_loc != null ">notifier_loc = #{notifier_loc.id},</if>
+            <if test="order_device != null ">order_device = #{order_device.id},</if>
+            <if test="notifier_appearance != null ">notifier_appearance = #{notifier_appearance},</if>
+            <if test="notifier_source != null ">notifier_source = #{notifier_source},</if>
+            <if test="order_level != null ">order_level = #{order_level},</if>
+            <if test="notifier_photo != null ">notifier_photo = #{notifier_photo},</if>
+            <if test="notifier_video != null ">notifier_video = #{notifier_video},</if>
+            <if test="order_expect_time != null ">order_expect_time = #{order_expect_time},</if>
+            <if test="detail_location != null ">detail_location = #{detail_location},</if>
+            <if test="notifier_remark != null ">notifier_remark = #{notifier_remark},</if>
+            <if test="order_source != null ">order_source = #{order_source},</if>
+            <if test="order_source_id != null ">order_source_id = #{order_source_id},</if>
+            <if test="order_status != null ">order_status = #{order_status},</if>
+            <if test="order_plan_start_time != null ">order_plan_start_time = #{order_plan_start_time},</if>
+            <if test="order_plan_end_time != null ">order_plan_end_time = #{order_plan_end_time},</if>
+            <if test="order_taking_time != null ">order_taking_time = #{order_taking_time},</if>
+            <if test="order_finish_time != null ">order_finish_time = #{order_finish_time},</if>
+            <if test="order_dispatch_time != null ">order_dispatch_time = #{order_dispatch_time},</if>
+            <if test="order_arrivetime != null ">order_arrivetime = #{order_arrivetime},</if>
+            <if test="arrive_img != null ">arrive_img = #{arrive_img},</if>
+            <if test="order_receiver != null ">order_receiver = #{order_receiver},</if>
+            <if test="order_solver != null ">order_solver = #{order_solver.loginname},</if>
+            <if test="isovertime != null ">isovertime = #{isovertime},</if>
+            <if test="order_dispatcher != null ">order_dispatcher = #{order_dispatcher.loginname},</if>
+            <if test="order_fk_result != null ">order_fk_result = #{order_fk_result},</if>
+            <if test="order_fk_photo != null ">order_fk_photo = #{order_fk_photo},</if>
+            <if test="order_fk_video != null ">order_fk_video = #{order_fk_video},</if>
+            <if test="order_fk_reason != null ">order_fk_reason = #{order_fk_reason},</if>
+            <if test="pstid != null ">pstid = #{pstid},</if>
+            <if test="evaluate_score != null ">evaluate_score = #{evaluate_score},</if>
+            <if test="evaluate_remark != null ">evaluate_remark = #{evaluate_remark},</if>
+            <if test="updateBy != null ">update_by = #{updateBy.loginname},</if>
+            <if test="updateDate != null ">update_time = #{updateDate},</if>
+        </trim>
+        WHERE id = #{id}
+    </update>
+
+    <!--派单计划消耗-->
+    <insert id="insertPlanTool">
+        INSERT INTO eam_fault_tools
+        (id,order_id,tool_id,tool_num,tool_remark)
+        VALUES
+        <foreach collection="list" item="item" index="index" separator="," >
+            (#{item.id},#{item.order_id},#{item.tool_id},#{item.tool_num},#{item.tool_remark})
+        </foreach>
+    </insert>
+
+    <insert id="insertPlanSparepart">
+        INSERT INTO eam_fault_spareparts
+        (id,order_id,part_id,part_num,part_remark)
+        VALUES
+        <foreach collection="list" item="item" index="index" separator="," >
+            (#{item.id},#{item.order_id},#{item.part_id},#{item.part_num},#{item.part_remark})
+        </foreach>
+    </insert>
+
+    <insert id="insertPlanPerson">
+        INSERT INTO eam_fault_person
+        (id,order_id,emp_id,hour,charge,remark)
+        VALUES
+        <foreach collection="list" item="item" index="index" separator="," >
+            (#{item.id},#{item.order_id},#{item.emp_id},#{item.hour},#{item.charge},#{item.remark})
+        </foreach>
+    </insert>
+
+    <insert id="insertPlanOther">
+        INSERT INTO eam_fault_othercharges
+        (id,order_id,charge_name,charge_price,charge_remark)
+        VALUES
+        <foreach collection="list" item="item" index="index" separator="," >
+            (#{item.id},#{item.order_id},#{item.charge_name},#{item.charge_price},#{item.charge_remark})
+        </foreach>
+    </insert>
+
+    <!--派单实际消耗-->
+    <insert id="insertActualTool">
+        INSERT INTO eam_fault_tools_fk
+        (id,order_id,tool_id,tool_num,tool_remark)
+        VALUES
+        <foreach collection="list" item="item" index="index" separator="," >
+            (#{item.id},#{item.order_id},#{item.tool_id},#{item.tool_num},#{item.tool_remark})
+        </foreach>
+    </insert>
+
+    <insert id="insertActualSparepart">
+        INSERT INTO eam_fault_spareparts_fk
+        (id,order_id,part_id,part_num,part_remark)
+        VALUES
+        <foreach collection="list" item="item" index="index" separator="," >
+            (#{item.id},#{item.order_id},#{item.part_id},#{item.part_num},#{item.part_remark})
+        </foreach>
+    </insert>
+
+    <insert id="insertActualPerson">
+        INSERT INTO eam_fault_person_fk
+        (id,order_id,emp_id,hour,charge,remark)
+        VALUES
+        <foreach collection="list" item="item" index="index" separator="," >
+            (#{item.id},#{item.order_id},#{item.emp_id},#{item.hour},#{item.charge},#{item.remark})
+        </foreach>
+    </insert>
+
+    <insert id="insertActualOther">
+        INSERT INTO eam_fault_othercharges_fk
+        (id,order_id,charge_name,charge_price,charge_remark)
+        VALUES
+        <foreach collection="list" item="item" index="index" separator="," >
+            (#{item.id},#{item.order_id},#{item.charge_name},#{item.charge_price},#{item.charge_remark})
+        </foreach>
+    </insert>
+
+
+    <!--<update id="deleteByOrderId" parameterType="java.lang.String">
+        delete from eam_schedual
+        where order_id = #{order_id}
+    </update>-->
+
+
+</mapper>

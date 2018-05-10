@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tiansu.eam.modules.inspection.dao.InspectionRouteDao">
+    <sql id="columns">
+     id AS 'id_key',route_code,route_name,route_object,route_type,route_mode,route_isstandard,approve_time,
+     approve_status,approve_reason,route_period,route_period_detail,route_taskdates,route_enableperiod,isClosed,close_reason,route_status,route_stand
+    </sql>
+     <select id="findListByMap" parameterType="Map" resultType="Map">
+        SELECT
+        <include refid="columns"/>
+          FROM
+             eam_inspection_route a
+         <where>
+             a.isdelete=0
+             <if test="dept != null and dept != ''">
+                 AND a.create_by IN
+                 <if test="dbName == 'mssql'">(SELECT loginname FROM ioms_user WHERE dbo.find_in_set(userdeptno, #{dept})>0)</if>
+                 <if test="dbName == 'mysql'">(SELECT loginname FROM ioms_user WHERE find_in_set(userdeptno, #{dept})>0)</if>
+             </if>
+             <if test="route_code != null and route_code != ''">
+                 AND
+                 a.route_code LIKE
+                 <if test="dbName == 'mssql'">'%'+#{route_code}+'%'</if>
+                 <if test="dbName == 'mysql'">concat('%',#{route_code},'%')</if>
+
+             </if>
+             <if test="route_name != null and route_name != ''">
+                 AND
+                  a.route_name LIKE
+                 <if test="dbName == 'mssql'">'%'+#{route_name}+'%'</if>
+                 <if test="dbName == 'mysql'">concat('%',#{route_name},'%')</if>
+             </if>
+             <if test="route_period != null and route_period != ''">
+                 AND
+                 a.route_period =#{route_period}
+             </if>
+             <if test="route_object != null and route_object != ''">
+                 AND
+                 a.route_object =#{route_object}
+             </if>
+             <if test="approve_status != null and approve_status != ''">
+                 AND
+                 a.approve_status =#{approve_status}
+             </if>
+             <if test="isClosed != null and isClosed != ''">
+                 AND
+                 a.isClosed =#{isClosed}
+             </if>
+             <if test="ids != null and ids != ''">
+                 AND a.id in
+                 <foreach item="ids" index="index" collection="ids" open="(" separator="," close=")">
+                     #{ids}
+                 </foreach>
+             </if>
+         </where>
+         <choose>
+             <when test="page !=null and page.orderBy != null and page.orderBy != ''">
+                 ORDER BY ${page.orderBy}
+             </when>
+             <otherwise>
+                 ORDER BY update_time desc
+             </otherwise>
+         </choose>
+
+     </select>
+    <!--入巡检路线表-->
+    <insert id="insert">
+            INSERT into eam_inspection_route(
+            id,route_code,route_name,route_object,route_type,route_mode,route_isstandard,route_period,route_period_detail,route_taskdates,route_totalhour,
+            route_enableperiod,create_by,create_time,update_by,update_time,isdelete,approve_status,isClosed,approve_type,route_status,pstid,route_stand
+            )
+            VALUES (
+            #{id},
+            #{route_code},
+            #{route_name},
+            #{route_object},
+            #{route_type},
+            #{route_mode},
+            #{route_isstandard},
+            #{route_period},
+            #{route_period_detail},
+            #{route_taskdates},
+            #{route_totalhour},
+            #{route_enableperiod},
+            #{createBy.loginname},
+            #{createDate},
+            #{updateBy.loginname},
+            #{updateDate},
+            '0','0','0','0',#{route_status},#{pstid},#{route_stand}
+            )
+    </insert>
+    <!--获取单个，及附表-->
+    <select id="get" parameterType="String" resultType="com.tiansu.eam.modules.inspection.entity.InspectionRoute">
+        SELECT
+        <include refid="columns"/>
+        FROM
+        eam_inspection_route s
+        WHERE id=#{id}
+    </select>
+    <select id="getList" parameterType="String" resultType="Map">
+        SELECT
+        <include refid="columns"/>
+        FROM
+        eam_inspection_route s
+        WHERE id=#{id}
+    </select>
+    <select id="getAreaByrid" parameterType="String" resultType="Map">
+            select a.route_name,c.id,c.area_name from eam_inspection_route a,eam_route_area b,eam_inspection_area c where a.id=#{id} and a.id=b.route_id and b.area_id =c.id
+    </select>
+
+    <select id="quInsProce" parameterType="String" resultType="com.tiansu.eam.modules.inspection.entity.InsRouteProc">
+        SELECT id,inspectionroute_id,procedure_code,procedure_desc,procedure_standard,procedure_remark
+        from eam_inspectionroute_procedure s where inspectionroute_id=#{insrouteId} ORDER BY procedure_code
+    </select>
+    <select id="quInsSafe" parameterType="String" resultType="com.tiansu.eam.modules.inspection.entity.InsRouteSafe">
+        SELECT id,inspectionroute_id,safety_code,safety_desc,safety_standard,safety_remark
+        from eam_inspectionroute_safety s where inspectionroute_id=#{insrouteId}
+    </select>
+    <select id="quInsTool" parameterType="String" resultType="com.tiansu.eam.modules.inspection.entity.InsRouteTools">
+        SELECT id,inspectionroute_id,material_id,tools_num,tools_remark
+        from eam_inspectionroute_tools s where inspectionroute_id=#{insrouteId}
+    </select>
+    <select id="quInsSpare" parameterType="String" resultType="com.tiansu.eam.modules.inspection.entity.InsRouteSpareparts">
+        SELECT id,inspectionroute_id,material_id,spareparts_num,spareparts_remark,spareparts_total
+        from eam_inspectionroute_spareparts s where inspectionroute_id=#{insrouteId}
+    </select>
+    <select id="quInsPerson" parameterType="String" resultType="com.tiansu.eam.modules.inspection.entity.InsRoutePerson">
+        SELECT id,inspectionroute_id,loginname,person_hours,person_hourprice,person_postskill,person_hourtotal,person_remark
+        from eam_inspectionroute_person s where inspectionroute_id=#{insrouteId}
+    </select>
+    <select id="quInsOther" parameterType="String" resultType="com.tiansu.eam.modules.inspection.entity.InsRouteOthers">
+        SELECT id,inspectionroute_id,otherexpenses,otherexpenses_amount,otherexpenses_remark
+        from eam_inspectionroute_others s where inspectionroute_id=#{insrouteId}
+    </select>
+    <!--编辑-->
+    <update id="update" parameterType="com.tiansu.eam.modules.inspection.entity.InspectionRoute">
+      update eam_inspection_route
+         SET route_name=#{route_name},
+             route_object=#{route_object},
+             route_type=#{route_type},
+             route_mode=#{route_mode},
+             route_isstandard=#{route_isstandard},
+             route_period=#{route_period},
+             route_period_detail=#{route_period_detail},
+              route_taskdates=#{ route_taskdates},
+              route_totalhour=#{route_totalhour},
+              route_enableperiod=#{route_enableperiod},
+              route_status=#{route_status},
+              route_stand=#{route_stand},
+             update_by=#{updateBy.loginname},
+             update_time=#{updateDate}
+             WHERE
+             id=#{id_key}
+    </update>
+    <!--逻辑删除-->
+    <update id="deleteByids" parameterType="Map">
+          update eam_inspection_route
+            SET isdelete =1,
+                update_by=#{updateBy},
+                update_time=#{updateDate}
+            where id =#{id_key}
+      </update>
+    <!--通过编码获取-->
+    <select id="getByCode" parameterType="String" resultType="Map">
+        SELECT
+        count(1) cou
+        FROM
+        eam_inspection_route s
+        WHERE route_code=#{code} and isdelete=0;
+    </select>
+    <select id="deleBefore" parameterType="java.lang.String" resultType="Map">
+        select count(1) num from eam_supplier where supplier_type=#{id};
+    </select>
+
+    <!--入附表-->
+    <insert id="insertInsProc">
+        INSERT INTO eam_inspectionroute_procedure
+        (id,inspectionroute_id,procedure_code,procedure_desc,procedure_standard,procedure_remark)
+        VALUES
+        <foreach collection="list" item="item" index="index" separator="," >
+            (#{item.id},#{item.inspectionroute_id},#{item.procedure_code},#{item.procedure_desc},#{item.procedure_standard},#{item.procedure_remark})
+        </foreach>
+    </insert>
+    <insert id="insertInsSafe">
+        INSERT INTO eam_inspectionroute_safety
+        (id,inspectionroute_id,safety_code,safety_desc,safety_standard,safety_remark)
+        VALUES
+        <foreach collection="list" item="item" index="index" separator="," >
+            (#{item.id},#{item.inspectionroute_id},#{item.safety_code},#{item.safety_desc},#{item.safety_standard},#{item.safety_remark})
+        </foreach>
+    </insert>
+    <insert id="insertInsTool">
+        INSERT INTO eam_inspectionroute_tools
+        (id,inspectionroute_id,material_id,tools_num,tools_remark)
+        VALUES
+        <foreach collection="list" item="item" index="index" separator="," >
+            (#{item.id},#{item.inspectionroute_id},#{item.material_id},#{item.tools_num},#{item.tools_remark})
+        </foreach>
+    </insert>
+    <insert id="insertInsSpare">
+        INSERT INTO eam_inspectionroute_spareparts
+        (id,inspectionroute_id,material_id,spareparts_num,spareparts_remark,spareparts_total)
+        VALUES
+        <foreach collection="list" item="item" index="index" separator="," >
+            (#{item.id},#{item.inspectionroute_id},#{item.material_id},#{item.spareparts_num},#{item.spareparts_remark},#{item.spareparts_total})
+        </foreach>
+    </insert>
+    <insert id="insertInsPerson">
+        INSERT INTO eam_inspectionroute_person
+        (id,inspectionroute_id,loginname,person_hours,person_hourprice,person_postskill,person_hourtotal,person_remark)
+        VALUES
+        <foreach collection="list" item="item" index="index" separator="," >
+            (#{item.id},#{item.inspectionroute_id},#{item.loginname},#{item.person_hours},#{item.person_hourprice},#{item.person_postskill},#{item.person_hourtotal},#{item.person_remark})
+        </foreach>
+    </insert>
+    <insert id="insertInsOther">
+        INSERT INTO eam_inspectionroute_others
+        (id,inspectionroute_id,otherexpenses,otherexpenses_amount,otherexpenses_remark)
+        VALUES
+        <foreach collection="list" item="item" index="index" separator="," >
+            (#{item.id},#{item.inspectionroute_id},#{item.otherexpenses},#{item.otherexpenses_amount},#{item.otherexpenses_remark})
+        </foreach>
+    </insert>
+    <insert id="insertArea">
+        INSERT INTO eam_route_area
+        (id,route_id,area_id)
+        VALUES
+        <foreach collection="list" item="item" index="index" separator="," >
+            (#{item.id},#{item.route_id},#{item.area_id})
+        </foreach>
+    </insert>
+    <delete id="deleInsProc">
+        DELETE FROM eam_inspectionroute_procedure where inspectionroute_id=#{id}
+    </delete>
+    <delete id="deleInsSafe">
+        DELETE FROM eam_inspectionroute_safety where inspectionroute_id=#{id}
+    </delete>
+    <delete id="deleInsTool">
+        DELETE FROM eam_inspectionroute_tools where inspectionroute_id=#{id}
+    </delete>
+    <delete id="deleInsSpare">
+        DELETE FROM eam_inspectionroute_spareparts where inspectionroute_id=#{id}
+    </delete>
+    <delete id="deleInsPerson">
+        DELETE FROM eam_inspectionroute_person where inspectionroute_id=#{id}
+    </delete>
+    <delete id="deleInsOther">
+        DELETE FROM eam_inspectionroute_others where inspectionroute_id=#{id}
+    </delete>
+    <delete id="deleRouteArea">
+        DELETE FROM eam_route_area where route_id=#{id}
+    </delete>
+
+    <!--工作流通过实例ID查-->
+    <select id="getLibByPIid" parameterType="String" resultType="Map">
+        SELECT id,route_code,route_name,route_object,route_type,route_mode,route_isstandard,approve_time,route_totalhour,route_stand,
+         approve_status,approve_reason,route_period,route_period_detail,route_taskdates,route_enableperiod,isClosed,close_reason,route_status,pstid,(select loginname from eam_inspectionroute_person where inspectionroute_id=a.id) person
+        FROM eam_inspection_route a WHERE pstid=#{pstid}
+    </select>
+    <!--工作流通过实例ID更新表单-->
+    <update id="updateAprByPIid" parameterType="Map">
+        UPDATE eam_inspection_route
+        SET approve_by=#{approve_by},approve_reason=#{approve_reason},approve_time=#{approve_time},approve_status=#{approve_status}
+        where pstid=#{pstid}
+    </update>
+<!--作废审批-->
+    <select id="getLibByPIidclose" parameterType="String" resultType="Map">
+        SELECT id,route_code,route_name,route_object,route_type,route_mode,route_isstandard,approve_time,route_totalhour,
+        approve_status,approve_reason,route_period,route_period_detail,route_taskdates,route_enableperiod,isClosed,close_reason,route_status,pstidclose,(select loginname from eam_inspectionroute_person where inspectionroute_id=a.id) person
+        FROM eam_inspection_route a WHERE pstidclose=#{pstidclose}
+    </select>
+    <update id="updatePIidcloseByid">
+      UPDATE eam_inspection_route SET pstidclose=#{pstidclose},isClosed='1' where id=#{id}
+    </update>
+    <update id="updateCloseByPIid">
+        UPDATE eam_inspection_route SET isClosed=#{isClosed},close_reason=#{close_reason}
+        WHERE  pstidclose=#{pstidclose}
+    </update>
+    <select id="getDevByRouteid" parameterType="String" resultType="Map">
+        select distinct f.dev_name,f.dev_code, f.dev_location, g.loc_name
+        from
+        eam_inspection_route a,eam_route_area b,eam_inspection_area c,eam_area_subject d,eam_inspection_subject e,eam_device f, eam_dev_location g
+        where a.id=#{id_key} and a.id=b.route_id and b.area_id =c.id and c.id=d.area_id and d.subject_id=e.id and e.dev_id =f.id and f.dev_location = g.id
+    </select>
+
+    <!--通过标准工作，标准工单获取工序,工器具,等-->
+    <select id="getprocBywork" parameterType="String" resultType="Map">
+        select a.procedure_code,a.procedure_desc,a.procedure_standard,a.procedure_remark,a.id procedure_id, a.operationwork_id
+        from eam_operationwork_procedure a where operationwork_id=#{workid}
+    </select>
+    <select id="getsafeBywork" parameterType="String" resultType="Map">
+        SELECT a.safety_code,a.safety_desc,a.safety_standard,a.safety_remark,a.id safety_id, a.operationwork_id
+         FROM eam_operationwork_safety a where operationwork_id=#{workid}
+    </select>
+    <select id="gettoolBywork" parameterType="String" resultType="Map">
+      SELECT a.id tools_id, a.material_id, a.operationwork_id, c.material_name, a.tools_num, c.material_unit ,
+        c.material_model, a.tools_remark, a.operationwork_id
+        FROM eam_operationwork_tools a,eam_material c where a.material_id = c.id and operationwork_id=#{workid}
+    </select>
+    <select id="getspareBywork" parameterType="String" resultType="Map">
+ SELECT a.id spareparts_id, a.material_id, a.operationwork_id, c.material_name, a.spareparts_num, c.material_unit ,
+        c.material_price, a.spareparts_remark, a.spareparts_total, a.operationwork_id
+        FROM eam_operationwork_spareparts a,eam_material c where a.material_id = c.id and operationwork_id=#{workid}
+    </select>
+    <select id="getpersonBywork" parameterType="String" resultType="Map">
+ SELECT a.id personHours_id, a.loginname, c.realname, a.person_hours, a.person_hourprice, a.person_postskill, a.person_hourtotal, a.person_remark,
+        a.operationwork_id
+        FROM eam_operationwork_person a,ioms_user c where a.loginname = c.loginname and operationwork_id=#{workid}
+    </select>
+    <select id="getotherBywork" parameterType="String" resultType="Map">
+  SELECT a.id others_id,a.otherexpenses,a.otherexpenses_amount,a.otherexpenses_remark,a.operationwork_id
+        FROM eam_operationwork_others a where operationwork_id=#{workid}
+    </select>
+    <!--通过工单获取-->
+    <select id="getprocByword" parameterType="String" resultType="Map">
+        select a.procedure_code,a.procedure_desc,a.procedure_standard,a.procedure_remark,a.id procedure_id, a.operationwork_id
+        from eam_operationwork_procedure a where EXISTS (select 1 from eam_operation_orders where id=#{wordid}and dbo.find_in_set(a.operationwork_id, REPLACE(order_work, ';', ','))>0  )
+    </select>
+    <select id="getsafeByword" parameterType="String" resultType="Map">
+        select a.safety_code,a.safety_desc,a.safety_standard,a.safety_remark,a.id safety_id, a.operationwork_id
+          from eam_operationwork_safety a where EXISTS (select 1 from eam_operation_orders where id=#{wordid}and dbo.find_in_set(a.operationwork_id, REPLACE(order_work, ';', ','))>0  )
+    </select>
+</mapper>

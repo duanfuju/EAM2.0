@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tiansu.eam.modules.supplier.dao.SupplierTypeDao">
+    <sql id="supplierTypeColumns">
+      id AS 'id_key',
+      type_code,
+      type_name,
+      type_desc,
+      type_status,
+      create_by,
+      create_time,
+      update_by,
+      update_time
+    </sql>
+     <select id="findListByMap" parameterType="Map" resultType="Map">
+        SELECT
+        <include refid="supplierTypeColumns"/>
+          FROM
+             eam_supplier_type s
+         <where>
+             s.isdelete=0
+             <if test="dept != null and dept != ''">
+                 AND s.create_by IN
+                 <if test="dbName == 'mssql'">(SELECT loginname FROM ioms_user WHERE dbo.find_in_set(userdeptno, #{dept})>0)</if>
+                 <if test="dbName == 'mysql'">(SELECT loginname FROM ioms_user WHERE find_in_set(userdeptno, #{dept})>0)</if>
+             </if>
+             <if test="type_code != null and type_code != ''">
+                 AND
+                 s.type_code LIKE
+                 <if test="dbName == 'mssql'">'%'+#{type_code}+'%'</if>
+                 <if test="dbName == 'mysql'">concat('%',#{type_code},'%')</if>
+
+             </if>
+             <if test="type_name != null and type_name != ''">
+                 AND
+                 s.type_name LIKE
+                 <if test="dbName == 'mssql'">'%'+#{type_name}+'%'</if>
+                 <if test="dbName == 'mysql'">concat('%',#{type_name},'%')</if>
+             </if>
+             <if test="type_status != null and type_status != ''">
+                 AND
+                 s.type_status =#{type_status}
+             </if>
+             <if test="ids != null and ids != ''">
+                 AND s.id in
+                 <foreach item="ids" index="index" collection="ids" open="(" separator="," close=")">
+                     #{ids}
+                 </foreach>
+             </if>
+         </where>
+         <choose>
+             <when test="page !=null and page.orderBy != null and page.orderBy != ''">
+                 ORDER BY ${page.orderBy}
+             </when>
+             <otherwise>
+                 ORDER  BY update_time desc
+             </otherwise>
+         </choose>
+
+     </select>
+<!--给供应商选择用-->
+    <select id="getsuppliertype" parameterType="Map" resultType="Map">
+        SELECT
+        id,type_name text
+        FROM
+        eam_supplier_type s
+        <where>
+            s.isdelete=0
+            <if test="dept != null and dept != ''">
+                AND s.create_by IN
+                <if test="dbName == 'mssql'">(SELECT loginname FROM ioms_user WHERE dbo.find_in_set(userdeptno, #{dept})>0)</if>
+                <if test="dbName == 'mysql'">(SELECT loginname FROM ioms_user WHERE find_in_set(userdeptno, #{dept})>0)</if>
+            </if>
+        </where>
+
+    </select>
+    <insert id="insert">
+            INSERT into eam_supplier_type(
+            type_code,type_name,type_desc,type_status,create_by,create_time,update_by,update_time,isdelete
+            )
+            VALUES (
+            #{type_code},
+            #{type_name},
+            #{type_desc},
+            #{type_status},
+            #{createBy.loginname},
+            #{createDate},
+            #{updateBy.loginname},
+            #{updateDate},
+            '0'
+            )
+    </insert>
+    <!--获取单个-->
+    <select id="get" parameterType="String" resultType="com.tiansu.eam.modules.supplier.entity.SupplierType">
+        SELECT
+        <include refid="supplierTypeColumns"/>
+        FROM
+        eam_supplier_type s
+        WHERE id=#{id}
+    </select>
+    <!--编辑-->
+    <update id="update" parameterType="com.tiansu.eam.modules.supplier.entity.SupplierType">
+      update eam_supplier_type
+         SET type_code=#{type_code},
+             type_name=#{type_name},
+             type_desc=#{type_desc},
+             type_status=#{type_status},
+             update_by=#{updateBy.loginname},
+             update_time=#{updateDate}
+             WHERE
+             id=#{id_key}
+    </update>
+    <!--逻辑删除-->
+    <update id="deleteByids" parameterType="Map">
+          update eam_supplier_type
+            SET isdelete =1,
+                update_by=#{updateBy},
+                update_time=#{updateDate}
+            where id IN
+        <foreach collection="ids" item="ids" index="index" open="(" separator="," close=")">
+              #{ids}
+        </foreach>
+         </update>
+    <!--通过编码获取-->
+    <select id="getByCode" parameterType="String" resultType="Map">
+        SELECT
+        count(1) cou
+        FROM
+        eam_supplier_type s
+        WHERE type_code=#{code} and isdelete=0;
+    </select>
+    <select id="deleBefore" parameterType="java.lang.String" resultType="Map">
+        select count(1) num from eam_supplier where supplier_type=#{id};
+    </select>
+
+    <insert id="insertBatch">
+        INSERT into eam_supplier_type(
+        id,type_code,type_name,type_desc,type_status,create_by,create_time,isdelete
+        )
+        VALUES
+        <foreach collection="list" item="item" index="index" separator="," >
+            (#{item.id},#{item.type_code},#{item.type_name},#{item.type_desc},#{item.type_status},
+            #{item.createBy.loginname},#{item.createDate},'0')
+        </foreach>
+    </insert>
+</mapper>

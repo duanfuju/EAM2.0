@@ -1,0 +1,445 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tiansu.eam.modules.maintain.dao.MaintainProjectInfDao">
+
+    <!--通过编码获取-->
+    <select id="getByCode" parameterType="String" resultType="Map">
+        SELECT
+        count(1) cou
+        FROM
+        eam_maintain_project_inf s
+        WHERE project_code=#{code} and isdelete=0;
+    </select>
+    <!--入保养设置表-->
+    <insert id="insert">
+        INSERT into eam_maintain_project_inf(
+                    id,
+            project_code,
+            project_name,
+            project_mode,
+            project_type,
+            project_empid,
+            project_stime,
+            project_cycle,
+            project_bm,
+            status,
+            maint_check_code,
+            maint_check_cont,
+            maint_check_mark,
+            create_by,
+            create_time,
+            update_by,
+            update_time,
+            isdelete,
+            project_period
+            )
+        VALUES (
+            #{id},
+            #{project_code},
+            #{project_name},
+            #{project_mode},
+            #{project_type},
+            #{project_empid},
+            #{project_stime},
+            #{project_cycle},
+            #{project_bm},
+            #{status},
+            #{maint_check_code},
+            #{maint_check_cont},
+            #{maint_check_mark},
+            #{createBy.loginname},
+            #{createDate},
+            #{updateBy.loginname},
+            #{updateDate},
+            '0',
+            #{project_period}
+        )
+    </insert>
+    <!--入附表-->
+    <insert id="insertMaintCont">
+        INSERT INTO eam_maintain_project_inf_content
+        (
+        id,
+        project_id,
+        maintain_code,
+        maintain_content
+
+        )
+        VALUES
+        <foreach collection="list" item="item" index="index" separator="," >
+
+            (
+            #{item.id},
+            #{item.project_id},
+            #{item.maintain_code},
+            #{item.maintain_content}
+            )
+        </foreach>
+    </insert>
+    <insert id="insertMaintDev">
+        INSERT INTO eam_maintain_project_inf_device
+        (
+        id,
+        project_id,
+        dev_id
+        )
+        VALUES
+        <foreach collection="list" item="item" index="index" separator="," >
+            (
+            #{item.id},
+            #{item.project_id},
+            #{item.dev_id}
+            )
+
+        </foreach>
+
+    </insert>
+    <select id="getDevidsByMaint_id" parameterType="String" resultType="String">
+       SELECT
+	    a.dev_id
+        FROM
+	     eam_maintain_project_inf_device a
+        WHERE
+         a.project_id=#{maintSetId}
+    </select>
+    <!--逻辑删除-->
+    <update id="deleteByids" parameterType="Map">
+        update eam_maintain_project_inf
+        SET isdelete =1,
+        update_by=#{updateBy},
+        update_time=#{updateDate}
+        where id =#{id_key}
+
+    </update>
+    <!--<select id="queryFromMon" parameterType="Map" resultType="int">-->
+        <!--SELECT-->
+        <!--count(*)-->
+        <!--FROM-->
+        <!--eam_maintain_project_sub a-->
+        <!--WHERE-->
+        <!--1=1-->
+        <!--<if test="project_code != null and project_code != ''">-->
+            <!--AND  a.project_code LIKE-->
+            <!--<if test="dbName == 'mssql'">'%'+#{project_code}+'%'</if>-->
+            <!--<if test="dbName == 'mysql'">concat('%',#{project_code},'%')</if>-->
+<!--&#45;&#45;             '%'+#{project_code}+'%'-->
+        <!--</if>-->
+
+    <!--</select>-->
+    <!--<select id="queryFromYear" parameterType="Map" resultType="int">-->
+        <!--SELECT-->
+        <!--count(*)-->
+        <!--FROM-->
+        <!--eam_maintain_project a-->
+        <!--<where>-->
+            <!--1=1-->
+            <!--<if test="project_code != null and project_code != ''">-->
+                <!--AND  a.project_code LIKE-->
+
+                <!--'%'+#{project_code}+'%'-->
+            <!--</if>-->
+        <!--</where>-->
+    <!--</select>-->
+    <select id="quMaintContent" parameterType="String" resultType="com.tiansu.eam.modules.maintain.entity.MaintainProjectContent">
+       SELECT
+       project_id,
+       maintain_code,
+       maintain_content
+       FROM
+	eam_maintain_project_inf_content
+       WHERE
+	project_id = #{maintSetId}
+    </select>
+    <select id="getProject_mode" parameterType="String" resultType="String">
+   SELECT
+	dict_name
+    FROM
+	eam_dict
+    WHERE
+	dict_type_code = 'maintain_mode'
+	AND dict_value = #{project_mode}
+    </select>
+    <select id="getProject_bm" parameterType="String" resultType="String">
+      SELECT
+        deptname
+        FROM
+        ioms_dept
+        WHERE
+       deptno = #{project_bm}
+    </select>
+    <sql id="columns">
+           id AS 'id_key',
+            project_code,
+            project_name,
+            project_mode,
+            project_type,
+            project_empid,
+            CONVERT(varchar(100), project_stime, 23) as project_stime,
+            project_cycle,
+            project_bm,
+            status,
+            maint_check_code,
+            maint_check_cont,
+            maint_check_mark,
+            create_by,
+            create_time,
+            update_by,
+            update_time,
+            isdelete,
+            project_period
+</sql>
+    <sql id="edits">
+        id AS 'id_key',
+        project_code,
+        project_name,
+        project_mode,
+        project_type,
+        project_empid,
+        CONVERT(varchar(100), project_stime, 23) as project_stime,
+        project_cycle,
+        project_bm,
+        status,
+        maint_check_code,
+        maint_check_cont,
+        maint_check_mark,
+        create_by,
+        create_time,
+        update_by,
+        update_time,
+        isdelete,
+        project_period
+    </sql>
+
+    <select id="findListByMap" parameterType="Map" resultType="Map">
+        SELECT
+        <include refid="columns"/>
+        FROM
+        eam_maintain_project_inf a
+        <where>
+            a.isdelete=0
+
+            <if test="dept != null and dept != ''">
+                AND a.create_by IN
+                <if test="dbName == 'mssql'">(SELECT loginname FROM ioms_user WHERE dbo.find_in_set(userdeptno, #{dept})>0)</if>
+                <if test="dbName == 'mysql'">(SELECT loginname FROM ioms_user WHERE find_in_set(userdeptno, #{dept})>0)</if>
+            </if>
+            <!--<if test="dev_id != null and dev_id != ''">-->
+                <!--AND-->
+                <!--b.dev_id LIKE-->
+                <!--<if test="dbName == 'mssql'">'%'+#{dev_id}+'%'</if>-->
+                <!--<if test="dbName == 'mysql'">concat('%',#{dev_id},'%')</if>-->
+
+            <!--</if>-->
+            <if test="project_empid != null and project_empid != ''">
+                AND
+                a.project_empid LIKE
+                <if test="dbName == 'mssql'">'%'+#{project_empid}+'%'</if>
+                <if test="dbName == 'mysql'">concat('%',#{project_empid},'%')</if>
+            </if>
+            <if test="project_period != null and project_period != ''">
+                AND
+                a.project_period =#{project_period}
+            </if>
+            <if test="project_bm != null and project_bm != ''">
+                AND
+                a.project_bm =#{project_bm}
+            </if>
+            <!--<if test="approve_status != null and approve_status != ''">-->
+                <!--AND-->
+                <!--a.approve_status =#{approve_status}-->
+            <!--</if>-->
+            <!--<if test="isClosed != null and isClosed != ''">-->
+                <!--AND-->
+                <!--a.isClosed =#{isClosed}-->
+            <!--</if>-->
+            <!--<if test="ids != null and ids != ''">-->
+                <!--AND a.id in-->
+                <!--<foreach item="ids" index="index" collection="ids" open="(" separator="," close=")">-->
+                    <!--#{ids}-->
+                <!--</foreach>-->
+            <!--</if>-->
+        </where>
+        <choose>
+            <when test="page !=null and page.orderBy != null and page.orderBy != ''">
+                ORDER BY ${page.orderBy}
+            </when>
+            <otherwise>
+                ORDER BY update_time desc
+            </otherwise>
+        </choose>
+
+    </select>
+    <select id="getList" parameterType="String" resultType="Map">
+        SELECT
+        <include refid="edits"/>
+        FROM
+        eam_maintain_project_inf s
+        WHERE id=#{id}
+    </select>
+    <delete id="delMaintContent">
+        DELETE FROM eam_maintain_project_inf_content where project_id=#{id}
+    </delete>
+    <delete id="delMaintDevice">
+        DELETE FROM eam_maintain_project_inf_device where project_id=#{id}
+    </delete>
+    <!--编辑-->
+    <update id="update" parameterType="com.tiansu.eam.modules.maintain.entity.MaintainProjectInf">
+        update eam_maintain_project_inf
+        SET
+            project_code=#{project_code},
+            project_name=#{project_code},
+            project_mode=#{project_mode},
+            project_type=#{project_type},
+            project_empid=#{project_empid},
+            project_stime=#{project_stime},
+            project_cycle=#{project_cycle},
+            project_bm=#{project_bm},
+            status=#{status},
+            maint_check_code=#{maint_check_code},
+            maint_check_cont=#{maint_check_cont},
+            maint_check_mark=#{maint_check_mark},
+            update_by=#{updateBy.loginname},
+            update_time=#{updateDate},
+            project_period=#{project_period}
+
+        WHERE
+        id=#{id_key}
+    </update>
+
+
+
+
+
+    <select id="getExportData" resultType="java.util.Map">
+        SELECT
+            id AS 'id_key',
+            project_code,
+            project_name,
+            project_mode,
+            project_type,
+            project_empid,
+            project_stime,
+            project_cycle,
+            project_bm,
+            status,
+            maint_check_code,
+            maint_check_cont,
+            maint_check_mark,
+            create_by,
+            create_time,
+            update_by,
+            update_time,
+            isdelete,
+        (select dict_name from eam_dict dict where dict_type_code = 'maintain_period' and a.project_period=dict.dict_value) as project_period_name,
+        a.project_period
+        FROM eam_maintain_project_inf a
+        WHERE
+        a.isdelete=0
+        <if test="ids != null and ids != ''">
+            AND a.id in
+            <foreach item="ids" index="index" collection="ids" open="(" separator="," close=")">
+                #{ids}
+            </foreach>
+        </if>
+        order by a.update_time
+    </select>
+
+    <select id="findDeviceListByMap" resultType="java.util.Map">
+        SELECT
+        a.id,
+        a.project_id,
+        a.dev_id,
+        b.dev_name,
+        b.dev_code
+        FROM
+        eam_maintain_project_inf_device a
+        INNER JOIN
+        eam_device b ON a.dev_id =b.id
+        <where>
+            <if test="project_id != null and project_id != ''">
+                AND a.project_id =#{project_id}
+            </if>
+        </where>
+    </select>
+    <select id="findContentListByMap" resultType="java.util.Map">
+        SELECT
+        a.id,
+        a.project_id,
+        a.maintain_code,
+        a.maintain_content
+        FROM
+        eam_maintain_project_inf_content a
+        <where>
+            <if test="project_id != null and project_id != ''">
+                AND a.project_id =#{project_id}
+            </if>
+        </where>
+    </select>
+    <insert id="insertBatch" >
+        INSERT INTO eam_maintain_project_inf(
+            id,
+            project_code,
+            project_name,
+            project_mode,
+            project_type,
+            project_empid,
+            project_stime,
+            project_cycle,
+            project_bm,
+            status,
+            maint_check_code,
+            maint_check_cont,
+            maint_check_mark,
+            create_by,
+            create_time,
+            update_by,
+            update_time,
+            isdelete,
+            project_period
+        )VALUES
+        <foreach collection="list" item="item" index="index" separator="," >
+            (
+            #{item.id,},
+            #{item.project_code,},
+            #{item.project_name,},
+            #{item.project_mode,},
+            #{item.project_type,},
+            #{item.project_empid,},
+            #{item.project_stime,},
+            #{item.project_cycle,},
+            #{item.project_bm,},
+            #{item.status,},
+            #{item.maint_check_code,},
+            #{item.maint_check_cont,},
+            #{item.maint_check_mark,},
+            #{item.createBy.loginname},
+            #{item.createDate},
+            #{item.updateBy.loginname},
+            #{item.updateDate},
+            #{item.DEL_FLAG_NORMAL},
+            #{item.project_period}
+            )
+        </foreach>
+    </insert>
+    <update id="updateSingle" >
+        update eam_maintain_project_inf
+        SET
+        project_code=#{project_code},
+        project_name=#{project_code},
+        project_mode=#{project_mode},
+        project_type=#{project_type},
+        project_empid=#{project_empid},
+        project_stime=#{project_stime},
+        project_cycle=#{project_cycle},
+        project_bm=#{project_bm},
+        status=#{status},
+        maint_check_code=#{maint_check_code},
+        maint_check_cont=#{maint_check_cont},
+        maint_check_mark=#{maint_check_mark},
+        update_by=#{updateBy.loginname},
+        update_time=#{updateDate},
+        project_period=#{project_period}
+        WHERE
+        id=#{id_key}
+    </update>
+</mapper>

@@ -1,0 +1,578 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<excelconfig>
+<!-- config为excel字段模型，类似mvc中的model，而非持久化中的bean,多表关联持久化模型较为复杂，不处理持久化部分   id及uploadType唯一 treeColIndex:树形结构，标识子节点所在excel列中的位置-->
+	<config id="devCategory" uploadType = "devCategory" exportFileName="设备类别表" treeColIndex = "1">
+	    <fields>
+	    	<!-- 0、name[导出时数据库sql映射名，prop_name: 入库时 bean name; show_name:excel列名]
+	    		1、字段顺device序为导入导出excel的顺序 2、nullable用于校验非空， 3、type用于校验格式，支持（string,date,convert[入库需转存或需关联校验时]）
+	    	  4、只有type是convert时convertid，ismult才有效    5、ismult用于标识该字段是否多条以逗号分隔   6、excel第一列为序号列，不在此再配置
+	    	  7、field里面的name虽然是导入导出的占坑，但是要与实体类和数据库的字段名称保持一致，否则新增或者刷新的情况下字段会丢失 liwenlong 2017-12-7
+	    	  parent_index：树形结构，标识子节点所在excel中列中的位置（如第一列为序号列，则从1开始）
+	    	  -->
+	    	<field name="cat_code" prop_name = "catCode" show_name="设备类别编码" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+	    	<field name="cat_name" prop_name = "catName" show_name="设备类别名称" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+	    	<field name="cat_pid" prop_name = "catPid" show_name="上级类别编码" default_val="" nullable="true" type="convert" convertid="dev_category_code" parent_index="1" ismult="false"></field>
+	    	<field name="cat_pname" prop_name = "catPname" show_name="上级类别名称" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+	    	<field name="cat_desc" prop_name = "catDesc" show_name="描述" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+	    	<field name="cat_status" prop_name = "catEnable" show_name="状态" default_val="1" nullable="false" type="convert" convertid="equip_effect" ismult="false"></field>
+	    </fields>
+	</config>
+	<config id="schedualType" uploadType="schedualType" exportFileName="排班类型表">
+		<fields>
+			<field name="type_code" prop_name="typeCode" show_name="排班类型编码" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+			<field name="type_name" prop_name="typeName" show_name="排班类型名称" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+			<field name="schedual_time_str" prop_name="schedualTimeStr" show_name="时间范围" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+			<field name="type_desc" prop_name="typeDesc" show_name="描述" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+			<field name="type_remark" prop_name="typeRemark" show_name="备注" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+			<field name="type_status" prop_name="typeStatus" show_name="状态" default_val="1" nullable="false" type="convert" convertid="equip_effect" ismult="false"></field>
+		</fields>
+	</config>
+	<config id="schedual" uploadType="schedual" exportFileName="排班表">
+		<fields>
+			<field name="order_code" prop_name="" show_name="排班编码" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+			<field name="order_name" prop_name="" show_name="排班名称" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+			<field name="approve_status" prop_name="" show_name="审批状态" default_val="0" nullable="false" type="convert" convertid="approve_status_plus" ismult="false"></field>
+			<field name="remark" prop_name="" show_name="备注" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+			<field name="schedual_type_code" prop_name="" show_name="排班类型编码" default_val="" nullable="false" type="convert" convertid="schedual_type_code" ismult="false"></field>
+			<field name="schedual_type_name" prop_name="" show_name="排班类型名称" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+			<field name="schedual_emp" prop_name="" show_name="人员名称" default_val="" nullable="false" type="convert" convertid="username" ismult="false"></field>
+			<field name="schedule_date" prop_name="typeStatus" show_name="排班日期" default_val="" nullable="false" type="date" convertid="" ismult="false"></field>
+		</fields>
+	</config>
+	<config id="supplierType" uploadType="supplierType" exportFileName="供应商类型表">
+		<fields>
+			<field name="type_code" prop_name="typeCode" show_name="供应商类型编码" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+			<field name="type_name" prop_name="typeName" show_name="供应商类型名称" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+			<field name="type_desc" prop_name="typeDesc" show_name="描述" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+			<field name="type_status" prop_name="typeStatus" show_name="状态" default_val="1" nullable="false" type="convert" convertid="equip_effect" ismult="false"></field>
+	    </fields>
+	</config>
+	<config id="supplier" uploadType = "supplier"  exportFileName="供应商表">
+	    <fields>
+	    	<field name="supplier_code" prop_name = "supplierCode" show_name="供应商编码" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+	    	<field name="supplier_name" prop_name = "supplierName" show_name="供应商名称" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+	    	<field name="supplier_level" prop_name = "supplierLevel" show_name="供应商分类" default_val="0" nullable="false" type="convert" convertid="supplier_level" ismult="false"></field>
+	    	<field name="supplier_type" prop_name = "supplierType" show_name="供应商类型编码" default_val="" nullable="false" type="convert" convertid="supplier_type" ismult="true"></field>
+	    	<field name="supplier_credit" prop_name = "supplierXy" show_name="信用等级" default_val="1" nullable="false" type="convert" convertid="supplier_xy" ismult="false"></field>
+	    	<field name="supplier_president" prop_name = "supplierPresident" show_name="法人代表" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+	    	<field name="supplier_regfund" prop_name = "supplierRegfund" show_name="注册资金（万元）" default_val="" nullable="true" type="double" convertid="" ismult="false"></field>
+	    	<field name="supplier_address" prop_name = "supplierAddress" show_name="供应商地址" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+	    	<field name="supplier_linkman" prop_name = "supplierLinkman" show_name="联系人" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+	    	<field name="supplier_phone" prop_name = "supplierPhone" show_name="联系电话" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+	    	<field name="supplier_fax" prop_name = "supplierFax" show_name="传真" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+	    	<field name="supplier_busdate_start" prop_name = "supplierBusinessDate" show_name="业务开始日期（YYYY-MM-DD）" default_val="" nullable="true" type="date" convertid="" ismult="false"></field>
+	    	<field name="supplier_busdate_end" prop_name = "supplierBusinessDateEnd" show_name="业务结束日期（YYYY-MM-DD）" default_val="" nullable="true" type="date" convertid="" ismult="false"></field>
+	    	<field name="supplier_bus_license" prop_name = "supplierBusinessLincense" show_name="营业执照编号" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+	    	<field name="supplier_org_code" prop_name = "supplierOrg" show_name="组织机构代码" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+	    	<field name="supplier_taxcode" prop_name = "supplierTaxcode" show_name="税务登记证代码" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+	    	<field name="supplier_sucCode" prop_name = "supplierSuccode" show_name="社会统一信用代码" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+	    	<field name="supplier_taxrate" prop_name = "supplierTaxrate" show_name="增值税率（%）" default_val="" nullable="true" type="double" convertid="" ismult="false"></field>
+	    	<field name="supplier_deposit_bank" prop_name = "supplierBank" show_name="开户行" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+	    	<field name="supplier_account" prop_name = "supplierAccount" show_name="开户行账号" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+	    	<field name="supplier_bank_address" prop_name = "supplierBankAddress" show_name="开户行地址" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+	    	<field name="supplier_remark" prop_name = "supplierRemark" show_name="备注" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+	    	<field name="supplier_status" prop_name = "supplierEnable" show_name="状态" default_val="1" nullable="false" type="convert" convertid="equip_effect" ismult="false"></field>
+	    	<!-- <field name="supplier_company" prop_name = "supplierCompany" show_name="公司" default_val="深圳天安云谷物业服务有限公司" nullable="true" type="string" convertid="" ismult="false"></field> -->
+	    </fields>
+	</config>
+	<!-- 供应商审批 -->
+	<config id="supplierSp" uploadType = "supplierSp"  exportFileName="供应商审批表">
+	    <fields>
+	    	<field name="supplier_code" prop_name = "supplierCode" show_name="供应商编码" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+	    	<field name="supplier_name" prop_name = "supplierName" show_name="供应商名称" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+	    	<field name="supplier_level" prop_name = "supplierLevel" show_name="供应商分类" default_val="0" nullable="true" type="convert" convertid="supplier_level" ismult="false"></field>
+	    	<field name="supplier_type" prop_name = "supplierType" show_name="供应商类型" default_val="" nullable="true" type="convert" convertid="supplier_type" ismult="true"></field>
+	    	<field name="supplier_xy" prop_name = "supplierXy" show_name="信用等级" default_val="1" nullable="true" type="convert" convertid="supplier_xy" ismult="false"></field>
+	    	<field name="supplier_president" prop_name = "supplierPresident" show_name="法人代表" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+	    	<field name="supplier_regfund" prop_name = "supplierRegfund" show_name="注册资金（万元）" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+	    	<field name="supplier_address" prop_name = "supplierAddress" show_name="供应商地址" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+	    	<field name="supplier_linkman" prop_name = "supplierLinkman" show_name="联系人" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+	    	<field name="supplier_phone" prop_name = "supplierPhone" show_name="联系电话" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+	    	<field name="supplier_fax" prop_name = "supplierFax" show_name="传真" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+	    	<field name="supplier_business_date" prop_name = "supplierBusinessDate" show_name="业务开始日期（YYYY-MM-DD）" default_val="" nullable="true" type="date" convertid="equip_effect" ismult="false"></field>
+	    	<field name="supplier_business_date_end" prop_name = "supplierBusinessDateEnd" show_name="业务结束日期（YYYY-MM-DD）" default_val="" nullable="true" type="date" convertid="" ismult="false"></field>
+	    	<field name="supplier_business_lincense" prop_name = "supplierBusinessLincense" show_name="营业执照编号" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+	    	<field name="supplier_org" prop_name = "supplierOrg" show_name="组织机构代码" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+	    	<field name="supplier_taxcode" prop_name = "supplierTaxcode" show_name="税务登记证代码" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+	    	<field name="supplier_taxrate" prop_name = "supplierTaxrate" show_name="增值税率（%）" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+	    	<field name="supplier_bank" prop_name = "supplierBank" show_name="开户行" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+	    	<field name="supplier_account" prop_name = "supplierAccount" show_name="开户行账号" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+	    	<field name="supplier_bank_address" prop_name = "supplierBankAddress" show_name="开户行地址" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+	    	<field name="supplier_remark" prop_name = "supplierRemark" show_name="备注" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+	    	<field name="supplier_sp" prop_name = "" show_name="审批状态" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+	    	<field name="supplier_enable" prop_name = "supplierEnable" show_name="状态" default_val="1" nullable="true" type="convert" convertid="equip_effect" ismult="false"></field>
+	    	<!-- <field name="supplier_company" prop_name = "supplierCompany" show_name="公司" default_val="深圳天安云谷物业服务有限公司" nullable="true" type="string" convertid="" ismult="false"></field> -->
+	    </fields>
+	</config>
+	
+	<config id="devLocation" uploadType = "devLocation"  exportFileName="空间信息表" treeColIndex = "1">
+	    <fields>
+	    	<field name="loc_code" prop_name = "locCode" show_name="空间编码" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+	    	<field name="loc_name" prop_name = "locName" show_name="空间名称" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+	    	<field name="loc_pid" prop_name = "locPid" show_name="上层空间编码" default_val="" nullable="true" type="convert" convertid="dev_loc_code" parent_index="1" ismult="false"></field>
+	    	<field name="pName" prop_name = "pName" show_name="上层空间名称" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+	    	<field name="loc_tel" prop_name = "locTel" show_name="电话信息" default_val="" nullable="true" type="string" convertid="" ismult="true"></field>
+	    	<field name="loc_dept" prop_name = "locDept" show_name="归属部门" default_val="" nullable="true" type="convert" convertid="org_dept" ismult="true"></field>
+			<!--<field name="loc_dept" prop_name = "locDept" show_name="归属部门" default_val="" nullable="true" type="string" convertid="string" ismult="true"></field>-->
+	    	<field name="loc_desc" prop_name = "locDesc" show_name="空间用途" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+			<field name="loc_funcprop" prop_name = "locDesc" show_name="空间功能属性" default_val="" nullable="true" type="convert" convertid="funcprop" ismult="false"></field>
+			<field name="loc_area" prop_name = "locDesc" show_name="空间面积(㎡)" default_val="" nullable="true" type="double" convertid="" ismult="false"></field>
+	    	<field name="loc_status" prop_name = "locStatus" show_name="状态" default_val="1" nullable="false" type="convert" convertid="equip_effect" ismult="false"></field>
+	    </fields>
+	</config>
+	
+	<config id="device" uploadType = "device"  exportFileName="设备信息表">
+	    <fields>
+	    	<field name="dev_code" prop_name = "devCode" show_name="设备编码" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+	    	<field name="dev_name" prop_name = "devName" show_name="设备名称" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+	    	<field name="dev_location" prop_name = "devLocation" show_name="空间信息编码" default_val="" nullable="false" type="convert" convertid="dev_loc_code" ismult="false"></field>
+	    	<field name="loc_name" prop_name = "" show_name="空间信息详情" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+	    	<field name="cat_id" prop_name = "catId" show_name="设备类别编码" default_val="" nullable="false" type="convert" convertid="dev_category_code" ismult="false"></field>
+	    	<field name="cat_name" prop_name = "" show_name="设备类别名称" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+	    	<field name="dev_level_code" prop_name = "devLevelCode" show_name="重要程度" default_val="" nullable="true" type="convert" convertid="dev_level" ismult="false"></field>
+	    	<field name="dev_emp" prop_name = "devEmp" show_name="归属负责人" default_val="" nullable="false" type="convert" convertid="dev_emp_code" ismult="false"></field>
+	    	<field name="dev_realname" prop_name = "" show_name="归属责任人姓名" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+	    	<field name="dev_model" prop_name = "devModel" show_name="设备型号" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+	    	<field name="dev_brand" prop_name = "devBrand" show_name="设备品牌" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+	    	<field name="dev_major_code" prop_name = "devMajorCode" show_name="归属专业" default_val="" nullable="false" type="convert" convertid="dev_major" ismult="false"></field>
+	    	<field name="dev_param_name" prop_name = "devParamName" show_name="参数名" default_val="" nullable="false" type="string" convertid="" ismult="true"></field>
+	    	<field name="dev_param_val" prop_name = "devParamVal" show_name="参数值" default_val="" nullable="false" type="string" convertid="" ismult="true"></field>
+	    	<field name="dev_supplier" prop_name = "devSupplier" show_name="设备供应商编码" default_val="" nullable="false" type="convert" convertid="dev_supplier_maintainer" ismult="false"></field>
+	    	<field name="supplier_name" prop_name = "" show_name="设备供应商名称" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+	    	<field name="dev_maintainer" prop_name = "devMaintainer" show_name="设备维护商编码" default_val="" nullable="false" type="convert" convertid="dev_supplier_maintainer" ismult="false"></field>
+	    	<field name="maintainer_name" prop_name = "" show_name="设备维护商名称" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+	    	<field name="dev_prodate" prop_name = "devProdate" show_name="设备出厂日期（YYYY-MM-DD）" default_val="" nullable="true" type="date" convertid="" ismult="false"></field>
+	    	<field name="dev_buy_time" prop_name = "devBuyTime" show_name="设备购入日期（YYYY-MM-DD）" default_val="" nullable="true" type="date" convertid="" ismult="false"></field>
+	    	<field name="dev_free_time" prop_name = "devFreeTime" show_name="免费过保日期（YYYY-MM-DD）" default_val="" nullable="true" type="date" convertid="" ismult="false"></field>
+	    	<field name="dev_pay_time" prop_name = "devPayTime" show_name="付费过保日期(YYYY-MM-DD）" default_val="" nullable="true" type="date" convertid="" ismult="false"></field>
+	    	<field name="dev_startdate" prop_name = "devStartdate" show_name="设备启动日期(YYYY-MM-DD）" default_val="" nullable="true" type="date" convertid="" ismult="false"></field>
+	    	<field name="dev_regect_time" prop_name = "devRegectTime" show_name="设备报废日期（YYYY-MM-DD）" default_val="" nullable="true" type="date" convertid="" ismult="false"></field>
+	    	<field name="dev_qrcode_status" prop_name = "devQrcodeStatus" show_name="二维码状态" default_val="" nullable="false" type="convert" convertid="dev_qrcode_status" ismult="false"></field>
+	    	<field name="dev_status" prop_name = "devStatus" show_name="状态" default_val="1" nullable="false" type="convert" convertid="equip_effect" ismult="false"></field>
+	    </fields>
+	</config>
+	
+	<config id="eamUserExt" uploadType = "eamUserExt"  exportFileName="人员信息表">
+	    <fields>
+			<field name="loginname" prop_name = "loginname" show_name="用户登录名" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+			<field name="b_realname" prop_name = "realname" show_name="真实姓名" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+			<field name="b_useridentification" prop_name = "useridentification" show_name="用户证件号码" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+			<field name="own_area" prop_name = "ownArea" show_name="归属区域编码" default_val="" nullable="true" type="convert" convertid="dev_loc_code" ismult="true"></field>
+			<field name="own_area_name" prop_name = "ownAreaName" show_name="归属区域名称" default_val="" nullable="true" type="convert" convertid="dev_loc_name" ismult="true"></field>
+			<field name="duty_area" prop_name = "dutyArea" show_name="责任区域编码" default_val="" nullable="true" type="convert" convertid="dev_loc_code" ismult="true"></field>
+			<field name="duty_area_name" prop_name = "dutyAreaName" show_name="责任区域名称" default_val="" nullable="true" type="convert" convertid="dev_loc_name" ismult="true"></field>
+			<field name="major" prop_name = "major" show_name="专业" default_val="" nullable="true" type="convert" convertid="dev_major" ismult="true"></field>
+			<field name="higher_author" prop_name = "higherAuthor" show_name="上级主管人员" default_val="" nullable="true" type="convert" convertid="user_code" ismult="false"></field>
+			<field name="birth_date" prop_name = "birthDate" show_name="出生日期（YYYY-MM-DD）" default_val="" nullable="true" type="date" convertid="" ismult="false"></field>
+			<field name="hiredate" prop_name = "hiredate" show_name="聘用日期(YYYY-MM-DD）" default_val="" nullable="true" type="date" convertid="" ismult="false"></field>
+			<field name="expirydate" prop_name = "expirydate" show_name="终止日期(YYYY-MM-DD）" default_val="" nullable="true" type="date" convertid="" ismult="false"></field>
+			<field name="remark" prop_name = "remark" show_name="备注" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+			<field name="status" prop_name = "status" show_name="状态" default_val="1" nullable="false" type="convert" convertid="user_status" ismult="false"></field>
+	  	</fields>
+	</config>
+	
+	<config id="materialType" uploadType = "materialType"  exportFileName="物料类别表" treeColIndex = "1">
+	    <fields>
+	    	<field name="type_code" prop_name = "typeCode" show_name="物料类别编码" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+	    	<field name="type_name" prop_name = "typeName" show_name="物料类别名称" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+	    	<field name="type_pid" prop_name = "typePid" show_name="上级类别编码" default_val="" nullable="true" type="convert" convertid="material_type" parent_index="1" ismult="false"></field>
+	    	<field name="type_pname" prop_name = "" show_name="上级类别名称" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+	    	<field name="type_description" prop_name = "typeDescription" show_name="类别描述" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+	    	<field name="type_status" prop_name = "typeStatus" show_name="状态" default_val="1" nullable="false" type="convert" convertid="equip_effect" ismult="false"></field>
+	    </fields>
+	</config>
+	
+	<config id="materialInfo" uploadType="materialInfo"  exportFileName="物料信息表">
+	    <fields>
+	    	<field name="material_code" prop_name = "materialCode" show_name="物料编码" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+	    	<field name="material_name" prop_name = "materialName" show_name="物料名称" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+	    	<field name="material_level" prop_name = "materialLevel" show_name="重要程度" default_val="0" nullable="false" type="convert" convertid="material_level" ismult="false"></field>
+	    	<field name="material_type" prop_name = "materialType" show_name="物料类别编码" default_val="" nullable="false" type="convert" convertid="material_type" ismult="false"></field>
+			<field name="material_type_name" prop_name = "materialTypeNmae" show_name="物料类别名称" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+	    	<field name="material_unit" prop_name = "materialUnit" show_name="计量单位" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+	    	<field name="material_qty" prop_name = "materialNumber" show_name="库存数量" default_val="" nullable="false" type="int" convertid="" ismult="false"></field>
+	    	<field name="material_cost" prop_name = "materialCost" show_name="标准成本（元）" default_val="" nullable="true" type="double" convertid="" ismult="false"></field>
+	    	<field name="material_price" prop_name = "materialPrice" show_name="销售价格（元）" default_val="" nullable="true" type="double" convertid="" ismult="false"></field>
+	    	<field name="material_brand" prop_name = "materialBrand" show_name="品牌" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+	    	<field name="material_supplier" prop_name = "materialSupplier" show_name="供应商编码" default_val="" nullable="true" type="convert" convertid="dev_supplier" ismult="false"></field>
+			<field name="material_supplier_name" prop_name = "materialSupplierName" show_name="供应商名称" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+	    	<field name="material_model" prop_name = "materialModel" show_name="规格型号" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+	    	<field name="material_remark" prop_name = "materialRemark" show_name="备注" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+	    	<field name="material_purchasing" prop_name = "materialPurchasing" show_name="采购方式" default_val="0" nullable="false" type="convert" convertid="material_purchase_methods" ismult="false"></field>
+	  	    <field name="material_status" prop_name = "materialStatus" show_name="状态" default_val="1" nullable="false" type="convert" convertid="equip_effect" ismult="false"></field>
+	    </fields>
+	</config>
+	
+	<config id="customer" uploadType="customer" exportFileName="客户信息表">
+	    <fields>
+			<field name="customer_code" prop_name = "customerCode" show_name="客户编码" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+			<field name="customer_name" prop_name = "customerName" show_name="客户名称" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+			<field name="customer_level" prop_name = "customerLevel" show_name="客户分类(等级)" default_val="1" nullable="true" type="convert" convertid="customer_type" ismult="false"></field>
+			<field name="customer_credit" prop_name = "customerCredit" show_name="客户信用等级" default_val="AAA" nullable="true" type="convert" convertid="customer_credit" ismult="false"></field>
+			<field name="customer_bus_license" prop_name = "customerBusLicense" show_name="客户营业执照编码" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+			<field name="customer_org_code" prop_name = "customerOrgCode" show_name="组织机构代码" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+			<field name="customer_taxcode" prop_name = "customerTaxcode" show_name="增值税率（%）" default_val="" nullable="true" type="double" convertid="" ismult="false"></field>
+			<field name="customer_sucCode" prop_name = "customerSucCode" show_name="社会统一信用代码" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+			<field name="customer_taxrate" prop_name = "customerTaxrate" show_name="税务登记证代码" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+			<field name="customer_deposit_bank" prop_name = "customerDepositBank" show_name="客户开户行" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+			<field name="customer_account" prop_name = "customerAccount" show_name="客户账号" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+			<field name="customer_bank_address" prop_name = "customerBankAddress" show_name="开户行地址" default_val="" nullable="true" type="true" convertid="" ismult="false"></field>
+			<field name="customer_president" prop_name = "customerPresident" show_name="法人代表" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+			<field name="customer_regfund" prop_name = "customerRegfund" show_name="注册资金（万元）" default_val="" nullable="true" type="int" convertid="" ismult="false"></field>
+			<field name="customer_address" prop_name = "customerAddress" show_name="客户地址" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+			<field name="customer_linkman" prop_name = "customerLinkman" show_name="联系人" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+			<field name="customer_phone" prop_name = "customerPhone" show_name="联系电话" default_val="" nullable="false" type="phone" convertid="" ismult="false"></field>
+			<field name="customer_fax" prop_name = "customerFax" show_name="传真" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+			<field name="customer_email" prop_name = "customerEmail" show_name="邮箱" default_val="" nullable="true" type="email" convertid="" ismult="false"></field>
+			<field name="customer_busdate_start" prop_name = "customerBegindate" show_name="业务开始日期（YYYY-MM-DD）" default_val="" nullable="true" type="date" convertid="" ismult="false"></field>
+			<field name="customer_busdate_end" prop_name = "customerEnddate" show_name="业务结束日期（YYYY-MM-DD）" default_val="" nullable="true" type="date" convertid="" ismult="false"></field>
+			<field name="customer_remark" prop_name = "customerRemark" show_name="备注" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+			<field name="customer_status" prop_name = "customerEnable" show_name="状态" default_val="1" nullable="false" type="convert" convertid="equip_effect" ismult="false"></field>
+		</fields>
+	</config>
+	<config id="standardlib" uploadType="standardlib" exportFileName="标准库">
+		<fields>
+			<field name="library_code" prop_name="" show_name="标准库编码" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+			<field name="library_name" prop_name="" show_name="标准库名称" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+			<field name="dev_code" prop_name="" show_name="设备编码" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+			<field name="approve_status" prop_name="" show_name="审批状态" default_val="" nullable="false" type="convert" convertid="apprStatusConvert" ismult="false"></field>
+			<field name="library_status" prop_name="" show_name="状态" default_val="1" nullable="false" type="convert" convertid="equip_effect" ismult="false"></field>
+		</fields>
+	</config>
+    <config id="standardDevice" uploadType="standardDevice" exportFileName="标准库设备">
+            <fields>
+                <field name="device_id" prop_name="" show_name="标准库设备" default_val="" nullable="false" type="convert" convertid="dev_info" ismult="false"></field>
+                <field name="library_id" prop_name="" show_name="标准库编码" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+            </fields>
+    </config>
+	<config id="standardfault" uploadType="standardfault" exportFileName="检修标准">
+		<fields>
+			<field name="fault_standard_code" prop_name="" show_name="检修标准编码" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+			<field name="fault_standard_desc" prop_name="" show_name="检修标准描述" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+			<field name="fault_standard_explain" prop_name="" show_name="检修标准说明" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+			<field name="fault_standard_remark" prop_name="" show_name="备注" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+			<field name="library_id" prop_name="" show_name="标准库编码" default_val="" nullable="false" type="convert" convertid="standardlib" ismult="false"></field>
+		</fields>
+	</config>
+	<config id="standardmaintain" uploadType="standardmaintain" exportFileName="保养标准">
+		<fields>
+			<field name="maintain_standard_code" prop_name="" show_name="保养标准编码" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+			<field name="maintain_standard_desc" prop_name="" show_name="保养标准描述" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+			<field name="maintain_standard_explain" prop_name="" show_name="保养标准说明" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+			<field name="maintain_standard_remark" prop_name="" show_name="备注" default_val="" nullable="true" type="true" convertid="string" ismult="false"></field>
+			<field name="library_id" prop_name="" show_name="标准库编码" default_val="" nullable="false" type="convert" convertid="standardlib" ismult="false"></field>
+		</fields>
+	</config>
+	<config id="standardpatrol" uploadType="standardpatrol" exportFileName="巡检标准">
+		<fields>
+			<field name="patrol_standard_code" prop_name="" show_name="巡检标准编码" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+			<field name="patrol_standard_desc" prop_name="" show_name="巡检标准描述" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+			<field name="patrol_standard_explain" prop_name="" show_name="巡检标准说明" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+			<field name="patrol_standard_remark" prop_name="" show_name="备注" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+			<field name="library_id" prop_name="" show_name="标准库编码" default_val="" nullable="false" type="convert" convertid="standardlib" ismult="false"></field>
+		</fields>
+	</config>
+	<config id="standardfail" uploadType="standardpatrol" exportFileName="缺陷故障库">
+		<fields>
+			<field name="failure_phenomena_code" prop_name="" show_name="故障现象编码" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+			<field name="failure_phenomena_priority" prop_name="" show_name="优先级" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+			<field name="failure_phenomena_desc" prop_name="" show_name="故障现象描述" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+			<field name="failure_cause_code" prop_name="" show_name="故障原因编码" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+			<field name="failure_cause_serverity" prop_name="" show_name="严重程度" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+			<field name="failure_cause_desc" prop_name="" show_name="故障原因描述" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+			<field name="failure_measures_code" prop_name="" show_name="故障措施编码" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+			<field name="failure_measures_desc" prop_name="" show_name="故障措施描述" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+			<field name="library_id" prop_name="" show_name="标准库编码" default_val="" nullable="false" type="convert" convertid="standardlib" ismult="false"></field>
+		</fields>
+    </config>
+		<config id="standardope" uploadType="standardpatrol" exportFileName="运行标准">
+			<fields>
+				<field name="operation_standard_code" prop_name="" show_name="运行标准编码" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+				<field name="operation_standard_desc" prop_name="" show_name="运行标准描述" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+				<field name="operation_standard_explain" prop_name="" show_name="运行标准说明" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+				<field name="operation_standard_remark" prop_name="" show_name="备注" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+				<field name="library_id" prop_name="" show_name="标准库编码" default_val="" nullable="false" type="convert" convertid="standardlib" ismult="false"></field>
+			</fields>
+		</config>
+		<config id="standardsafe" uploadType="standardsafe" exportFileName="安全标准">
+			<fields>
+				<field name="safety_standard_code" prop_name="" show_name="安全标准编码" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+				<field name="safety_standard_desc" prop_name="" show_name="安全标准描述" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+				<field name="safety_standard_explain" prop_name="" show_name="安全标准说明" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+				<field name="safety_standard_remark" prop_name="" show_name="备注" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+				<field name="library_id" prop_name="" show_name="标准库编码" default_val="" nullable="false" type="convert" convertid="standardlib" ismult="false"></field>
+			</fields>
+		</config>
+
+        <config id="operationWork" uploadType="operationWork" exportFileName="标准工作">
+            <fields>
+                <field name="operationwork_code" prop_name="" show_name="标准工作编码" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+                <field name="operationwork_content" prop_name="" show_name="标准工作内容" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+                <field name="dev_code" prop_name="" show_name="设备编码" default_val="" nullable="false" type="string" convertid="" ismult="true"></field>
+                <field name="dev_name" prop_name="" show_name="设备名称" default_val="" nullable="false" type="string" convertid="" ismult="true"></field>
+                <field name="operationwork_type" prop_name="" show_name="标准工作类型" default_val="" nullable="false" type="convert" convertid="operworkType" ismult="true"></field>
+                <field name="operationwork_totaltime" prop_name="" show_name="额定总工时" default_val="" nullable="false" type="string" convertid="" ismult="true"></field>
+                <field name="approve_status" prop_name="" show_name="审批状态" default_val="" nullable="false" type="convert" convertid="apprStatusConvert" ismult="false"></field>
+                <field name="operationwork_status" prop_name="" show_name="状态" default_val="1" nullable="false" type="convert" convertid="equip_effect" ismult="false"></field>
+            </fields>
+        </config>
+
+        <config id="operationworkProcedure" uploadType="operationworkProcedure" exportFileName="工序">
+            <fields>
+                <field name="procedure_code" prop_name="" show_name="工序编码" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+                <field name="procedure_desc" prop_name="" show_name="工序描述" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+                <field name="procedure_standard" prop_name="" show_name="质检标准" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+                <field name="procedure_remark" prop_name="" show_name="备注" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+                <field name="operationwork_id" prop_name="" show_name="标准工作编码" default_val="" nullable="false" type="convert" convertid="operationworkib" ismult="false"></field>
+            </fields>
+        </config>
+        <config id="operationworkSafety" uploadType="operationworkSafety" exportFileName="安全措施">
+            <fields>
+                <field name="safety_code" prop_name="" show_name="安全措施编码" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+                <field name="safety_desc" prop_name="" show_name="安全措施描述" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+                <field name="safety_standard" prop_name="" show_name="质检标准" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+                <field name="safety_remark" prop_name="" show_name="备注" default_val="" nullable="" type="true" convertid="string" ismult="false"></field>
+                <field name="operationwork_id" prop_name="" show_name="标准工作编码" default_val="" nullable="false" type="convert" convertid="operationworkib" ismult="false"></field>
+            </fields>
+        </config>
+        <config id="operationworkTools" uploadType="operationworkTools" exportFileName="工器具">
+            <fields>
+                <field name="material_id" prop_name="" show_name="工器具" default_val="" nullable="false" type="string" convertid="materialid" ismult="false"></field>
+                <field name="tools_num" prop_name="" show_name="数量" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+                <field name="material_unit" prop_name="" show_name="计量单位" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+                <field name="material_model" prop_name="" show_name="规格型号" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+                <field name="tools_remark" prop_name="" show_name="备注" default_val="" nullable="" type="true" convertid="string" ismult="false"></field>
+                <field name="operationwork_id" prop_name="" show_name="标准工作编码" default_val="" nullable="false" type="convert" convertid="operationworkib" ismult="false"></field>
+            </fields>
+        </config>
+        <config id="operationworkSpareparts" uploadType="operationworkSpareparts" exportFileName="备品备件">
+            <fields>
+                <field name="material_id" prop_name="" show_name="备品备件" default_val="" nullable="false" type="string" convertid="materialid" ismult="false"></field>
+                <field name="spareparts_num" prop_name="" show_name="数量" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+                <field name="material_unit" prop_name="" show_name="计量单位" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+                <field name="material_price" prop_name="" show_name="单价" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+                <field name="spareparts_total" prop_name="" show_name="小计" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+                <field name="spareparts_remark" prop_name="" show_name="备注" default_val="" nullable="" type="true" convertid="string" ismult="false"></field>
+                <field name="operationwork_id" prop_name="" show_name="标准工作编码" default_val="" nullable="false" type="convert" convertid="operationworkib" ismult="false"></field>
+            </fields>
+        </config>
+        <config id="operationworkPersonHours" uploadType="operationworkPersonHours" exportFileName="人员工时">
+            <fields>
+                <field name="loginname" prop_name="" show_name="人员" default_val="" nullable="false" type="string" convertid="loginperson" ismult="false"></field>
+                <field name="person_hours" prop_name="" show_name="额定工时" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+                <field name="person_hourprice" prop_name="" show_name="额定工时单价" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+                <field name="person_hourtotal" prop_name="" show_name="小计" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+                <field name="person_postskill" prop_name="" show_name="岗位技能" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+                <field name="person_remark" prop_name="" show_name="备注" default_val="" nullable="" type="true" convertid="string" ismult="false"></field>
+                <field name="operationwork_id" prop_name="" show_name="标准工作编码" default_val="" nullable="false" type="convert" convertid="operationworkib" ismult="false"></field>
+            </fields>
+        </config>
+        <config id="operationworkOthers" uploadType="operationworkOthers" exportFileName="其他费用">
+            <fields>
+                <field name="otherexpenses" prop_name="" show_name="其他费用事项" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+                <field name="otherexpenses_amount" prop_name="" show_name="金额" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+                <field name="otherexpenses_remark" prop_name="" show_name="备注" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+                <field name="operationwork_id" prop_name="" show_name="标准工作编码" default_val="" nullable="false" type="convert" convertid="operationworkib" ismult="false"></field>
+            </fields>
+        </config>
+		<config id="operationOrders" uploadType="operationOrders" exportFileName="标准工单表">
+			<fields>
+				<field name="order_code" prop_name="" show_name="标准工单编码" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+				<field name="order_content" prop_name="" show_name="标准工单名称" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+				<field name="order_priority" prop_name="" show_name="紧急程度" default_val="" nullable="false" type="convert" convertid="operationorderpriority" ismult="false"></field>
+				<field name="order_work_code" prop_name="" show_name="标准工作编码" default_val="" nullable="false" type="convert" convertid="operationworkib" ismult="true"></field>
+				<field name="order_work_name" prop_name="" show_name="标准工作名称" default_val="" nullable="false" type="convert" convertid="operationworkibname" ismult="true"></field>
+				<field name="order_major" prop_name="" show_name="专业" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+				<field name="order_totalhours" prop_name="" show_name="额定总工时" default_val="" nullable="true" type="double" convertid="" ismult="false"></field>
+				<field name="order_desc" prop_name="" show_name="工单描述" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+				<field name="order_remark" prop_name="" show_name="备注" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+				<field name="approve_status" prop_name="" show_name="审批状态" default_val="0" nullable="false" type="convert" convertid="apprStatusConvert" ismult="false"></field>
+				<field name="order_status" prop_name="" show_name="状态" default_val="1" nullable="false" type="convert" convertid="equip_effect" ismult="false"></field>
+			</fields>
+		</config>
+		<config id="inspectionsub" uploadType = "inspectionsub"  exportFileName="巡检项表">
+			<fields>
+				<field name="subject_name" eos_prop_name = "subjectName" show_name="巡检项" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+				<field name="dev_id" eos_prop_name = "devId" show_name="巡检设备编码" default_val="" nullable="false" type="convert" convertid="dev_info" ismult="false"></field>
+				<field name="dev_name" eos_prop_name = "devName" show_name="巡检设备名称" default_val="" nullable="true" type="" convertid="" ismult="false"></field>
+				<field name="dev_location" eos_prop_name = "devLocation" show_name="设备位置" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+				<field name="subject_content" eos_prop_name = "subjectContent" show_name="内容和方法" default_val=""  nullable="true" type="string" convertid="" ismult="false"></field>
+				<field name="subject_standard" eos_prop_name = "subjectStandard" show_name="判定标准" default_val=""  nullable="true" type="string" convertid="" ismult="false"></field>
+				<field name="subject_valuetype" eos_prop_name = "subjectValuetype" show_name="值类型" default_val="1"  nullable="false" type="convert" convertid="value_type" ismult="false"></field>
+				<field name="subject_way" eos_prop_name = "subjectWay" show_name="测量通道" default_val=""  nullable="false" type="convert" convertid="subject_way_code" ismult="false"></field>
+				<field name="subject_unit" eos_prop_name = "subjectUnit" show_name="单位" default_val=""  nullable="true" type="convert" convertid="unit_code" ismult="false"></field>
+				<field name="subject_decimal" eos_prop_name = "subjectDecimal" show_name="小数位" default_val=""  nullable="true" type="int" convertid="" ismult="false"></field>
+				<field name="subject_sx_value" eos_prop_name = "subjectSxValue" show_name="上限值" default_val=""  nullable="true" type="string" convertid="" ismult="false"></field>
+				<field name="subject_xx_value" eos_prop_name = "subjectXxValue" show_name="下限值" default_val=""  nullable="true" type="string" convertid="" ismult="false"></field>
+				<field name="subject_ck_value" eos_prop_name = "subjectCkValue" show_name="参考值" default_val=""  nullable="true" type="string" convertid="" ismult="false"></field>
+				<field name="subject_value1" eos_prop_name = "subjectValue1" show_name="结果一" default_val=""  nullable="true" type="string" convertid="" ismult="false"></field>
+				<field name="subject_value2" eos_prop_name = "subjectValue2" show_name="结果二" default_val=""  nullable="true" type="string" convertid="" ismult="false"></field>
+				<field name="subject_value3" eos_prop_name = "subjectValue3" show_name="结果三" default_val=""  nullable="true" type="string" convertid="" ismult="false"></field>
+				<field name="subject_status" eos_prop_name = "subjectStatus" show_name="状态" default_val="1" nullable="false" type="convert" convertid="equip_effect" ismult="false"></field>
+			</fields>
+		</config>
+		<config id="inspectionarea" uploadType = "inspectionarea"  exportFileName="巡检区域表">
+			<fields>
+				<field name="area_code" eos_prop_name = "areaCode" show_name="巡检区域编码" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+				<field name="area_name" eos_prop_name = "areaName" show_name="巡检区域" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+				<field name="area_subject_names" eos_prop_name = "areaSubjectNames" show_name="巡检项" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+				<field name="area_device_names" eos_prop_name = "areaDeviceNames" show_name="设备名称" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+				<field name="area_remark" eos_prop_name = "areaRemark" show_name="备注" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+				<field name="area_qrcode_status" eos_prop_name = "areaQrcodeStatus" show_name="二维码状态" default_val="" nullable="false" type="convert" convertid="area_qrcode_status" ismult="false"></field>
+				<field name="area_status" eos_prop_name = "areaCode" show_name="状态" default_val="1" nullable="false" type="convert" convertid="equip_effect" ismult="false"></field>
+			</fields>
+		</config>
+	<config id="inspectionroute" uploadType = "inspectionroute"  exportFileName="巡检路线表">
+		<fields>
+			<field name="route_code" eos_prop_name = "" show_name="巡检路线编码" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+			<field name="route_name" eos_prop_name = "" show_name="巡检路线名称" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+			<field name="route_object" eos_prop_name = "" show_name="巡检对象" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+			<field name="route_device" eos_prop_name = "" show_name="巡检设备" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+			<field name="route_period" eos_prop_name = "" show_name="巡检周期" default_val="" nullable="false" type="convert" convertid="route_period" ismult="false"></field>
+			<field name="route_enableperiod" eos_prop_name = "" show_name="启用时间" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+			<field name="isClosed" prop_name="" show_name="作废状态" default_val="1" nullable="false" type="convert" convertid="route_closed" ismult="false"></field>
+			<field name="approve_status" prop_name="" show_name="审批状态" default_val="0" nullable="false" type="convert" convertid="apprStatusConvert" ismult="false"></field>
+			<field name="route_status" eos_prop_name = "" show_name="状态" default_val="1" nullable="false" type="convert" convertid="equip_effect" ismult="false"></field>
+		</fields>
+	</config>
+	<config id="inspectiontask" uploadType = "inspectiontask"  exportFileName="巡检任务表">
+		<fields>
+			<field name="route_code" eos_prop_name = "" show_name="巡检路线编码" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+			<field name="route_name" eos_prop_name = "" show_name="巡检路线名称" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+			<field name="route_object" eos_prop_name = "" show_name="巡检对象" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+			<field name="route_device" eos_prop_name = "" show_name="巡检设备" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+			<field name="task_time_plan_begin" eos_prop_name = "" show_name="任务计划时间" default_val="" nullable="false" type="datetime" convertid="" ismult="false"></field>
+			<field name="task_time_begin" eos_prop_name = "" show_name="任务开始时间" default_val="" nullable="false" type="datetime" convertid="" ismult="false"></field>
+			<field name="task_isoverdue" prop_name="" show_name="逾期" default_val="0" nullable="false" type="convert" convertid="task_isoverdue" ismult="false"></field>
+			<field name="task_status" prop_name="" show_name="任务状态" default_val="0" nullable="false" type="convert" convertid="task_status" ismult="false"></field>
+			<field name="task_processor" eos_prop_name = "" show_name="巡检人" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+			<field name="dev_locname" eos_prop_name = "" show_name="位置" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+		</fields>
+	</config>
+	<config id="maintannual" uploadType = "maintannual"  exportFileName="保养年度计划表">
+		<fields>
+			<field name="project_code"  show_name="保养年计划编码" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+			<field name="project_name"  show_name="保养年计划名称" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+			<field name="dev_code"  show_name="保养设备编码" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+			<field name="dev_name"  show_name="保养设备" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+			<field name="project_period"  show_name="保养周期" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+			<field name="project_cycleyear"  show_name="保养年份" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+			<field name="project_status"  show_name="审批状态" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+			<field name="status"  show_name="状态" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+		</fields>
+	</config>
+	<config id="maintmon" uploadType = "maintmon"  exportFileName="保养月度计划表">
+		<fields>
+			<field name="project_code"  show_name="保养月计划编码" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+			<field name="project_name"  show_name="保养月计划名称" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+			<field name="dev_code"  show_name="保养设备编码" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+			<field name="dev_name"  show_name="保养设备" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+			<field name="project_period"  show_name="保养周期" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+			<field name="project_sp_time"  show_name="启用时间" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+			<field name="project_status"  show_name="审批状态" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+			<field name="status"  show_name="状态" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+		</fields>
+	</config>
+	<config id="maintset" uploadType = "maintset"  exportFileName="保养设置表">
+		<fields>
+			<field name="project_code"  show_name="保养计划编码" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+			<field name="project_name"  show_name="保养计划名称" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+			<field name="dev_code"  show_name="保养设备编码" default_val="" nullable="false" type="convert" convertid="devIdToCode" ismult="true"></field>
+			<field name="dev_name"  show_name="保养设备" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+			<field name="project_mode"  show_name="保养类型" default_val="" nullable="false" type="convert" convertid="maintain_mode" ismult="false"></field>
+			<field name="project_type"  show_name="保养分类" default_val="" nullable="false" type="convert" convertid="maintain_type" ismult="false"></field>
+			<field name="project_period"  show_name="保养周期" default_val="" nullable="false" type="convert" convertid="maintain_period" ismult="false"></field>
+			<field name="project_cycle"  show_name="保养周期详情" default_val="" nullable="false" type="string" convertid="" ismult="false"></field>
+			<field name="project_content"  show_name="保养内容" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+			<field name="maint_check_cont"  show_name="保养验收标准" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+			<field name="maint_check_mark"  show_name="备注" default_val="" nullable="true" type="string" convertid="" ismult="false"></field>
+			<field name="project_empid"  show_name="保养人" default_val="" nullable="false" type="convert" convertid="user_code" ismult="false"></field>
+			<field name="project_bm"  show_name="保养责任部门" default_val="" nullable="false" type="convert" convertid="org_dept" ismult="false"></field>
+			<field name="project_stime"  show_name="启用日期(YYYY-MM-DD）" default_val="" nullable="false" type="date" convertid="" ismult="false"></field>
+			<field name="status"  show_name="状态" default_val="1" nullable="false" type="convert" convertid="equip_effect" ismult="false"></field>
+		</fields>
+	</config>
+	<convertcontainer>
+		<!-- 数据库表数据和excel数据进行转换的集合 -->
+		<!-- 公共 -->
+		<convert id="equip_effect" desc="是否有效" initClass="com.tiansu.eam.common.utils.excel.convert.DevEffectConvert"></convert>
+		<convert id="org_dept" desc="部门" initClass="com.tiansu.eam.common.utils.excel.convert.OrgDeptConvert"></convert>
+		<convert id="organization" desc="组织" initClass="com.tiansu.eam.common.utils.excel.convert.OrganizationConvert"></convert>
+		<convert id="confirm" desc="是否" initClass="com.tiansu.eam.common.utils.excel.convert.ConfirmConvert"></convert>
+		<convert id="username" desc="用户真实姓名和登录名称互转" initClass="com.tiansu.eam.common.utils.excel.convert.UserNameConvert"></convert>
+		<convert id="approve_status_plus" desc="审批状态" initClass="com.tiansu.eam.common.utils.excel.convert.ApproveStatusPlusConvert"></convert>
+		<!--保养设置-->
+		<convert id="maintain_type" desc="保养分类" initClass="com.tiansu.eam.common.utils.excel.convert.MaintainTypeConvert"></convert>
+		<convert id="maintain_mode" desc=" 保养类型" initClass="com.tiansu.eam.common.utils.excel.convert.MaintainModeConvert"></convert>
+		<convert id="maintain_period" desc=" 保养周期" initClass="com.tiansu.eam.common.utils.excel.convert.MaintainPeriodConvert"></convert>
+		<convert id="devIdToCode" desc="设备id转code" initClass="com.tiansu.eam.common.utils.excel.convert.DevIdToCodeConvert"></convert>
+
+
+		<!--巡检项-->
+		<convert id="dev_location" desc="设备位置" initClass="com.tiansu.eam.common.utils.excel.convert.DevLocNameConvert"></convert>
+		<convert id="subject_way_code" desc="测量通道" initClass="com.tiansu.eam.common.utils.excel.convert.SubjectWayCodeConvert"></convert>
+		<convert id="unit_code" desc="单位" initClass="com.tiansu.eam.common.utils.excel.convert.UnitCodeConvert"></convert>
+		<convert id="value_type" desc="值类型" initClass="com.tiansu.eam.common.utils.excel.convert.ValueTypeConvert"></convert>
+		<!--巡检区域-->
+		<convert id="area_qrcode_status" desc="二维码张贴状态" initClass="com.tiansu.eam.common.utils.excel.convert.AreaQrcodeStatusConvert"></convert>
+		<!--巡检路线-->
+		<convert id="route_closed" desc="巡检路线--作废状态" initClass="com.tiansu.eam.common.utils.excel.convert.RouteClosedConvert"></convert>
+		<convert id="route_period" desc="巡检路线--巡检周期" initClass="com.tiansu.eam.common.utils.excel.convert.RoutePeriodConvert"></convert>
+
+		<!--巡检任务-->
+		<convert id="task_status" desc="巡检任务--状态" initClass="com.tiansu.eam.common.utils.excel.convert.InspectionTaskStatusConvert"></convert>
+		<convert id="task_isoverdue" desc="巡检任务--逾期" initClass="com.tiansu.eam.common.utils.excel.convert.IsOverdueConvert"></convert>
+
+
+		<!--排班表-->
+		<convert id="schedual_type_code" desc="排班表类型编码" initClass="com.tiansu.eam.common.utils.excel.convert.SchedualTypeCodeConvert"></convert>
+
+		<!-- 设备类别 -->
+		<convert id="dev_category_code" desc="设备类别编码" initClass="com.tiansu.eam.common.utils.excel.convert.DevCategoryConvert"></convert>
+		<!-- 供应商 -->
+		<convert id="dev_supplier" desc="归属专业" initClass="com.tiansu.eam.common.utils.excel.convert.SupplierCodeConvert"></convert>
+		<convert id="supplier_xy" desc="供应商信用等级" initClass="com.tiansu.eam.common.utils.excel.convert.SupplierXyConvert"></convert>
+		<convert id="supplier_level" desc="供应商分类" initClass="com.tiansu.eam.common.utils.excel.convert.SupplierLevelConvert"></convert>
+		<convert id="supplier_type" desc="供应商类别" initClass="com.tiansu.eam.common.utils.excel.convert.SupplierTypeConvert"></convert>
+		<!-- 空间信息 -->
+		<convert id="dev_loc_code" desc="空间信息编码" initClass="com.tiansu.eam.common.utils.excel.convert.DevLocCodeConvert"></convert>
+		<convert id="dev_loc_name" desc="空间信息名称" initClass="com.tiansu.eam.common.utils.excel.convert.DevLocNameConvert"></convert>
+		<convert id="funcprop" desc="空间功能属性" initClass="com.tiansu.eam.common.utils.excel.convert.DevLocFuncPropConvert"></convert>
+
+
+		<!-- 设备信息 -->
+		<convert id="dev_level" desc="设备重要程度" initClass="com.tiansu.eam.common.utils.excel.convert.DevLevelConvert"></convert>
+		<convert id="dev_major" desc="归属专业" initClass="com.tiansu.eam.common.utils.excel.convert.DevMajorConvert"></convert>
+		<convert id="dev_qrcode_status" desc="二维码张贴状态" initClass="com.tiansu.eam.common.utils.excel.convert.DevQrcodeStatusConvert"></convert>
+		<!--#17891  liwenlong-->
+		<convert id="dev_emp_code" desc="归属负责人" initClass="com.tiansu.eam.common.utils.excel.convert.DevEmpConvert"></convert>
+		<convert id="dev_supplier_maintainer" desc="设备供应商/维护商编码" initClass="com.tiansu.eam.common.utils.excel.convert.DevSupMainConvert"></convert>
+
+		<!-- 物料类别 -->
+		<convert id="material_type" desc="物料类别编码" initClass="com.tiansu.eam.common.utils.excel.convert.MaterialTypeConvert"></convert>
+		<!-- 物料信息 -->
+		<convert id="material_level" desc="物料重要程度" initClass="com.tiansu.eam.common.utils.excel.convert.MaterialLevelConvert"></convert>
+		<convert id="material_purchase_methods" desc="采购方式" initClass="com.tiansu.eam.common.utils.excel.convert.MaterialPurchaseConvert"></convert>
+		<!-- 客户信息 -->
+		<convert id="customer_credit" desc="客户信用等级" initClass="com.tiansu.eam.common.utils.excel.convert.CustomerCreditConvert"></convert>
+		<convert id="customer_type" desc="客户分类" initClass="com.tiansu.eam.common.utils.excel.convert.CustomerTypeConvert"></convert>
+		<!-- 人员 -->
+		<convert id="user_code" desc="人员编码" initClass="com.tiansu.eam.common.utils.excel.convert.UserExtHigherAuthorConvert"></convert>
+		<convert id="user_status" desc="人员状态" initClass="com.tiansu.eam.common.utils.excel.convert.UserExtStatusConvert"></convert>
+		<!--标准库-->
+		<convert id="dev_info" desc="设备信息" initClass="com.tiansu.eam.common.utils.excel.convert.DevInfoConvert"></convert>
+		<convert id="standardlib" desc="标准库编码" initClass="com.tiansu.eam.common.utils.excel.convert.StandlibConvert"></convert>
+
+        <!--标准工作-->
+		<convert id="apprStatusConvert" desc="审批状态" initClass="com.tiansu.eam.common.utils.excel.convert.ApproveStatusConvert"></convert>
+		<convert id="operworkType" desc="标准工作类型" initClass="com.tiansu.eam.common.utils.excel.convert.OperationworkTypeConvert"></convert>
+        <convert id="materialid" desc="工器具" initClass="com.tiansu.eam.common.utils.excel.convert.MaterialConvert"></convert>
+        <convert id="operationworkib" desc="标准工作编码" initClass="com.tiansu.eam.common.utils.excel.convert.OperationworkConvert"></convert>
+
+		<!--标准工单-->
+		<convert id="operationorderpriority" desc="标准工作--紧急程度key和value转换" initClass="com.tiansu.eam.common.utils.excel.convert.PriorityConvert"></convert>
+		<convert id="operationworkibname" desc="标准工作名称" initClass="com.tiansu.eam.common.utils.excel.convert.OperationworkNameConvert"></convert>
+
+
+	</convertcontainer>
+</excelconfig>

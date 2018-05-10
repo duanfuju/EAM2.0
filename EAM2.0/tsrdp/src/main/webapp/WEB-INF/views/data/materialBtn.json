@@ -1,0 +1,9 @@
+﻿{
+
+    "data": [
+        {"name": "新增","id":"addBtn"},
+        {"name": "编辑","id":"editBtn"},
+        {"name": "删除","id":"delBtn"}
+    ]
+
+}

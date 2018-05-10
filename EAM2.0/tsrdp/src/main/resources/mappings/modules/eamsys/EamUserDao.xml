@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tiansu.eam.modules.sys.dao.EamUserDao">
+
+    <sql id="userColumns">
+    	a.sysno,
+    	a.userdeptno,
+    	a.userdeptno AS "dept.deptno",
+    	a.loginname,
+    	a.userpwd,
+		a.status,
+		a.realname,
+		a.loginphone,
+		a.loginemail,
+		a.userbakphone,
+		a.userbakemail,
+		a.userpic,
+		a.userjobno,
+		a.usernickname,
+		a.usersex,
+		a.useridentification,
+		a.identificationtype,
+		a.isdeptmanager,
+		a.isoutsource,
+		a.usercallphone,
+		a.userqq,
+		a.userwechat,
+		a.usernotetext,
+		a.isdeleted,
+		b.deptname as "dept.deptname",
+		b.parentid as "dept.parentid"
+    </sql>
+    
+    <sql id="userJoins">
+		LEFT JOIN ioms_dept b ON b.deptno = a.userdeptno
+    </sql>
+	
+	<!-- 根据编号获得用户 -->
+	<select id="get" resultType="EamUser">
+		SELECT
+			<include refid="userColumns"/>
+		FROM ioms_user a
+		<include refid="userJoins"/>
+		WHERE a.loginname = #{loginname}
+	</select>
+	
+	<!-- 根据登录名查询用户 -->
+	<select id="getByLoginName" resultType="EamUser" parameterType="EamUser">
+		SELECT
+			<include refid="userColumns"/>
+		FROM ioms_user a
+		<include refid="userJoins"/>
+		WHERE
+		a.isdeleted = 0
+		AND (
+			a.loginname = #{loginname}
+			OR a.loginphone = #{loginname}
+			OR a.loginemail = #{loginname}
+		)
+		<!-- AND a.isdeleted = #{DEL_FLAG_NORMAL}   -->
+	</select>
+
+	<!-- 根据deptno获取用户（树查询用户时用） -->
+	<select id="findUserByDeptno" resultType="EamUser" useCache="true">
+		SELECT
+		<include refid="userColumns"/>
+		FROM ioms_user a
+		<include refid="userJoins"/>
+		WHERE a.userdeptno in (#{userdeptno})
+		and a.isdeleted = 0
+		ORDER BY a.loginname
+	</select>
+	
+	<!-- 查询全部用户 -->
+	<select id="findAllList" resultType="EamUser">
+		SELECT
+			<include refid="userColumns"/>
+		FROM ioms_user a
+		<include refid="userJoins"/>
+		<!-- WHERE a.isdeleted = #{DEL_FLAG_NORMAL} -->
+	</select>
+	
+	<!-- 查询全部用户数目 -->
+	<select id="findAllCount" resultType="long">
+		SELECT
+			COUNT(1)
+		FROM ioms_user a
+		<!-- WHERE a.del_flag = #{DEL_FLAG_NORMAL} -->
+	</select>
+
+	<select id="userSelect" resultType="java.util.Map">
+		SELECT
+		a.loginname as id,
+		a.realname as name,
+		b.major as major
+		FROM ioms_user a INNER JOIN eam_user_ext b ON a.loginname=b.loginname
+	</select>
+
+</mapper>

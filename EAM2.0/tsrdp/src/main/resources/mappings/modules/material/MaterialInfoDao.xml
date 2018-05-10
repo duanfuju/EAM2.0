@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tiansu.eam.modules.material.dao.MaterialInfoDao">
+    
+	<sql id="MaterialInfoColumns">
+		a.id AS "id_key",
+		a.material_code AS "material_code",
+		a.material_name AS "material_name",
+		(SELECT type_name FROM eam_material_type WHERE type_id=a.material_type) AS "material_type",
+		a.material_unit AS "material_unit",
+		a.material_qty AS "material_qty",
+
+		a.material_cost AS "material_cost",
+		a.material_price AS "material_price",
+		a.material_brand AS "material_brand",
+		a.material_model AS "material_model",
+		a.material_remark AS "material_remark",
+
+		(SELECT supplier_name FROM eam_supplier WHERE id=a.material_supplier) AS "material_supplier",
+		(SELECT dict_name FROM eam_business_dict b WHERE (SELECT dict_value FROM eam_business_dict WHERE id=b.dict_pid)='material_level' AND dict_value=a.material_level) AS "material_level",
+		(SELECT dict_name FROM eam_business_dict b WHERE (SELECT dict_value FROM eam_business_dict WHERE id=b.dict_pid)='material_purchasing' AND dict_value=a.material_purchasing) AS "material_purchasing",
+		a.material_status AS "material_status"
+
+	</sql>
+
+	<sql id="MaterialInfoForExportColumns">
+		a.id AS "id_key",
+		a.material_code,
+		a.material_name,
+		a.material_desc,
+		a.material_type,
+		(SELECT type_name FROM eam_material_type WHERE type_id=a.material_type) as "material_type_name",
+		a.material_unit,
+		a.material_qty,
+		a.material_purchasing,
+		a.material_cost,
+		a.material_price,
+		a.material_brand,
+		a.material_supplier,
+		(SELECT supplier_name FROM eam_supplier WHERE id=a.material_supplier) AS "material_supplier_name",
+		a.material_remark,
+		a.material_status,
+		a.material_level,
+		a.material_model
+	</sql>
+	<sql id="MaterialInfoEdit">
+		a.id AS "id_key",
+		a.material_code AS "material_code",
+		a.material_name AS "material_name",
+		/*a.material_desc AS "material_desc",*/
+		a.material_type AS "material_type",
+		a.material_unit AS "material_unit",
+		a.material_qty AS "material_qty",
+
+		a.material_cost AS "material_cost",
+		a.material_price AS "material_price",
+		a.material_brand AS "material_brand",
+		a.material_model AS "material_model",
+		a.material_remark AS "material_remark",
+
+
+
+		a.material_supplier AS "material_supplier",
+		a.material_level AS "material_level",
+		a.material_purchasing AS "material_purchasing",
+		a.material_status AS "material_status"
+
+	</sql>
+
+
+	<select id="getEdit" resultType="java.util.Map">
+		SELECT 
+			<include refid="MaterialInfoEdit"/>
+		FROM eam_material a
+		WHERE a.id = #{id_key}
+	</select>
+
+	<select id="findListByMap" resultType="java.util.Map" parameterType="java.util.Map">
+		SELECT
+		<choose>
+			<when test="export !=null and export != ''">
+				<include refid="MaterialInfoForExportColumns"/>
+			</when>
+			<otherwise>
+				<include refid="MaterialInfoColumns"/>
+			</otherwise>
+		</choose>
+		FROM eam_material a
+
+		<where>
+			a.isdelete=0
+			<if test="dept != null and dept != ''">
+				AND a.create_by IN
+				<if test="dbName == 'mssql'">(SELECT loginname FROM ioms_user WHERE dbo.find_in_set(userdeptno, #{dept})>0)</if>
+				<if test="dbName == 'mysql'">(SELECT loginname FROM ioms_user WHERE find_in_set(userdeptno, #{dept})>0)</if>
+			</if>
+
+			<if test="material_code != null and material_code != ''">
+				AND
+				a.material_code LIKE
+				<if test="dbName == 'oracle'">'%'||#{material_code}||'%'</if>
+				<if test="dbName == 'mssql'">'%'+#{material_code}+'%'</if>
+				<if test="dbName == 'mysql'">concat('%',#{material_code},'%')</if>
+
+			</if>
+			<if test="material_name != null and material_name != ''">
+				AND
+				a.material_name LIKE
+				<if test="dbName == 'oracle'">'%'||#{material_name}||'%'</if>
+				<if test="dbName == 'mssql'">'%'+#{material_name}+'%'</if>
+				<if test="dbName == 'mysql'">concat('%',#{material_name},'%')</if>
+			</if>
+
+			<if test="material_type != null and material_type != ''">
+				AND
+				a.material_type = #{material_type}
+			</if>
+			<if test="material_cost != null and material_cost != ''">
+				AND
+				a.material_cost = #{material_cost}
+			</if>
+			<if test="material_unit != null and material_unit != ''">
+				AND
+				a.material_unit = #{material_unit}
+			</if>
+			<if test="material_supplier != null and material_supplier != ''">
+				AND
+				a.material_supplier = #{material_supplier}
+			</if>
+			<if test="material_qty != null and material_qty != ''">
+				AND
+				a.material_qty = #{material_qty}
+			</if>
+			<if test="material_price != null and material_price != ''">
+				AND
+				a.material_price = #{material_price}
+			</if>
+			<if test="material_remark != null and material_remark != ''">
+				AND
+				a.material_remark = #{material_remark}
+			</if>
+			<if test="material_brand != null and material_brand != ''">
+				AND
+				a.material_brand = #{material_brand}
+			</if>
+			<if test="material_model != null and material_model != ''">
+				AND
+				a.material_model = #{material_model}
+			</if>
+			<if test="material_status != null and material_status != ''">
+				AND
+				a.material_status = #{material_status}
+			</if>
+			<if test="material_level != null and material_level != ''">
+				AND
+				a.material_level = #{material_level}
+			</if>
+			<if test="material_purchasing != null and material_purchasing != ''">
+				AND
+				a.material_purchasing = #{material_purchasing}
+			</if>
+			<if test="ids != null and ids != ''">
+				AND a.id in
+				<foreach item="ids" index="index" collection="ids" open="(" separator="," close=")">
+					#{ids}
+				</foreach>
+			</if>
+
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+			</otherwise>
+		</choose>
+	</select>
+
+	
+	<insert id="insert">
+		INSERT INTO eam_material(
+		id,
+		material_code,
+		material_name,
+		material_level,
+		material_type,
+		material_unit,
+		material_qty,
+		material_cost,
+		material_price,
+		material_brand,
+		material_supplier,
+		material_model,
+		material_remark,
+		material_purchasing,
+		material_status,
+		create_by,
+		create_time,
+		update_by,
+		update_time
+		) VALUES (
+		#{id_key},
+		#{material_code},
+		#{material_name},
+		#{material_level},
+		#{material_type},
+		#{material_unit},
+		#{material_qty},
+		#{material_cost},
+		#{material_price},
+		#{material_brand},
+		#{material_supplier},
+		#{material_model},
+		#{material_remark},
+		#{material_purchasing},
+		#{material_status},
+		#{create_by},
+		#{create_time},
+		#{update_by},
+		#{update_time}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE eam_material SET
+
+		material_code=#{material_code},
+		material_name=#{material_name},
+		material_level=#{material_level},
+		material_type=#{material_type},
+		material_unit=#{material_unit},
+		material_qty=#{material_qty},
+		material_cost=#{material_cost},
+		material_price=#{material_price},
+		material_brand=#{material_brand},
+		material_supplier=#{material_supplier},
+		material_model=#{material_model},
+		material_remark=#{material_remark},
+		material_purchasing=#{material_purchasing},
+		material_status=#{material_status},
+		update_by = #{update_by},
+		update_time = #{update_time}
+
+		WHERE id = #{id_key}
+	</update>
+	
+	<update id="delete">
+		UPDATE eam_material SET
+		isdelete = 1
+		WHERE id = #{id_key}
+	</update>
+
+	<select id="getDetail" resultType="java.util.Map">
+		SELECT
+		<include refid="MaterialInfoEdit"/>
+		FROM eam_material a
+		WHERE a.id = #{id_key}
+	</select>
+
+	<select id="supplierSelect" resultType="java.util.Map">
+		SELECT
+		id,
+		supplier_name AS text
+		FROM eam_supplier
+	</select>
+
+
+	<insert id="insertBatch" >
+		INSERT INTO eam_material(id,material_code,material_name,material_level,material_type,material_unit,material_qty,material_cost,material_price,
+		material_brand,material_supplier,material_model,material_remark,material_purchasing,material_status,create_by,create_time,update_by,update_time)
+		VALUES
+		<foreach collection="list" item="item" index="index" separator="," >
+			(
+				#{item.id_key},#{item.material_code},#{item.material_name},#{item.material_level},#{item.material_type},#{item.material_unit},
+				#{item.material_qty},#{item.material_cost},#{item.material_price},#{item.material_brand},#{item.material_supplier},#{item.material_model},
+				#{item.material_remark},#{item.material_purchasing},#{item.material_status},#{item.create_by},#{item.create_time},#{item.update_by},#{item.update_time}
+			)
+		</foreach>
+	</insert>
+
+	
+</mapper>

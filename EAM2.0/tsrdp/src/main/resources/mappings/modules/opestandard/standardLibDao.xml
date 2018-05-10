@@ -1,0 +1,411 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tiansu.eam.modules.opestandard.dao.StandardLibDao">
+    <sql id="columns">
+        id AS 'id_key',library_code,library_name,approve_status,library_status,
+        (select stuff((select n.dev_name+','
+      from eam_operation_device m,eam_device n  where a.id=m.library_id and m.dev_id=n.id for xml path('')),1,0,'')) as devname,
+      approve_status,library_status
+    </sql>
+    <sql id="columnsall">
+        a.id AS 'id_key',a.library_code,a.library_name,a.approve_status,a.library_status,a.attach_id,a.update_time
+    </sql>
+    <sql id="librayLibJoins">
+        left join eam_operation_device b on a.id = b.library_id
+        left join eam_device d on b.dev_id = d.id
+    </sql>
+    <select id="findListByMap" parameterType="Map" resultType="Map">
+        select * from
+        (SELECT distinct
+        <include refid="columnsall"/>
+        FROM
+        eam_operation_library a
+        <include refid="librayLibJoins"/>
+        <where>
+            a.isdelete=0
+            <if test="dept != null and dept != ''">
+                AND a.create_by IN
+                <if test="dbName == 'mssql'">(SELECT loginname FROM ioms_user WHERE dbo.find_in_set(userdeptno, #{dept})>0)</if>
+                <if test="dbName == 'mysql'">(SELECT loginname FROM ioms_user WHERE find_in_set(userdeptno, #{dept})>0)</if>
+            </if>
+            <if test="library_code != null and library_code != ''">
+                AND
+                a.library_code LIKE
+                <if test="dbName == 'mssql'">'%'+#{library_code}+'%'</if>
+                <if test="dbName == 'mysql'">concat('%',#{library_code},'%')</if>
+
+            </if>
+            <if test="library_name != null and library_name != ''">
+                AND
+                a.library_name LIKE
+                <if test="dbName == 'mssql'">'%'+#{library_name}+'%'</if>
+                <if test="dbName == 'mysql'">concat('%',#{library_name},'%')</if>
+            </if>
+            <if test="approve_status !=null and approve_status !=''">
+                 AND
+                a.approve_status=#{approve_status}
+            </if>
+            <if test="ids != null and ids != ''">
+                AND s.id in
+                <foreach item="ids" index="index" collection="ids" open="(" separator="," close=")">
+                    #{ids}
+                </foreach>
+            </if>
+            <if test="device_id != null and device_id != ''">
+                AND d.dev_name LIKE
+                <if test="dbName == 'oracle'">'%'||#{device_id}||'%'</if>
+                <if test="dbName == 'mssql'">'%'+#{device_id}+'%'</if>
+                <if test="dbName == 'mysql'">CONCAT('%', #{device_id}, '%')</if>
+            </if>
+        </where>
+        ) res
+        <choose>
+            <when test="page !=null and page.orderBy != null and page.orderBy != ''">
+                ORDER BY ${page.orderBy}
+            </when>
+            <otherwise>
+                order by res.update_time desc
+            </otherwise>
+        </choose>
+
+
+    </select>
+    <select id="getDevBylib" parameterType="String" resultType="Map">
+            select library_id,dev_id,(select dev_name from eam_device where m.dev_id=id) dev_name,(select dev_code from eam_device where m.dev_id=id) dev_code
+            from eam_operation_device m where library_id=#{id_key}
+    </select>
+
+    <insert id="insert">
+        INSERT INTO eam_operation_library
+        (id,library_code,library_name,approve_status,library_status,create_by,create_time,update_by,update_time,isdelete,pstid,attach_id)
+        VALUES
+        (#{id_key},#{library_code},#{library_name},'0',#{library_status},#{createBy.loginname},#{createDate},#{updateBy.loginname},#{updateDate},'0',#{pstid},#{attach_id})
+    </insert>
+    <insert id="insertDev">
+        INSERT INTO eam_operation_device
+        (id,library_id,dev_id)
+        VALUES
+        <foreach collection="list" item="item" index="index" separator="," >
+        (#{item.id},#{item.library_id},#{item.device_id})
+        </foreach>
+    </insert>
+    <insert id="insertFault">
+        INSERT INTO eam_fault_standard
+        (id,library_id,fault_standard_code,fault_standard_desc,fault_standard_explain,fault_standard_remark)
+        VALUES
+        <foreach collection="list" item="item" index="index" separator="," >
+            (#{item.id},#{item.library_id},#{item.fault_standard_code},#{item.fault_standard_desc},#{item.fault_standard_explain},#{item.fault_standard_remark})
+        </foreach>
+    </insert>
+    <insert id="insertMaintain">
+            INSERT INTO eam_maintain_standard
+            (id,library_id,maintain_standard_code,maintain_standard_desc,maintain_standard_explain,maintain_standard_remark)
+            VALUES
+        <foreach collection="list" item="item" index="index" separator="," >
+            (#{item.id},#{item.library_id},#{item.maintain_standard_code},#{item.maintain_standard_desc},#{item.maintain_standard_explain},#{item.maintain_standard_remark})
+        </foreach>
+    </insert>
+    <insert id="insertPatrol">
+            INSERT INTO eam_patrol_standard
+            (id,library_id,patrol_standard_code,patrol_standard_desc,patrol_standard_explain,patrol_standard_remark)
+            VALUES
+        <foreach collection="list" item="item" index="index" separator="," >
+            (#{item.id},#{item.library_id},#{item.patrol_standard_code},#{item.patrol_standard_desc},#{item.patrol_standard_explain},#{item.patrol_standard_remark})
+        </foreach>
+    </insert>
+    <insert id="insertFailure">
+     INSERT INTO eam_failure_standard
+       (id,library_id,failure_phenomena_code,failure_phenomena_priority,failure_phenomena_desc,failure_cause_code,failure_cause_serverity,
+           failure_cause_desc,failure_measures_code,failure_measures_desc)
+           VALUES
+        <foreach collection="list" item="item" index="index" separator="," >
+            (#{item.id},#{item.library_id},#{item.failure_phenomena_code},#{item.failure_phenomena_priority},#{item.failure_phenomena_desc},#{item.failure_cause_code},
+              #{item.failure_cause_serverity},#{item.failure_cause_desc},#{item.failure_measures_code},#{item.failure_measures_desc})
+        </foreach>
+    </insert>
+    <insert id="insertOpe">
+        INSERT INTO eam_operation_standard
+          (id,library_id,operation_standard_code,operation_standard_desc,operation_standard_explain,operation_standard_remark)
+          VALUES
+        <foreach collection="list" item="item" index="index" separator="," >
+            (#{item.id},#{item.library_id},#{item.operation_standard_code},#{item.operation_standard_desc},#{item.operation_standard_explain},#{item.operation_standard_remark})
+        </foreach>
+    </insert>
+    <insert id="insertSafe">
+          INSERT INTO eam_safety_standard
+          (id,library_id,safety_standard_code,safety_standard_desc,safety_standard_explain,safety_standard_remark)
+          VALUES
+        <foreach collection="list" item="item" index="index" separator="," >
+            (#{item.id},#{item.library_id},#{item.safety_standard_code},#{item.safety_standard_desc},#{item.safety_standard_explain},#{item.safety_standard_remark})
+        </foreach>
+    </insert>
+    <!--获取单个-->
+    <select id="get" parameterType="String" resultType="com.tiansu.eam.modules.opestandard.entity.StandardLib">
+        SELECT
+        <include refid="columnsall"/>
+        FROM
+        eam_operation_library a
+        WHERE id=#{id}
+    </select>
+    <select id="quFault" parameterType="String" resultType="com.tiansu.eam.modules.opestandard.entity.StandardFault">
+        SELECT id,(select library_code from eam_operation_library where id=s.library_id)library_id,fault_standard_code,fault_standard_desc,fault_standard_explain,fault_standard_remark
+           from eam_fault_standard s where library_id=#{library_id} ORDER BY fault_standard_code
+    </select>
+    <select id="quMaintain" parameterType="String" resultType="com.tiansu.eam.modules.opestandard.entity.StandardMaintain">
+        SELECT id,(select library_code from eam_operation_library where id=s.library_id)library_id,maintain_standard_code,maintain_standard_desc,maintain_standard_explain,maintain_standard_remark
+        from eam_maintain_standard s where library_id=#{library_id} order by maintain_standard_code
+    </select>
+    <select id="quPatrol" parameterType="String" resultType="com.tiansu.eam.modules.opestandard.entity.StandardPatrol">
+        SELECT id,(select library_code from eam_operation_library where id=s.library_id)library_id,patrol_standard_code,patrol_standard_desc,patrol_standard_explain,patrol_standard_remark
+        from eam_patrol_standard s where library_id=#{library_id} order by patrol_standard_code
+    </select>
+    <select id="quFailure" parameterType="String" resultType="com.tiansu.eam.modules.opestandard.entity.StandardFailure">
+        SELECT id,(select library_code from eam_operation_library where id=s.library_id)library_id,failure_phenomena_code,failure_phenomena_priority,failure_phenomena_desc,failure_cause_code,failure_cause_serverity,
+           failure_cause_desc,failure_measures_code,failure_measures_desc
+        from eam_failure_standard s where library_id=#{library_id} order by failure_phenomena_code
+    </select>
+    <select id="quOpe" resultType="com.tiansu.eam.modules.opestandard.entity.StandardOpe">
+        SELECT id,(select library_code from eam_operation_library where id=s.library_id)library_id,operation_standard_code,operation_standard_desc,operation_standard_explain,operation_standard_remark
+          FROM eam_operation_standard s where library_id=#{library_id} order by operation_standard_code
+    </select>
+    <select id="quSafe" resultType="com.tiansu.eam.modules.opestandard.entity.StandardSafety">
+        select id,(select library_code from eam_operation_library where id=s.library_id)library_id,safety_standard_code,safety_standard_desc,safety_standard_explain,safety_standard_remark
+           from eam_safety_standard s where library_id=#{library_id} order by safety_standard_code
+    </select>
+    <!--编辑,先删除再添加-->
+    <update id="update">
+        update eam_operation_library
+        SET library_name=#{library_name},
+             library_status=#{library_status},
+             update_by=#{updateBy.loginname},
+             update_time=#{updateDate},
+             attach_id=#{attach_id}
+        WHERE
+        id=#{id_key}
+    </update>
+    <delete id="deleFault">
+        DELETE FROM eam_fault_standard where library_id=#{library_id}
+    </delete>
+    <delete id="deleMatain">
+        DELETE FROM eam_maintain_standard where library_id=#{library_id}
+    </delete>
+    <delete id="delePatrol">
+        DELETE FROM eam_patrol_standard where library_id=#{library_id}
+    </delete>
+    <delete id="deleFailure">
+        DELETE FROM eam_failure_standard where library_id=#{library_id}
+    </delete>
+    <delete id="deleOpe">
+        DELETE FROM eam_operation_standard where library_id=#{library_id}
+    </delete>
+    <delete id="deleSafe">
+        DELETE FROM eam_safety_standard where library_id=#{library_id}
+    </delete>
+    <delete id="deleDev">
+        DELETE FROM eam_operation_device where library_id=#{library_id}
+    </delete>
+    <!--逻辑删除-->
+    <update id="deleteByids">
+        update eam_operation_library
+        SET isdelete =1,update_by=#{updateBy.loginname},
+             update_time=#{updateDate}
+        where id=#{id_key}
+    </update>
+    <!--通过编码获取-->
+    <select id="getByCode" parameterType="String" resultType="Map">
+        SELECT
+        count(1) cou
+        FROM
+        eam_operation_library s
+        WHERE library_code=#{code} and isdelete=0;
+    </select>
+
+    <select id="findList" resultType="com.tiansu.eam.modules.supplier.entity.Supplier">
+        select
+          <include refid="columns" />
+        from eam_supplier
+        where isdelete = '0'
+    </select>
+<!--导入,附表沿用上面的sql-->
+    <insert id="insertLibBatch">
+            INSERT INTO eam_operation_library
+            (id,library_code,library_name,approve_status,library_status,create_by,create_time,isdelete,pstid)
+            VALUES
+        <foreach collection="list" item="item" index="index" separator="," >
+            (#{item.id},#{item.library_code},#{item.library_name},'0',#{item.library_status},#{item.createBy.loginname},#{item.createDate},'0',#{item.pstid})
+        </foreach>
+    </insert>
+    <insert id="insertLibDevBatch">
+        INSERT INTO eam_operation_device
+          (id,library_id,dev_id)
+          VALUES
+        <foreach collection="list" item="item" index="index" separator="," >
+            (#{item.id},#{item.library_id},#{item.device_id})
+        </foreach>
+    </insert>
+    <update id="import_after">
+            update eam_fault_standard set library_id=(select id from eam_operation_library where library_code =eam_fault_standard.library_id) where library_id like 'BZK%';
+            update eam_maintain_standard set library_id=(select id from eam_operation_library where library_code =eam_maintain_standard.library_id) where library_id like 'BZK%';
+            update eam_patrol_standard set library_id=(select id from eam_operation_library where library_code =eam_patrol_standard.library_id) where library_id like 'BZK%';
+            update eam_failure_standard set library_id=(select id from eam_operation_library where library_code =eam_failure_standard.library_id) where library_id like 'BZK%';
+            update eam_operation_standard set library_id=(select id from eam_operation_library where library_code =eam_operation_standard.library_id) where library_id like 'BZK%';
+            update eam_safety_standard set library_id=(select id from eam_operation_library where library_code =eam_safety_standard.library_id) where library_id like 'BZK%';
+
+    </update>
+    <!--导出-->
+    <select id="findStand" parameterType="Map" resultType="Map">
+        SELECT
+        <include refid="columnsall"/>
+        FROM
+        eam_operation_library a
+        <where>
+        a.isdelete=0
+        <if test="dept != null and dept != ''">
+            AND s.create_by IN
+            <if test="dbName == 'mssql'">(SELECT loginname FROM ioms_user WHERE dbo.find_in_set(userdeptno, #{dept})>0)</if>
+            <if test="dbName == 'mysql'">(SELECT loginname FROM ioms_user WHERE find_in_set(userdeptno, #{dept})>0)</if>
+        </if>
+            <if test="ids != null and ids != ''">
+                AND a.id in
+                <foreach item="ids" index="index" collection="ids" open="(" separator="," close=")">
+                    #{ids}
+                </foreach>
+            </if>
+        </where>
+    </select>
+    <select id="findFault" parameterType="Map" resultType="Map">
+          SELECT fault_standard_code,fault_standard_desc,fault_standard_explain,fault_standard_remark,a.id library_id
+           FROM eam_operation_library a,eam_fault_standard b
+            <where>
+                 a.id=b.library_id
+                <if test="ids != null and ids != ''">
+                    AND a.id in
+                    <foreach item="ids" index="index" collection="ids" open="(" separator="," close=")">
+                        #{ids}
+                    </foreach>
+                </if>
+            </where>
+    </select>
+    <select id="findMaintain" parameterType="Map" resultType="Map">
+        SELECT maintain_standard_code,maintain_standard_desc,maintain_standard_explain,maintain_standard_remark,a.id library_id
+        FROM eam_operation_library a,eam_maintain_standard b
+        <where>
+            a.id=b.library_id
+            <if test="ids != null and ids != ''">
+                AND a.id in
+                <foreach item="ids" index="index" collection="ids" open="(" separator="," close=")">
+                    #{ids}
+                </foreach>
+            </if>
+        </where>
+    </select>
+    <select id="findPatrol" parameterType="Map" resultType="Map">
+        SELECT patrol_standard_code,patrol_standard_desc,patrol_standard_explain,patrol_standard_remark,a.id library_id
+        FROM eam_operation_library a,eam_patrol_standard b
+        <where>
+            a.id=b.library_id
+            <if test="ids != null and ids != ''">
+                AND a.id in
+                <foreach item="ids" index="index" collection="ids" open="(" separator="," close=")">
+                    #{ids}
+                </foreach>
+            </if>
+        </where>
+    </select>
+    <select id="findFailure" parameterType="Map" resultType="Map">
+        SELECT failure_phenomena_code,failure_phenomena_priority,failure_phenomena_desc,failure_cause_code,failure_cause_serverity,
+        failure_cause_desc,failure_measures_code,failure_measures_desc,a.id library_id
+        FROM eam_operation_library a,eam_failure_standard b
+        <where>
+            a.id=b.library_id
+            <if test="ids != null and ids != ''">
+                AND a.id in
+                <foreach item="ids" index="index" collection="ids" open="(" separator="," close=")">
+                    #{ids}
+                </foreach>
+            </if>
+        </where>
+    </select>
+    <select id="findOpe" parameterType="Map" resultType="Map">
+        SELECT operation_standard_code,operation_standard_desc,operation_standard_explain,operation_standard_remark,a.id library_id
+        FROM eam_operation_library a,eam_operation_standard b
+        <where>
+            a.id=b.library_id
+            <if test="ids != null and ids != ''">
+                AND a.id in
+                <foreach item="ids" index="index" collection="ids" open="(" separator="," close=")">
+                    #{ids}
+                </foreach>
+            </if>
+        </where>
+    </select>
+    <select id="findSafe" parameterType="Map" resultType="Map">
+        SELECT safety_standard_code,safety_standard_desc,safety_standard_explain,safety_standard_remark,a.id library_id
+        FROM eam_operation_library a,eam_safety_standard b
+        <where>
+            a.id=b.library_id
+            <if test="ids != null and ids != ''">
+                AND a.id in
+                <foreach item="ids" index="index" collection="ids" open="(" separator="," close=")">
+                    #{ids}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+    <!--工作流通过实例ID查-->
+    <select id="getLibByPIid" parameterType="String" resultType="Map">
+            SELECT id,library_code,pstid
+            FROM eam_operation_library WHERE pstid=#{pstid}
+    </select>
+    <!--工作流通过实例ID更新表单-->
+    <update id="updateAprByPIid" parameterType="Map">
+         UPDATE eam_operation_library
+           SET approve_by=#{approve_by},approve_reason=#{approve_reason},approve_time=#{approve_time},approve_status=#{approve_status}
+           where pstid=#{pstid}
+    </update>
+<!--选设备-->
+    <select id="findDevCategoryList" resultType="java.util.Map">
+        select a.id, a.name, a.code, a.pId, a.baseid, a.type from
+        (
+        SELECT
+        cat_id AS id,
+        cat_name AS name,
+        cat_code as code,
+        cat_pid AS pId,
+        id AS baseid,
+        'devCategory' AS type
+        FROM
+        eam_dev_category a
+        where isdelete = '0'
+        UNION ALL
+        SELECT
+        id AS id,
+        dev_name AS name,
+        dev_code as code,
+        dev_category AS pId,
+        id AS baseid,
+        'device' AS type
+        FROM
+        eam_device
+        where isdelete = '0'
+        ) a
+        where not EXISTS
+        (select 1 from eam_operation_device c,eam_operation_library d
+        where a.id = c.dev_id and c.library_id=d.id and d.isdelete ='0'
+        <if test="operationwork_id != null and operationwork_id != ''">
+            and c.library_id != #{operationwork_id}
+        </if>
+        )
+        <if test="type != null and type != ''">
+            AND a.type = #{type}
+        </if>
+        <if test="name != null and name != ''">
+            AND a.name = #{name}
+        </if>
+    </select>
+<!--有无被引用-->
+    <select id="deleBefore" parameterType="java.lang.String" resultType="Map">
+
+    </select>
+</mapper>

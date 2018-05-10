@@ -1,0 +1,12 @@
+﻿{
+
+    "data": [
+        {"data": "materialcode","title":"物料编码"},
+        {"data": "materialname","title":"物料名称"},
+        {"data": "materialnumber","title":"库存数量"},
+        {"data": "materialunit","title":"单位"},
+        {"data": "materialcost","title":"标准成本"},
+        {"data": "materialstatus","title":"状态"}
+      ]
+
+}

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.tiansu.eam.modules.sys.dao.SysConfigDao">
+    <!--根据名称获取-->
+    <select id="getByKeyName" parameterType="java.lang.String" resultType="com.tiansu.eam.modules.sys.entity.SysConfigEntry">
+        SELECT id,config_key,config_value,config_desc
+        FROM eam_sys_config
+        where config_key=#{keyName}
+    </select>
+
+    <!--根据名称流水号从0开始,更新时间-->
+    <update id="updateByKeyName" parameterType="com.tiansu.eam.modules.sys.entity.SysConfigEntry">
+        UPDATE eam_sys_config SET
+        <if test="config_value != null ">config_value = #{config_value}</if>
+        where config_key = #{config_key}
+    </update>
+
+    <!--根据表名和主键获取业务编码-->
+    <select id="getBusinessCode" parameterType="java.util.Map" resultType="java.lang.String" statementType="STATEMENT">
+        <![CDATA[
+        SELECT ${tbCode} FROM ${tbName} WHERE id=${tbKey}
+        ]]>
+    </select>
+
+</mapper>

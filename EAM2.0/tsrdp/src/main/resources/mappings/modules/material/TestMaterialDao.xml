@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.thinkgem.jeesite.modules.material.dao.TestMaterialDao">
+    
+	<sql id="testMaterialColumns">
+		a.materialid AS "materialid",
+		a.materialcode AS "materialcode",
+		a.materialname AS "materialname",
+		a.materialnumber AS "materialnumber",
+		a.materialunit AS "materialunit",
+		a.materialcost AS "materialcost",
+		a.materialstatus AS "materialstatus",
+		a.materiallevel AS "materiallevel",
+		a.materialtype AS "materialtype",
+		a.materialdate AS "materialdate",
+		a.materialmail AS "materialmail"
+	</sql>
+	
+	<sql id="testMaterialJoins">
+	</sql>
+
+	<select id="getEdit" resultType="java.util.Map">
+		SELECT
+		<include refid="testMaterialColumns"/>
+		FROM test_material a
+		<include refid="testMaterialJoins"/>
+		WHERE a.materialid = #{id}
+	</select>
+
+	<select id="get" resultType="com.thinkgem.jeesite.modules.material.entity.TestMaterial">
+		SELECT 
+			<include refid="testMaterialColumns"/>
+		FROM test_material a
+		<include refid="testMaterialJoins"/>
+		WHERE a.materialid = #{id}
+	</select>
+	
+	<select id="findList" resultType="com.thinkgem.jeesite.modules.material.entity.TestMaterial">
+		SELECT 
+			<include refid="testMaterialColumns"/>
+		FROM test_material a
+		<include refid="testMaterialJoins"/>
+		<where>
+			1=1
+			<if test="dept != null and dept != ''">
+				AND a.materialemp IN
+				<if test="dbName == 'mssql'">(SELECT loginname FROM ioms_user WHERE dbo.find_in_set(userdeptno, #{dept})>0)</if>
+				<if test="dbName == 'mysql'">(SELECT loginname FROM ioms_user WHERE find_in_set(userdeptno, #{dept})>0)</if>
+			</if>
+
+			<if test="materialcode != null and materialcode != ''">
+				AND a.materialcode LIKE 
+					<if test="dbName == 'oracle'">'%'||#{materialcode}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{materialcode}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{materialcode},'%')</if>
+			</if>
+			<if test="materialname != null and materialname != ''">
+				AND a.materialname LIKE 
+					<if test="dbName == 'oracle'">'%'||#{materialname}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{materialname}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{materialname},'%')</if>
+			</if>
+			<if test="materialstatus != null and materialstatus != ''">
+				AND a.materialstatus = #{materialstatus}
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+			</otherwise>
+		</choose>
+	</select>
+
+	<select id="findListByMap" resultType="java.util.Map">
+		SELECT
+		<include refid="testMaterialColumns"/>
+		FROM test_material a
+		<include refid="testMaterialJoins"/>
+
+		<where>
+			1=1
+			<if test="dept != null and dept != ''">
+				AND a.materialemp IN
+				<if test="dbName == 'mssql'">(SELECT loginname FROM ioms_user WHERE dbo.find_in_set(userdeptno, #{dept})>0)</if>
+				<if test="dbName == 'mysql'">(SELECT loginname FROM ioms_user WHERE find_in_set(userdeptno, #{dept})>0)</if>
+			</if>
+
+			<if test="materialcode != null and materialcode != ''">
+				AND a.materialcode LIKE
+				<if test="dbName == 'oracle'">'%'||#{materialcode}||'%'</if>
+				<if test="dbName == 'mssql'">'%'+#{materialcode}+'%'</if>
+				<if test="dbName == 'mysql'">concat('%',#{materialcode},'%')</if>
+			</if>
+			<if test="materialname != null and materialname != ''">
+				AND a.materialname LIKE
+				<if test="dbName == 'oracle'">'%'||#{materialname}||'%'</if>
+				<if test="dbName == 'mssql'">'%'+#{materialname}+'%'</if>
+				<if test="dbName == 'mysql'">concat('%',#{materialname},'%')</if>
+			</if>
+			<if test="materialstatus != null and materialstatus != ''">
+				AND a.materialstatus = #{materialstatus}
+			</if>
+
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="com.thinkgem.jeesite.modules.material.entity.TestMaterial">
+		SELECT 
+			<include refid="testMaterialColumns"/>
+		FROM test_material a
+		<include refid="testMaterialJoins"/>
+		<where>
+			
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO test_material(
+			materialid,
+			materialcode,
+			materialname,
+			materialnumber,
+			materialunit,
+			materialcost,
+			materialstatus,
+			materiallevel,
+			materialtype,
+			materialemp,
+			materialdate,
+			materialmail,
+			pstid
+		) VALUES (
+			#{id},
+			#{materialcode},
+			#{materialname},
+			#{materialnumber},
+			#{materialunit},
+			#{materialcost},
+			#{materialstatus},
+			#{materiallevel},
+			#{materialtype},
+			#{materialemp},
+			#{materialdate},
+			#{materialmail},
+			#{pstid}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE test_material SET 	
+			materialcode = #{materialcode},
+			materialname = #{materialname},
+			materialnumber = #{materialnumber},
+			materialunit = #{materialunit},
+			materialcost = #{materialcost},
+			materialstatus = #{materialstatus},
+			materiallevel = #{materiallevel},
+			materialtype = #{materialtype},
+			materialdate = #{materialdate},
+			materialmail = #{materialmail}
+		WHERE materialid = #{materialid}
+	</update>
+	
+	<update id="delete">
+		DELETE FROM test_material
+		WHERE materialid = #{materialid}
+	</update>
+	
+</mapper>

@@ -1,0 +1,107 @@
+/*.scheduleSetting{*/
+    /*margin: 0px 0;*/
+    /*padding-top:10px;*/
+/*}*/
+/*.scheduleSetting ul{*/
+    /*list-style: none;*/
+    /*font-size: 14px;*/
+    /*color: #222222;*/
+    /*line-height: 26px;*/
+    /*padding: 0;*/
+    /*margin: 0 auto;*/
+    /*width: 300px;*/
+/*}*/
+/*.scheduleSetting .schedulename{*/
+    /*margin-right: 10px;*/
+    /*width: 70px;*/
+    /*text-align: right;*/
+    /*float: left;*/
+    /*clear: both;*/
+/*}*/
+/*.scheduleSetting .scheduleinput ,.scheduleinput input{*/
+    /*width: 200px;*/
+    /*display: inline;*/
+/*}*/
+/*.scheduleSetting .scheduleinput ,.scheduleinput select{*/
+    /*width: 200px;*/
+    /*display: inline;*/
+/*}*/
+
+/*input[type="text"] {*/
+    /*height:26px;*/
+    /*border-radius: 2px;*/
+    /*border: 1px;*/
+    /*border-style:solid !important;*/
+    /*padding-left: 8px;*/
+    /*font-size: 12px;*/
+    /*color: #999999;*/
+/*}*/
+
+/*.scheduleSetting li{*/
+    /*margin-bottom: 20px;*/
+/*}*/
+/*.scheduleSetting li:last-child{*/
+    /*text-align: center;*/
+/*}*/
+/*.scheduleSetting li .btn{*/
+    /*height: 26px;*/
+    /*width: 70px;*/
+    /*border-radius: 4px;*/
+    /*background-color: #15c7bd;*/
+    /*color: #ffffff;*/
+    /*font-size: 14px;*/
+    /*border: none;*/
+    /*margin-left: 10px;*/
+/*}*/
+/*div#ui-datepicker-div {*/
+    /*font-size: 75%;*/
+/*}*/
+.scheduleSetting li{
+    display: flex;
+}
+input[type="text"] {
+    height: 26px;
+    border-radius: 2px;
+    border: 1px;
+    border-style: solid !important;
+    padding-left: 8px;
+    font-size: 12px;
+    color: #999999;
+}
+.schedulename{
+    margin-right: 10px;
+    min-width: 70px;
+    text-align: right;
+}
+.row{
+    text-align: center;
+    display: flex;
+}
+.schedule-col-left input[type="text"]{
+    width:auto;
+}
+.schedule-col-right{
+    margin-left: 20px;
+    margin-right: 20px;
+}
+.schedule-col-left{
+    margin-left: 20px;
+    min-width: 301px;
+    text-align: left;
+}
+.scheduleSetting {
+    padding: 15px 15px 0 15px;
+    border-top: 3px solid #15c7bd;
+}
+.scheduleinput input,.scheduleinput .select2-container{
+    min-width:141px;
+}
+.scheduleinput .select2-container{
+    width: auto !important;
+}
+.scheduleSetting li{
+    margin-bottom: 10px;
+}
+.schedulechoose{
+    margin-left: 2px;
+]}

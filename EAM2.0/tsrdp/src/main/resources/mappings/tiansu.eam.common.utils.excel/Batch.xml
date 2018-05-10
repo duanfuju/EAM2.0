@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tiansu.eam.common.utils.excel.dao.BatchDao">
+
+	<sql id="customerColumns">
+		id,customer_code,customer_name,customer_type,customer_credit,customer_enable,customer_linkman,customer_phone
+		,customer_tel,customer_location	,customer_begindate	,customer_enddate,customer_business_lincense,customer_taxrate
+		,customer_org,customer_bank	,customer_taxcode,customer_president,customer_account,customer_bank_address,customer_regfund
+		,customer_fax,customer_remark,customer_address
+	</sql>
+
+
+	<insert id="insertCustomer"   parameterType="Map" >
+		INSERT INTO ts_customer (<include refid="customerColumns"/>)
+		VALUES
+		<foreach item="model" index="index" collection="models" open="(" separator="," close=")">
+			(#{model.id},#{model.customer_code},#{model.customer_name},#{model.customer_type},#{model.customer_credit},#{model.customer_enable},#{model.customer_linkman},#{model.customer_phone}
+			,#{model.customer_tel},#{model.customer_location},#{model.customer_begindate},#{model.customer_enddate},#{model.customer_business_lincense},#{model.customer_taxrate}
+			,#{model.customer_org,customer_bank},#{model.customer_taxcode},#{model.customer_president},#{model.customer_account},#{model.customer_bank_address},#{model.customer_regfund}
+			,#{model.customer_fax,customer_remark},#{model.customer_address})
+		</foreach>
+
+	</insert>
+
+	
+</mapper>

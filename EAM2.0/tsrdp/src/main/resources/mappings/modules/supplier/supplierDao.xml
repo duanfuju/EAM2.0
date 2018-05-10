@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tiansu.eam.modules.supplier.dao.SupplierDao">
+    <sql id="supplierColumns">
+        id AS 'id_key',
+        id,
+        supplier_name as "name",
+        supplier_name as "text",
+        supplier_code,
+        supplier_name,
+        supplier_type,
+        supplier_level,
+        supplier_credit,
+        supplier_president,
+        supplier_regfund,
+        supplier_address,
+        supplier_linkman,
+        supplier_phone,
+        supplier_fax,
+        supplier_busdate_start,
+        supplier_busdate_end,
+        supplier_bus_license,
+        supplier_org_code,
+        supplier_taxcode,
+        supplier_sucCode,
+        supplier_taxrate,
+        supplier_deposit_bank,
+        supplier_account,
+        supplier_bank_address,
+        supplier_remark,
+        supplier_status,
+        create_by,
+        create_time,
+        update_by,
+        update_time
+    </sql>
+    <sql id="supplierCol">
+        id AS 'id_key',supplier_code,supplier_name,(select type_name from eam_supplier_type where id=s.supplier_type)supplier_type,supplier_level,supplier_credit,
+        supplier_president,supplier_regfund,supplier_address,supplier_linkman,supplier_phone,supplier_fax,
+        supplier_busdate_start,supplier_busdate_end,supplier_bus_license,supplier_org_code,supplier_taxcode,
+        supplier_sucCode,supplier_taxrate,supplier_deposit_bank,supplier_account,supplier_bank_address,supplier_remark,
+        supplier_status,create_by,create_time,update_by,update_time
+    </sql>
+    <select id="findListByMap" parameterType="Map" resultType="Map">
+        SELECT
+        <include refid="supplierCol"/>
+        FROM
+        eam_supplier s
+        <where>
+            s.isdelete=0
+            <if test="dept != null and dept != ''">
+                AND s.create_by IN
+                <if test="dbName == 'mssql'">(SELECT loginname FROM ioms_user WHERE dbo.find_in_set(userdeptno, #{dept})>0)</if>
+                <if test="dbName == 'mysql'">(SELECT loginname FROM ioms_user WHERE find_in_set(userdeptno, #{dept})>0)</if>
+            </if>
+            <if test="supplier_code != null and supplier_code != ''">
+                AND
+                s.supplier_code LIKE
+                <if test="dbName == 'mssql'">'%'+#{supplier_code}+'%'</if>
+                <if test="dbName == 'mysql'">concat('%',#{supplier_code},'%')</if>
+
+            </if>
+            <if test="supplier_name != null and supplier_name != ''">
+                AND
+                s.supplier_name LIKE
+                <if test="dbName == 'mssql'">'%'+#{supplier_name}+'%'</if>
+                <if test="dbName == 'mysql'">concat('%',#{supplier_name},'%')</if>
+            </if>
+            <if test="supplier_level !=null and supplier_level !=''">
+                AND
+                s.supplier_level=#{supplier_level}
+            </if>
+            <if test="supplier_type !=null and supplier_type !=''">
+                AND
+                s.supplier_type=#{supplier_type}
+            </if>
+            <if test="ids != null and ids != ''">
+                AND s.id in
+                <foreach item="ids" index="index" collection="ids" open="(" separator="," close=")">
+                    #{ids}
+                </foreach>
+            </if>
+        </where>
+        <choose>
+            <when test="page !=null and page.orderBy != null and page.orderBy != ''">
+                ORDER BY ${page.orderBy}
+            </when>
+            <otherwise>
+                ORDER BY update_time desc
+            </otherwise>
+        </choose>
+
+    </select>
+    <select id="findListByMape" parameterType="Map" resultType="Map">
+        SELECT
+        <include refid="supplierColumns"/>
+        FROM
+        eam_supplier s
+        <where>
+            s.isdelete=0
+            <if test="dept != null and dept != ''">
+                AND s.create_by IN
+                <if test="dbName == 'mssql'">(SELECT loginname FROM ioms_user WHERE dbo.find_in_set(userdeptno, #{dept})>0)</if>
+                <if test="dbName == 'mysql'">(SELECT loginname FROM ioms_user WHERE find_in_set(userdeptno, #{dept})>0)</if>
+            </if>
+            <if test="supplier_code != null and supplier_code != ''">
+                AND
+                s.supplier_code LIKE
+                <if test="dbName == 'mssql'">'%'+#{supplier_code}+'%'</if>
+                <if test="dbName == 'mysql'">concat('%',#{supplier_code},'%')</if>
+
+            </if>
+            <if test="supplier_name != null and supplier_name != ''">
+                AND
+                s.supplier_name LIKE
+                <if test="dbName == 'mssql'">'%'+#{supplier_name}+'%'</if>
+                <if test="dbName == 'mysql'">concat('%',#{supplier_name},'%')</if>
+            </if>
+            <if test="supplier_level !=null and supplier_level !=''">
+                AND
+                s.supplier_level=#{supplier_level}
+            </if>
+            <if test="supplier_type !=null and supplier_type !=''">
+                AND
+                s.supplier_type=#{supplier_type}
+            </if>
+            <if test="ids != null and ids != ''">
+                AND s.id in
+                <foreach item="ids" index="index" collection="ids" open="(" separator="," close=")">
+                    #{ids}
+                </foreach>
+            </if>
+        </where>
+        <choose>
+            <when test="page !=null and page.orderBy != null and page.orderBy != ''">
+                ORDER BY ${page.orderBy}
+            </when>
+            <otherwise>
+            </otherwise>
+        </choose>
+
+    </select>
+
+    <insert id="insert">
+        INSERT into eam_supplier(
+        supplier_code,supplier_name,supplier_type,supplier_level,supplier_credit,supplier_president,supplier_regfund,supplier_address,
+        supplier_linkman,supplier_phone,supplier_fax,supplier_busdate_start,supplier_busdate_end,supplier_bus_license,supplier_org_code,
+        supplier_taxcode,supplier_sucCode,supplier_taxrate,supplier_deposit_bank,supplier_account,supplier_bank_address,supplier_remark,
+        supplier_status,create_by,create_time,update_by,update_time,isdelete
+        )
+        VALUES (
+        #{supplier_code},#{supplier_name},#{supplier_type},#{supplier_level},#{supplier_credit},#{supplier_president},#{supplier_regfund},
+        #{supplier_address},#{supplier_linkman},#{supplier_phone},#{supplier_fax},#{supplier_busdate_start},#{supplier_busdate_end},
+        #{supplier_bus_license},#{supplier_org_code},#{supplier_taxcode},#{supplier_sucCode},#{supplier_taxrate},#{supplier_deposit_bank},
+        #{supplier_account},#{supplier_bank_address},#{supplier_remark},#{supplier_status},
+        #{createBy.loginname},#{createDate},#{updateBy.loginname},#{updateDate},'0'
+        )
+    </insert>
+    <!--获取单个-->
+    <select id="get" parameterType="String" resultType="com.tiansu.eam.modules.supplier.entity.Supplier">
+        SELECT
+        <include refid="supplierColumns"/>
+        FROM
+        eam_supplier s
+        WHERE id=#{id}
+    </select>
+    <!--编辑-->
+    <update id="update" parameterType="com.tiansu.eam.modules.supplier.entity.Supplier">
+        update eam_supplier
+        SET supplier_code=#{supplier_code},supplier_name=#{supplier_name},supplier_type=#{supplier_type},supplier_level=#{supplier_level},supplier_credit=#{supplier_credit},
+             supplier_president=#{supplier_president},supplier_regfund=#{supplier_regfund},supplier_address=#{supplier_address},supplier_linkman=#{supplier_linkman},
+             supplier_phone=#{supplier_phone},supplier_fax=#{supplier_fax},supplier_busdate_start=#{supplier_busdate_start},supplier_busdate_end=#{supplier_busdate_end},
+             supplier_bus_license=#{supplier_bus_license},supplier_org_code=#{supplier_org_code},supplier_taxcode=#{supplier_taxcode},supplier_sucCode=#{supplier_sucCode},
+             supplier_taxrate=#{supplier_taxrate},supplier_deposit_bank=#{supplier_deposit_bank},supplier_account=#{supplier_account},supplier_bank_address=#{supplier_bank_address},
+             supplier_remark=#{supplier_remark},supplier_status=#{supplier_status},
+             update_by=#{updateBy.loginname},
+             update_time=#{updateDate}
+        WHERE
+        id=#{id_key}
+    </update>
+    <!--逻辑删除-->
+    <update id="deleteByids" parameterType="Map">
+        update eam_supplier
+        SET isdelete =1,
+             update_by=#{updateBy},
+             update_time=#{updateDate}
+        where id IN
+        <foreach item="ids" index="index" collection="ids" open="(" separator="," close=")">
+              #{ids}
+        </foreach>
+    </update>
+    <!--通过编码获取-->
+    <select id="getByCode" parameterType="String" resultType="Map">
+        SELECT
+        count(1) cou
+        FROM
+        eam_supplier s
+        WHERE supplier_code=#{code} and isdelete=0;
+    </select>
+
+    <select id="findList" resultType="com.tiansu.eam.modules.supplier.entity.Supplier">
+        select
+          <include refid="supplierColumns" />
+        from eam_supplier
+        where isdelete = '0'
+    </select>
+
+    <insert id="insertBatch">
+        INSERT into eam_supplier(
+        id,supplier_code,supplier_name,supplier_type,supplier_level,supplier_credit,supplier_president,supplier_regfund,supplier_address,
+        supplier_linkman,supplier_phone,supplier_fax,supplier_busdate_start,supplier_busdate_end,supplier_bus_license,supplier_org_code,
+        supplier_taxcode,supplier_sucCode,supplier_taxrate,supplier_deposit_bank,supplier_account,supplier_bank_address,supplier_remark,
+        supplier_status,create_by,create_time,isdelete
+        )
+        VALUES
+        <foreach collection="list" item="item" index="index" separator="," >
+            (#{item.id},#{item.supplier_code},#{item.supplier_name},#{item.supplier_type},#{item.supplier_level},#{item.supplier_credit},#{item.supplier_president},#{item.supplier_regfund},
+        #{item.supplier_address},#{item.supplier_linkman},#{item.supplier_phone},#{item.supplier_fax},#{item.supplier_busdate_start},#{item.supplier_busdate_end},
+        #{item.supplier_bus_license},#{item.supplier_org_code},#{item.supplier_taxcode},#{item.supplier_sucCode},#{item.supplier_taxrate},#{item.supplier_deposit_bank},
+        #{item.supplier_account},#{item.supplier_bank_address},#{item.supplier_remark},#{item.supplier_status},
+        #{item.createBy.loginname},#{item.createDate},'0')
+        </foreach>
+    </insert>
+
+    <select id="deleBefore" parameterType="java.lang.String" resultType="Map">
+        select count(1) num from eam_device where dev_supplier=#{id}
+    </select>
+
+    <select id="getDeviceList" parameterType="Map" resultType="Map">
+            select dev_code,dev_name,dev_supplier,(select loc_name from eam_dev_location where m.dev_location=id)dev_locname,
+				(select count(1) from eam_fault_order where m.id=order_device)ordertotal,
+				 (select count(1) from  eam_inspection_task where route_id in (select o.id from eam_inspection_route o,eam_route_area p,eam_inspection_area q,eam_area_subject r,eam_inspection_subject s
+                    where s.dev_id=m.id and o.id=p.route_id and p.area_id=q.id and q.id=r.area_id and r.subject_id=s.id))inspection_num,
+						(select count(1) from eam_maintain_task where task_device=m.id)maint_num
+                        from eam_device m  where m.dev_supplier=#{dev_supplier}
+    </select>
+</mapper>

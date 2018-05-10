@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tiansu.eam.interfaces.maintain.dao.MaintainRestDao">
+
+    <sql id="maintainTaskRestColumns">
+        a.id                                                                  AS "maintainId",
+        a.pstid,
+        a.project_id                                                          AS "projectId",
+        dev.dev_name                                                          AS "devName",
+        dbo.getLocName(dev.dev_location, '')                                  AS "locationName",
+        (SELECT dict_name
+         FROM eam_dict
+         WHERE dict_type_code = 'maintain_type' AND dict_value = a.task_type) AS "maintainType",
+        (SELECT dict_name
+         FROM eam_dict
+         WHERE dict_type_code = 'maintain_mode' AND dict_value = a.task_mode) AS "maintainMode",
+        a.task_period                                                         AS "cycleType",
+        a.isoverdue,
+        a.task_time_plan                                                      AS "planStartTime",
+        a.task_time_begin                                                     AS "startTime",
+        a.task_time_finish                                                    AS "finishTime",
+        a.task_code                                                           AS "maintainCode",
+        a.task_name                                                           AS "maintainName",
+        a.task_status                                                         AS "status",
+        CASE
+          WHEN a.task_status = '0' THEN '待确认'
+          WHEN a.task_status = '1' THEN '处理中'
+          WHEN a.task_status = '2' THEN '已完成'
+          WHEN a.task_status = '3' THEN '申请转单'
+          WHEN a.task_status = '4' THEN '申请挂起'
+          WHEN a.task_status = '5' THEN '已挂起'
+          WHEN a.task_status = '6' THEN '申请撤销'
+          WHEN a.task_status = '7' THEN '已撤销'
+          WHEN a.task_status = '8' THEN '申请解挂'
+        END AS "statusName"
+    </sql>
+
+    <sql id="maintainTaskRestJoins">
+        LEFT JOIN eam_device dev ON a.task_device = dev.id
+    </sql>
+
+    <select id="getMaintainList" resultType="com.tiansu.eam.interfaces.maintain.entity.MaintainListJson">
+        SELECT
+        <include refid="maintainTaskRestColumns"/>
+        FROM eam_maintain_task a
+        <include refid="maintainTaskRestJoins"/>
+        <where>
+            a.pstid IN
+            <foreach item="list" collection="list" open="(" separator="," close=")">
+                #{list,jdbcType=VARCHAR}
+            </foreach>
+        </where>
+
+        <choose>
+            <when test="page !=null and page.orderBy != null and page.orderBy != ''">
+                ORDER BY ${page.orderBy}
+            </when>
+            <otherwise>
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="getMaintainById" parameterType="java.lang.String"
+            resultType="com.tiansu.eam.interfaces.maintain.entity.MaintainDetailJson">
+
+        SELECT
+        a.id AS "maintainId",
+        a.pstid,
+        a.project_id AS "projectId",
+        dev.dev_name AS "devName",
+        dbo.getLocName(dev.dev_location, '') AS "locationName",
+        (SELECT dict_name
+        FROM eam_dict
+        WHERE dict_type_code = 'maintain_type' AND dict_value = a.task_type) AS "maintainType",
+        (SELECT dict_name
+        FROM eam_dict
+        WHERE dict_type_code = 'maintain_mode' AND dict_value = a.task_mode) AS "maintainMode",
+        a.task_period AS "cycleType",
+        a.isoverdue,
+        a.task_time_plan AS "planStartTime",
+        a.task_time_begin AS "startTime",
+        a.task_time_finish AS "finishTime",
+        a.task_code AS "maintainCode",
+        a.task_name AS "maintainName",
+        a.task_status AS "status",
+        a.task_maintain_code AS "maintainCode" ,
+        a.task_maintain_content AS "maintainContent" ,
+        a.task_maintain_remark AS "maintainNote" ,
+        a.task_fk_flag AS "flag",
+        RES.ID_ AS "taskId",
+        RES.TASK_DEF_KEY_ AS "taskDefKey"
+        FROM eam_maintain_task a
+        <include refid="maintainTaskRestJoins"/>
+        LEFT JOIN ACT_RU_TASK RES ON RES.PROC_INST_ID_ = a.pstid
+        <where>
+
+            <choose>
+                <when test="devId !=null and devId != ''">
+
+                    a.task_device = #{devId}
+                    AND (a.task_act_processor = #{userId}
+                    or dbo.find_in_set(a.task_act_processor_plan,#{userId})>0)
+                    AND datediff(day,task_time_plan,getdate())=0
+                </when>
+                <otherwise>
+                    a.pstid = #{pstid}
+                </otherwise>
+            </choose>
+
+        </where>
+    </select>
+
+    <select id="getProcedure" resultType="java.util.Map">
+        select
+            id AS "procedure_id",
+            procedure_code,
+            procedure_desc,
+            procedure_standard,
+            procedure_remark
+        from eam_maintain_mon_procedure
+        where project_id = #{id}
+        order by procedure_code
+    </select>
+
+    <select id="getSafety" resultType="java.util.Map">
+        select
+            id AS "safety_id",
+            safety_code,
+            safety_desc,
+            safety_standard,
+            safety_remark
+        from eam_maintain_mon_safety
+        where project_id = #{id}
+        order by safety_code
+    </select>
+
+    <select id="getMaintainTools" parameterType="java.lang.String"
+            resultType="com.tiansu.eam.interfaces.common.Tool_MaterialsJson">
+            SELECT
+                tool.id AS "id",
+                tool.tool_id AS "toolId",
+                material.material_name AS "name",
+                material.material_unit AS "unit",
+                material.material_model AS "model",
+                tool.tool_num AS "number",
+                material.material_price AS "price",
+                tool.tool_remark AS "remark"
+            FROM
+                eam_maintain_mon_tool tool
+            JOIN eam_material material ON material.id = tool.tool_id
+            WHERE
+                tool.project_id = #{id}
+            AND material.isdelete = '0'
+            ORDER BY
+                tool.id
+    </select>
+
+    <select id="getMaintainToolsFK" parameterType="java.lang.String"
+            resultType="com.tiansu.eam.interfaces.common.Tool_MaterialsJson">
+        select
+        tool.id AS "id",
+        tool.tool_id AS "toolId",
+        material.material_name AS "name",
+        material.material_unit AS "unit",
+        material.material_model AS "model",
+        tool.tool_num AS "number",
+        material.material_price AS "price",
+        tool.tool_remark AS  "remark"
+        from eam_maintain_task_tool_fk tool
+        join eam_material material on material.material_id = tool.tool_id
+        where tool.task_id = #{id}
+        and material.isdelete = '0'
+        order by tool.id
+    </select>
+
+    <select id="getMaintainSpareparts" parameterType="java.lang.String"
+            resultType="com.tiansu.eam.interfaces.common.Tool_MaterialsJson">
+
+        SELECT
+            spareparts.id AS "id",
+            spareparts.attachment_id AS "toolId",
+            spareparts.attachment_num AS "number",
+            spareparts.attachment_remark AS "remark",
+            material.material_name AS "name",
+            material.material_unit AS "unit",
+            material.material_model AS "model",
+            material.material_price AS "price"
+        FROM
+            eam_maintain_mon_spareparts spareparts
+        JOIN eam_material material ON spareparts.attachment_id = material.id
+        WHERE
+            spareparts.project_id = #{ id }
+        AND material.isdelete = '0'
+        ORDER BY
+            spareparts.id
+    </select>
+
+    <select id="getMaintainSparepartsFK" parameterType="java.lang.String"
+            resultType="com.tiansu.eam.interfaces.common.Tool_MaterialsJson">
+        SELECT
+        spareparts.id AS "id",
+        spareparts.attachment_id AS "toolId" ,
+        spareparts.attachment_num AS "number",
+        spareparts.attachment_remark AS "remark",
+        material.material_name AS "name",
+        material.material_unit AS "unit",
+        material.material_model AS "model",
+        material.material_price AS "price"
+        from eam_maintain_task_spareparts_fk spareparts
+        join eam_material material on spareparts.attachment_id = material.id
+        where spareparts.task_id = #{id}
+        and material.isdelete = '0'
+        order by spareparts.id
+    </select>
+
+
+    <select id="getPersonhours" parameterType="java.lang.String"
+            resultType="com.tiansu.eam.interfaces.common.PersonJson">
+      /*  SELECT
+            a.id AS "id",
+            a.emp_id AS "userId",
+            b.realname AS "name",
+            a.emp_hour AS "hour",
+            a.emp_price AS "price",
+            a.emp_skills AS "skill",
+            a.emp_remark AS "note"
+        FROM
+            eam_maintain_mon_manhaur a
+        JOIN ioms_user b ON a.emp_id = b.loginname
+        WHERE
+            a.project_id = #{ id }
+        ORDER BY
+            a.id*/
+         SELECT
+            a.id AS "id",
+            a.emp_id AS "userId",
+            b.realname AS "name",
+            a.emp_hour AS "hour",
+            a.emp_price AS "price",
+            a.emp_skills AS "skill",
+            a.emp_remark AS "note",
+            c.emp_hour AS "hour",
+            c.emp_price AS "price",
+            c.emp_remark AS "note"
+        FROM
+            eam_maintain_mon_manhaur a
+        JOIN ioms_user b ON a.emp_id = b.loginname
+        JOIN eam_maintain_task_manhaur_fk c ON b.loginname = c.emp_id
+        WHERE
+            a.project_id =#{ id }
+        ORDER BY
+            a.id;
+    </select>
+
+    <select id="getPersonhoursFK" parameterType="java.lang.String"
+            resultType="com.tiansu.eam.interfaces.common.PersonJson">
+        select
+            id AS "id",
+            emp_id AS "userId",
+            emp_hour AS "hour",
+            emp_price AS "price",
+            emp_remark AS "note"
+        from eam_maintain_task_manhaur_fk
+        where task_id = #{id}
+        order by id
+    </select>
+
+    <select id="getOtherexpenses" parameterType="java.lang.String"
+            resultType="com.tiansu.eam.interfaces.common.OtherChargesJosn">
+        SELECT
+            id AS "id",
+            charge_name AS "name",
+            charge_price AS "price",
+            charge_remark AS "note"
+        FROM
+            eam_maintain_mon_othercharges
+        WHERE
+            project_id = #{ id }
+        ORDER BY
+            id
+    </select>
+    <select id="getOtherexpensesFK" parameterType="java.lang.String"
+            resultType="com.tiansu.eam.interfaces.common.OtherChargesJosn">
+        select
+        id AS "id",
+        charge_name AS "name",
+        charge_price AS "price",
+        charge_remark AS "note"
+        from eam_maintain_task_othercharges_fk
+        where task_id = #{id}
+        order by id
+    </select>
+
+    <select id="getMaintainByDevId" resultType="java.lang.String">
+        SELECT TOP 1 pstid
+        FROM eam_maintain_task
+        WHERE task_device = #{devId}
+              AND (task_act_processor = #{userId}
+                   or dbo.find_in_set(task_act_processor_plan,#{userId})>0)
+              AND task_status IN ('0', '1')
+        ORDER BY ABS(DATEDIFF(minute, task_time_plan, GETDATE()))
+    </select>
+</mapper>

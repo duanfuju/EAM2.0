@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tiansu.eam.modules.sys.dao.EamDeptDao">
+    <select id="queryDeptList" resultType="EamDept">
+        select
+        a.deptno,
+        a.deptname,
+        a.deptnote,
+        a.parentid,
+        a.depttypeno,
+        b.sysno,
+        b.typenote
+        FROM
+        ioms_dept a,
+        (select sysno, typevalue, typenote from ioms_type where typename = 'dept_type')b
+        where a.depttypeno = b.typevalue;
+
+    </select>
+
+    <select id="getDept" resultType="EamDept">
+        select
+        a.deptno,
+        a.deptname,
+        a.deptnote,
+        a.parentid,
+        a.depttypeno,
+        b.sysno,
+        b.typenote
+        FROM
+        ioms_dept a,
+        (select sysno, typevalue, typenote from ioms_type where typename = 'dept_type')b
+        where a.depttypeno = b.typevalue
+          AND a.deptno = #{deptno}
+    </select>
+
+    <select id="getUserByDept" resultType="com.tiansu.eam.modules.sys.entity.User">
+        select u.loginname,u.realname,u.loginphone from ioms_dept de,ioms_user u
+        where u.userdeptno = de.deptno
+        and u.isdeleted = 0
+        and u.userdeptno = #{deptno}
+    </select>
+
+    <select id="queryDeptListByIds" resultType="EamDept">
+        select
+        a.deptno,
+        a.deptname,
+        a.deptnote,
+        a.parentid,
+        a.depttypeno
+        FROM
+        ioms_dept a
+        where a.deptno in (${deptIds})
+    </select>
+
+
+</mapper>

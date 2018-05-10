@@ -1,0 +1,66 @@
+<div class="content_first">
+    <div class="content_child">
+        <div class="content_child_first"><span>*</span>请选择以下一种派单方式</div>
+
+        <div class="content_two  clearfix">
+            <div class="content_left">
+                <br />
+                <br />
+                <div><span id="spana"><img src="/resource/img/circle_maintain.png" alt="" /></span><span>手动派单</span></div>
+            </div>
+            <div class="content_right">
+                <div class="sanjiao"></div>
+                <div class="sanjiaoao"></div>
+
+                <span class="content_right_span1">手动派单是指在报修派单环节，由派单用户手动选择接单人员进行工单派单；接单人员：是指可供选择的人员，在本系统中为报修设备所归属专业的人员。</span>
+
+            </div>
+        </div>
+        <div class="content_two  clearfix">
+            <div class="content_left">
+                <br />
+                <br />
+                <div><span id="spanb"><img src="/resource/img/circle_scrap.png" alt="" /></span><span>自动派单</span></div>
+            </div>
+            <div class="content_right">
+                <div class="sanjiao"></div>
+                <div class="sanjiaoao"></div>
+                <span id="content_right_span1">自动派单是指在报修派单环节，由本系统根据已经设定的规则，将报修的工单自动推送到具体的运维人员待办任务清单里。自动派单的具体规则：通过专业、责任区域、排班表3要素进行派单。</span>
+                <br>
+                <span id="content_right_span2">步骤一，根据报修设备，判断设备归属专业，找到所有该专业的运维人员。（人员管理功能里专业为必填）
+                    <br>步骤二，根据报修设备位置，匹配该专业下具有此责任区域的运维人员。（人员管理功能里责任区域为必填）。
+                    <br>步骤三，根据排班表，匹配出当前在班人员。
+                    <br>步骤四，如果在前三个判断条件中，未找到相关的派单对象，则派给相关专业（报修设备所归属的专业）运维班长和主管，由班长或主管进行转单操作。
+                    <br>班长或主管进行转单操作：是指派给运维班长和主管的单子，由班长或主管进行接单人员（可以看到全部运维人员）的选择，从而完成转单操作。
+                    <br>备注：自动派单为即时（30秒之内）派单。
+                    <!--<br>第三步判断值班表（当前在班的人员）。三个条件取交集，如果没有找到相关的派单人员，则直接派给相关专业的班长（班长判定的条件：①赋予“运维班长”角色，或者角色描述中包含“班长”字段。②该班长的所属岗位，属于巡检设备责任人（运维主管）所属岗位的下级岗位③该班长的责任区域，在其运维主管归属的责任设备所在区域中）。（每隔3分钟会自动检查排班表，发现有效数据就将任务派出去）</span>-->
+                </span>
+                <span id="content_right_span13"><i id="content_xx">详细规则</i> <i id="content_yy">收起</i><b>></b></span>
+            </div>
+        </div>
+        <div class="content_two  clearfix">
+            <div class="content_left">
+                <br />
+                <br />
+                <div><span id="spanc"><img src="/resource/img/circle_scrap.png" alt="" style="opacity: 0.2;"/></span><span>自动派单+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;抢单</br></span></div>
+            </div>
+            <div class="content_right">
+                <div class="sanjiao"></div>
+                <div class="sanjiaoao"></div>
+                <span id="content_right_span3">派单+抢单是指报修以后的工单，根据设备归属的专业，匹配出所有该专业的运维人员，该专业的所有人员都可以看到该单据，且可以进行抢单。</span>
+                <br>
+                <span id="content_right_span4">运维人员抢到的单子只能做接单操作，不能做转单操作。且最多只能接<input style="color:rgb(0,0,255); width:40px;" type="text" id="max_orders" value="5">单，
+                    除非已完成或已挂起，否则在抢单模式下不可再接单。在一定时间内（默认<input style="color:rgb(0,0,255);width:40px;" type="text" value="30" id="max_timeout">秒）
+                    没有人接的单据，自动派给这个专业的运维主管和运维班长，由运维主管或运维班长进行转单。运维主管或运维班长只能派单，不能拒绝，对于运维主管和运维班长派下来的单子，运维人员（技师）只能接单，不能转单。</span>
+                <sapn id="content_right_sapn5"><i id="content_xxx">详细规则</i> <i id="content_yyy">收起</i><b>></b></sapn>
+            </div>
+        </div>
+        <div class="bottom clearfix">
+            <div class="bottom_first">确定</div>
+            <div class="bottom_two">重置</div>
+        </div>
+
+    </div>
+
+</div>
+

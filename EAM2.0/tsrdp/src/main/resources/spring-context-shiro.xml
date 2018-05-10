@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context" xsi:schemaLocation="
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
+		http://www.springframework.org/schema/context  http://www.springframework.org/schema/context/spring-context-4.1.xsd"
+	default-lazy-init="true">
+
+	<description>Shiro Configuration</description>
+
+    <!-- 加载配置属性文件 -->
+	<context:property-placeholder ignore-unresolvable="true" location="classpath:jeesite.properties" />
+	
+	<!-- Shiro权限过滤过滤器定义 -->
+	<bean name="shiroFilterChainDefinitions" class="java.lang.String">
+		<!--
+		shiroFilter 中 loginUrl 为登录页面地址，successUrl 为登录成功页面地址（如果首先访问受保护 URL 登录成功，则跳转到实际访问页面），
+		shiroFilter 中 filterChainDefinitions 属性，anon 表示匿名访问（不需要认证与授权），authc 表示需要认证-->
+		<constructor-arg>
+			<value>
+				/static/** = anon
+				/resource/** = anon
+				/userfiles/** = anon
+				/modules/** = anon
+				/druid/** = anon
+
+				${adminPath}/cas = cas
+				${adminPath}/login = authc
+				${adminPath}/eam/login = authc
+				${adminPath}/logout = logout
+				${adminPath}/** = user
+				/act/editor/** = user
+				/ReportServer/** = user
+			</value>
+		</constructor-arg>
+	</bean>
+	
+	<!-- 安全认证过滤器 -->
+	<bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean"  scope="prototype">
+		<property name="securityManager" ref="securityManager" />
+		<!--<property name="loginUrl" value="${cas.server.url}" />-->
+		<property name="loginUrl" value="/a/eam/login" />
+		<property name="successUrl" value="${adminPath}/eam/index" />
+		<property name="filters">
+            <map>
+                <entry key="cas" value-ref="casFilter"/>
+                <entry key="authc" value-ref="formAuthenticationFilter"/>
+				<!--退出过滤器-->
+				<entry key="logout" value-ref="systemLogoutFilter" />
+            </map>
+        </property>
+		<property name="filterChainDefinitions">
+			<ref bean="shiroFilterChainDefinitions"/>
+		</property>
+	</bean>
+	
+	<!-- CAS认证过滤器 -->  
+	<bean id="casFilter" class="org.apache.shiro.cas.CasFilter">  
+		<property name="failureUrl" value="${adminPath}/eam/login"/>
+	</bean>
+
+	<bean id = "idGen" class="com.tiansu.eam.common.utils.IdGen"/>
+	
+	<!-- 定义Shiro安全管理配置  -->
+	<bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+		<!--不涉及多个用户来源问题，一个realm解决一用户多种登录方式即可-->
+		<!--<property name="realm" ref="systemAuthorizingRealm" />-->
+		<property name="realm" ref="eamAuthorizingRealm" />
+		<property name="sessionManager" ref="sessionManager" />
+		<property name="cacheManager" ref="shiroCacheManager" />
+	</bean>
+
+
+	<bean id="systemLogoutFilter" class="com.tiansu.eam.modules.sys.filter.SystemLogoutFilter"/>
+	<bean id="eamAuthorizingRealm" class="com.tiansu.eam.modules.sys.security.EamAuthorizingRealm"/>
+
+	<!-- 自定义会话管理配置 com.tiansu.eam.modules.sys.security.SimpleWebSessionManager-->
+	<bean id="sessionManager" class="com.thinkgem.jeesite.common.security.shiro.session.SessionManager">
+		<property name="sessionDAO" ref="sessionDAO"/>
+		
+		<!-- 会话超时时间，单位：毫秒  -->
+		<property name="globalSessionTimeout" value="${session.sessionTimeout}"/>
+		
+		<!-- 定时清理失效会话, 清理用户直接关闭浏览器造成的孤立会话   -->
+		<property name="sessionValidationInterval" value="${session.sessionTimeoutClean}"/>
+<!--  		<property name="sessionValidationSchedulerEnabled" value="false"/> -->
+ 		<property name="sessionValidationSchedulerEnabled" value="true"/>
+ 		
+		<property name="sessionIdCookie" ref="sessionIdCookie"/>
+		<property name="sessionIdCookieEnabled" value="true"/>
+	</bean>
+	
+	<!-- 指定本系统SESSIONID, 默认为: JSESSIONID 问题: 与SERVLET容器名冲突, 如JETTY, TOMCAT 等默认JSESSIONID,
+		当跳出SHIRO SERVLET时如ERROR-PAGE容器会为JSESSIONID重新分配值导致登录会话丢失! -->
+	<bean id="sessionIdCookie" class="org.apache.shiro.web.servlet.SimpleCookie">
+	    <constructor-arg name="name" value="jeesite.session.id"/>
+	</bean>
+
+	<!-- 自定义Session存储容器 -->
+<!-- 	<bean id="sessionDAO" class="com.thinkgem.jeesite.common.security.shiro.session.JedisSessionDAO"> -->
+<!-- 		<property name="sessionIdGenerator" ref="idGen" /> -->
+<!-- 		<property name="sessionKeyPrefix" value="${redis.keyPrefix}_session_" /> -->
+<!-- 	</bean> -->
+	<bean id="sessionDAO" class="com.thinkgem.jeesite.common.security.shiro.session.CacheSessionDAO">
+		<property name="sessionIdGenerator" ref="idGen" />
+		<property name="activeSessionsCacheName" value="activeSessionsCache" />
+		<property name="cacheManager" ref="shiroCacheManager" />
+	</bean>
+	
+	<!-- 自定义系统缓存管理器-->
+<!-- 	<bean id="shiroCacheManager" class="com.thinkgem.jeesite.common.security.shiro.cache.JedisCacheManager"> -->
+<!-- 		<property name="cacheKeyPrefix" value="${redis.keyPrefix}_cache_" /> -->
+<!-- 	</bean> -->
+	<bean id="shiroCacheManager" class="org.apache.shiro.cache.ehcache.EhCacheManager">
+		<property name="cacheManager" ref="cacheManager"/>
+	</bean>
+	
+	<!-- 保证实现了Shiro内部lifecycle函数的bean执行 -->
+	<bean id="lifecycleBeanPostProcessor" class="org.apache.shiro.spring.LifecycleBeanPostProcessor"/>
+	
+	<!-- AOP式方法级权限检查  -->
+	<bean class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator" depends-on="lifecycleBeanPostProcessor">
+		<property name="proxyTargetClass" value="true" />
+	</bean>
+	<bean class="org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor">
+    	<property name="securityManager" ref="securityManager"/>
+	</bean>
+	
+</beans>

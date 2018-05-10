@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tiansu.eam.modules.inspection.dao.InspectionSubjectDao">
+    
+	<sql id="InspectionSubjectColumns">
+		a.id AS "id_key",
+		(SELECT dev_name FROM eam_device WHERE id=a.dev_id) AS "dev_id",
+		a.subject_code,
+		a.subject_name,
+		a.subject_content,
+		a.subject_standard,
+		(SELECT dict_name FROM eam_dict WHERE dict_type_code='subject_valuetype' AND dict_value=a.subject_valuetype) AS "subject_valuetype",
+		(SELECT dict_name FROM eam_dict WHERE dict_type_code='subject_way' AND dict_value=a.subject_way) AS "subject_way",
+		(SELECT loc_name FROM eam_dev_location WHERE id=(SELECT dev_location from eam_device where id=a.dev_id)) AS "device_location",
+		a.subject_value1,
+		a.subject_value2,
+		a.subject_value3,
+		a.subject_sx_value,
+		a.subject_xx_value,
+		a.subject_ck_value,
+		a.subject_unit,
+		a.subject_decimal,
+		a.subject_default,
+		a.subject_status
+	</sql>
+	<sql id="InspectionSubjectColumnsForExport">
+		a.id AS "id_key",
+		a.dev_id,
+		a.subject_code,
+		a.subject_name,
+		a.subject_content,
+		a.subject_standard,
+		a.subject_valuetype,
+		a.subject_way,
+		a.subject_value1,
+		a.subject_value2,
+		a.subject_value3,
+		a.subject_sx_value,
+		a.subject_xx_value,
+		a.subject_ck_value,
+		a.subject_unit,
+		a.subject_decimal,
+		a.subject_default,
+		a.subject_status
+	</sql>
+
+	<select id="findById" resultType="java.util.Map">
+		SELECT
+		(SELECT dev_name FROM eam_device WHERE id=a.dev_id) AS "dev_name",
+			<include refid="InspectionSubjectColumnsForExport"/>
+
+		FROM eam_inspection_subject a
+		WHERE a.id =  #{id}
+	</select>
+
+	<select id="findListByMap" resultType="java.util.Map" parameterType="java.util.Map">
+		SELECT
+			<choose>
+				<when test="export !=null and export != ''">
+					(SELECT dev_name FROM eam_device WHERE id=a.dev_id) AS "dev_name",
+					(SELECT loc_name FROM eam_dev_location WHERE id=(SELECT dev_location from eam_device where id=a.dev_id)) AS "dev_location",
+					<include refid="InspectionSubjectColumnsForExport"/>
+				</when>
+				<otherwise>
+					(select count(1) from eam_area_subject where subject_id=a.id) incidence_number,
+					<include refid="InspectionSubjectColumns"/>
+				</otherwise>
+			</choose>
+		FROM eam_inspection_subject a
+		<where>
+			a.isdelete=0
+			<if test="dept != null and dept != ''">
+				AND a.create_by IN
+				<if test="dbName == 'mssql'">(SELECT loginname FROM ioms_user WHERE dbo.find_in_set(userdeptno, #{dept})>0)</if>
+				<if test="dbName == 'mysql'">(SELECT loginname FROM ioms_user WHERE find_in_set(userdeptno, #{dept})>0)</if>
+			</if>
+
+			<if test="dev_id != null and dev_id != ''">
+				AND
+				a.dev_id in (select id from eam_device dev where  dev.dev_name LIKE
+                    <if test="dbName == 'oracle'">'%'||#{dev_id}||'%'</if>
+                    <if test="dbName == 'mssql'">'%'+#{dev_id}+'%'</if>
+                    <if test="dbName == 'mysql'">concat('%',#{dev_id},'%')</if>
+                )
+			</if>
+			<if test="subject_code != null and subject_code != ''">
+				AND
+				a.subject_code LIKE
+				<if test="dbName == 'oracle'">'%'||#{subject_code}||'%'</if>
+				<if test="dbName == 'mssql'">'%'+#{subject_code}+'%'</if>
+				<if test="dbName == 'mysql'">concat('%',#{subject_code},'%')</if>
+			</if>
+			<if test="subject_name != null and subject_name != ''">
+				AND
+				a.subject_name LIKE
+				<if test="dbName == 'oracle'">'%'||#{subject_name}||'%'</if>
+				<if test="dbName == 'mssql'">'%'+#{subject_name}+'%'</if>
+				<if test="dbName == 'mysql'">concat('%',#{subject_name},'%')</if>
+			</if>
+			<if test="subject_status != null and subject_status != ''">
+				AND
+				a.subject_status LIKE
+				<if test="dbName == 'oracle'">'%'||#{subject_status}||'%'</if>
+				<if test="dbName == 'mssql'">'%'+#{subject_status}+'%'</if>
+				<if test="dbName == 'mysql'">concat('%',#{subject_status},'%')</if>
+			</if>
+			<if test="subject_valuetype != null and subject_valuetype != ''">
+				AND
+				a.subject_valuetype LIKE
+				<if test="dbName == 'oracle'">'%'||#{subject_valuetype}||'%'</if>
+				<if test="dbName == 'mssql'">'%'+#{subject_valuetype}+'%'</if>
+				<if test="dbName == 'mysql'">concat('%',#{subject_valuetype},'%')</if>
+			</if>
+			<if test="subject_way != null and subject_way != ''">
+				AND
+				a.subject_way LIKE
+				<if test="dbName == 'oracle'">'%'||#{subject_way}||'%'</if>
+				<if test="dbName == 'mssql'">'%'+#{subject_way}+'%'</if>
+				<if test="dbName == 'mysql'">concat('%',#{subject_way},'%')</if>
+			</if>
+			<if test="ids != null and ids != ''">
+				AND a.id in
+				<foreach item="ids" index="index" collection="ids" open="(" separator="," close=")">
+					#{ids}
+				</foreach>
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				order by a.create_time
+			</otherwise>
+		</choose>
+	</select>
+
+	
+	<insert id="insert">
+		INSERT INTO eam_inspection_subject(
+			id,
+			dev_id,
+			subject_code,
+			subject_name,
+			subject_content,
+			subject_standard,
+			subject_valuetype,
+			subject_way,
+			subject_value1,
+			subject_value2,
+			subject_value3,
+			subject_sx_value,
+			subject_xx_value,
+			subject_ck_value,
+			subject_unit,
+			subject_decimal,
+			subject_status,
+			create_by,
+			create_time,
+			update_by,
+			update_time,
+			isdelete,
+			subject_default
+		) VALUES (
+			#{id},
+			#{dev_id},
+			#{subject_code},
+			#{subject_name},
+			#{subject_content},
+			#{subject_standard},
+			#{subject_valuetype},
+			#{subject_way},
+			#{subject_value1},
+			#{subject_value2},
+			#{subject_value3},
+			#{subject_sx_value},
+			#{subject_xx_value},
+			#{subject_ck_value},
+			#{subject_unit},
+			#{subject_decimal},
+			#{subject_status},
+        	#{createBy.loginname},
+		  	#{createDate},
+        	#{updateBy.loginname},
+       		#{updateDate},
+        	#{DEL_FLAG_NORMAL},
+			#{subject_default}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE eam_inspection_subject SET
+			 dev_id= #{dev_id},
+			 subject_code= #{subject_code},
+			 subject_name= #{subject_name},
+			 subject_content= #{subject_content},
+			 subject_standard= #{subject_standard},
+			 subject_valuetype= #{subject_valuetype},
+			 subject_way= #{subject_way},
+			 subject_value1= #{subject_value1},
+			 subject_value2= #{subject_value2},
+			 subject_value3= #{subject_value3},
+			 subject_sx_value= #{subject_sx_value},
+			 subject_xx_value= #{subject_xx_value},
+			 subject_ck_value= #{subject_ck_value},
+			 subject_unit= #{subject_unit},
+			 subject_decimal= #{subject_decimal},
+			 subject_status= #{subject_status},
+			 update_by= #{updateBy.loginname},
+			 update_time=#{updateDate},
+			 subject_default= #{subject_default}
+		WHERE id = #{id_key}
+	</update>
+
+	<update id="delete" parameterType="java.util.Map">
+		UPDATE eam_inspection_subject SET
+		isdelete = 1,
+		update_by=#{updateBy},
+		update_time=#{updateDate}
+		WHERE id IN
+		<foreach item="ids" index="index" collection="ids" open="(" separator="," close=")">
+			#{ids}
+		</foreach>
+	</update>
+
+	<insert id="insertBatch" >
+		INSERT INTO eam_inspection_subject(
+				id,dev_id,subject_code,subject_name,subject_content,subject_standard,subject_valuetype,subject_way,subject_value1,
+				subject_value2,subject_value3,subject_sx_value,subject_xx_value,subject_ck_value,subject_unit,subject_decimal,subject_status,create_by,create_time,
+				update_by,update_time,isdelete,subject_default
+		)VALUES
+		<foreach collection="list" item="item" index="index" separator="," >
+			(
+			#{item.id},#{item.dev_id},#{item.subject_code},#{item.subject_name},#{item.subject_content},#{item.subject_standard},
+			#{item.subject_valuetype},#{item.subject_way},#{item.subject_value1},#{item.subject_value2},#{item.subject_value3},
+			#{item.subject_sx_value},#{item.subject_xx_value},#{item.subject_ck_value},#{item.subject_unit},#{item.subject_decimal},
+			#{item.subject_status},#{item.createBy.loginname},#{item.createDate},#{item.updateBy.loginname},#{item.updateDate},
+			#{item.DEL_FLAG_NORMAL},#{item.subject_default}
+			)
+		</foreach>
+	</insert>
+
+	<select id="inspectionSubjectSelectUI" resultType="java.util.Map" parameterType="java.util.Map">
+		SELECT
+		<include refid="InspectionSubjectColumns"/>
+		FROM eam_inspection_subject a
+		<where>
+			a.isdelete=0 and not  exists(select subject_id from eam_area_subject where subject_id=a.id)
+			<if test="subject_name != null and subject_name != ''">
+				AND
+				a.subject_name LIKE
+				<if test="dbName == 'oracle'">'%'||#{subject_name}||'%'</if>
+				<if test="dbName == 'mssql'">'%'+#{subject_name}+'%'</if>
+				<if test="dbName == 'mysql'">concat('%',#{subject_name},'%')</if>
+			</if>
+		</where>
+		order by a.update_time
+	</select>
+
+	
+</mapper>

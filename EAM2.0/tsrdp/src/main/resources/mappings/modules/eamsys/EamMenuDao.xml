@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tiansu.eam.modules.sys.dao.EamMenuDao">
+    <sql id="menuColumns">
+        a.sysno,
+        a.parentid,
+        a.parentid AS "parent.menuno",
+        a.menuno,
+        a.menuname,
+        a.link,
+        a.icon,
+        a.orderid,
+        p.menuname,
+        p.menuname AS "parent.menuname"
+    </sql>
+
+    <sql id="menuJoins">
+        LEFT JOIN ioms_menu p ON p.menuno = a.parentid
+    </sql>
+
+    <select id="getMenuList" resultType="EamMenu">
+        SELECT
+          <include refid="menuColumns"/>
+        FROM ioms_menu a
+        <include refid="menuJoins"/>
+        where a.subsystemno='eam'
+        ORDER BY a.orderid
+    </select>
+    <select id="getRelatedMenuList" resultType="EamMenuInfo">
+         SELECT
+             a.menuno  menucode,
+			 a.menuname,
+			 a.orderid,
+			 a.parentid,
+			 a.subsystemno subsystemcode,
+			 a.link menulink,
+			 a.icon menuicon,
+			 a.menuclass menuclass
+			  FROM ioms_menu a
+
+        where a.subsystemno='eam'
+
+        ORDER BY a.orderid
+    </select>
+
+    <select id="getByUserLoginName" resultType="EamMenu">
+        SELECT DISTINCT
+          <include refid="menuColumns"/>
+        FROM ioms_menu a
+        LEFT JOIN ioms_menu p ON p.menuno = a.parentid
+        JOIN ioms_rolemenu rm ON rm.menuno = a.menuno
+        JOIN ioms_role r ON r.rolecode = rm.rolecode
+        JOIN ioms_roleuser ur ON ur.roleno = r.rolecode
+        JOIN ioms_user u ON u.loginname = ur.loginname
+        where u.loginname =  #{userLoginName}
+        AND  a.subsystemno='eam'
+        ORDER BY a.orderid
+    </select>
+
+    <select id="get" resultType="EamMenu">
+        SELECT
+        <include refid="menuColumns"/>
+        FROM ioms_menu a
+        <include refid="menuJoins"/>
+        where a.sysno = #{sysno}
+        AND a.subsystemno='eam'
+    </select>
+</mapper>

@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tiansu.eam.modules.employee.dao.EamCustomerDao">
+    
+	<sql id="eamCustomerForExportColumns">
+		a.id AS "id_key",
+		a.customer_code AS "customer_code",
+		a.customer_name AS "customer_name",
+		a.customer_level AS "customer_level",
+		a.customer_credit AS "customer_credit",
+		a.customer_bus_license AS "customer_bus_license",
+		a.customer_org_code AS "customer_org_code",
+		a.customer_taxcode AS "customer_taxcode",
+		a.customer_sucCode AS "customer_sucCode",
+		a.customer_taxrate AS "customer_taxrate",
+		a.customer_deposit_bank AS "customer_deposit_bank",
+		a.customer_account AS "customer_account",
+		a.customer_bank_address AS "customer_bank_address",
+		a.customer_president AS "customer_president",
+		a.customer_regfund AS "customer_regfund",
+		a.customer_address AS "customer_address",
+		a.customer_linkman AS "customer_linkman",
+		a.customer_phone AS "customer_phone",
+		a.customer_fax AS "customer_fax",
+		a.customer_email AS "customer_email",
+		a.customer_busdate_start AS "customer_busdate_start",
+		a.customer_busdate_end AS "customer_busdate_end",
+		a.customer_remark AS "customer_remark",
+		a.customer_status AS "customer_status",
+		a.create_by AS "createBy",
+		a.create_time AS "createDate",
+		a.update_by AS "updateBy",
+		a.update_time AS "updateDate",
+		a.isdelete AS "isDelete"
+	</sql>
+	<sql id="eamCustomerColumns">
+		a.id AS "id_key",
+		a.customer_code AS "customer_code",
+		a.customer_name AS "customer_name",
+		(SELECT dict_name FROM eam_dict WHERE dict_type_code='customer_level' AND dict_value=a.customer_level) AS "customer_level",
+		(SELECT dict_name FROM eam_dict WHERE dict_type_code='credit_level' AND dict_value=a.customer_credit) AS "customer_credit",
+		a.customer_bus_license AS "customer_bus_license",
+		a.customer_org_code AS "customer_org_code",
+		a.customer_taxcode AS "customer_taxcode",
+		a.customer_sucCode AS "customer_sucCode",
+		a.customer_taxrate AS "customer_taxrate",
+		a.customer_deposit_bank AS "customer_deposit_bank",
+		a.customer_account AS "customer_account",
+		a.customer_bank_address AS "customer_bank_address",
+		a.customer_president AS "customer_president",
+		a.customer_regfund AS "customer_regfund",
+		a.customer_address AS "customer_address",
+		a.customer_linkman AS "customer_linkman",
+		a.customer_phone AS "customer_phone",
+		a.customer_fax AS "customer_fax",
+		a.customer_email AS "customer_email",
+		a.customer_busdate_start AS "customer_busdate_start",
+		a.customer_busdate_end AS "customer_busdate_end",
+		a.customer_remark AS "customer_remark",
+		(SELECT dict_name FROM eam_dict WHERE dict_type_code='common' AND dict_value=a.customer_status) AS "customer_status",
+		a.create_by AS "createBy",
+		a.create_time AS "createDate",
+		a.update_by AS "updateBy",
+		a.update_time AS "updateDate",
+		a.isdelete AS "isDelete"
+	</sql>
+	<sql id="eamCustomerJoins">
+	</sql>
+
+	<select id="findById" resultType="java.util.Map">
+		SELECT
+		<include refid="eamCustomerForExportColumns"/>
+		FROM eam_customer a
+		<include refid="eamCustomerJoins"/>
+		WHERE a.id = #{id}
+	</select>
+
+
+	
+
+
+	<select id="findListByMap" resultType="java.util.Map">
+		SELECT
+		<choose>
+			<when test="export !=null and export != ''">
+				<include refid="eamCustomerForExportColumns"/>
+			</when>
+			<otherwise>
+				<include refid="eamCustomerColumns"/>
+			</otherwise>
+		</choose>
+		FROM eam_customer a
+		<include refid="eamCustomerJoins"/>
+
+		<where>
+			isdelete!=1
+			<if test="dept != null and dept != ''">
+				AND a.create_by IN
+				<if test="dbName == 'mssql'">(SELECT loginname FROM ioms_user WHERE dbo.find_in_set(userdeptno, #{dept})>0)</if>
+				<if test="dbName == 'mysql'">(SELECT loginname FROM ioms_user WHERE find_in_set(userdeptno, #{dept})>0)</if>
+			</if>
+
+			<if test="customer_code != null and customer_code != ''">
+				AND a.customer_code LIKE
+				<if test="dbName == 'oracle'">'%'||#{customer_code}||'%'</if>
+				<if test="dbName == 'mssql'">'%'+#{customer_code}+'%'</if>
+				<if test="dbName == 'mysql'">concat('%',#{customer_code},'%')</if>
+			</if>
+			<if test="customer_name != null and customer_name != ''">
+				AND a.customer_name LIKE
+				<if test="dbName == 'oracle'">'%'||#{customer_name}||'%'</if>
+				<if test="dbName == 'mssql'">'%'+#{customer_name}+'%'</if>
+				<if test="dbName == 'mysql'">concat('%',#{customer_name},'%')</if>
+			</if>
+			<if test="customer_level != null and customer_level != ''">
+				AND a.customer_level = #{customer_level}
+			</if>
+			<if test="customer_status != null and customer_status != ''">
+				AND a.customer_status = #{customer_status}
+			</if>
+			<if test="customer_credit != null and customer_credit != ''">
+				AND a.customer_credit = #{customer_credit}
+			</if>
+			<if test="ids != null and ids != ''">
+				AND a.id in
+				<foreach item="ids" index="index" collection="ids" open="(" separator="," close=")">
+					#{ids}
+				</foreach>
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				order by a.create_time
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="com.tiansu.eam.modules.employee.entity.EamCustomer">
+		SELECT 
+			<include refid="eamCustomerForExportColumns"/>
+		FROM eam_customer a
+		<include refid="eamCustomerJoins"/>
+		<where>
+			1=1
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				 order by a.create_time
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO eam_customer(
+			customer_code,
+			customer_name,
+			customer_level,
+			customer_credit,
+			customer_bus_license,
+			customer_org_code,
+			customer_taxcode,
+			customer_sucCode,
+			customer_taxrate,
+			customer_deposit_bank,
+			customer_account,
+			customer_bank_address,
+			customer_president,
+			customer_regfund,
+			customer_address,
+			customer_linkman,
+			customer_phone,
+			customer_fax,
+			customer_email,
+			customer_busdate_start,
+			customer_busdate_end,
+			customer_remark,
+			customer_status,
+			create_by,
+			create_time,
+			update_time,
+        	update_by,
+			isdelete
+		) VALUES (
+			#{customer_code},
+			#{customer_name},
+			#{customer_level},
+			#{customer_credit},
+			#{customer_bus_license},
+			#{customer_org_code},
+			#{customer_taxcode},
+			#{customer_sucCode},
+			#{customer_taxrate},
+			#{customer_deposit_bank},
+			#{customer_account},
+			#{customer_bank_address},
+			#{customer_president},
+			#{customer_regfund},
+			#{customer_address},
+			#{customer_linkman},
+			#{customer_phone},
+			#{customer_fax},
+			#{customer_email},
+			#{customer_busdate_start},
+			#{customer_busdate_end},
+			#{customer_remark},
+			#{customer_status},
+			#{createBy.loginname},
+			#{createDate},
+			#{updateDate},
+        	#{updateBy.loginname},
+			#{DEL_FLAG_NORMAL}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE eam_customer SET
+			customer_code=#{customer_code},
+			customer_name=#{customer_name},
+			customer_level=#{customer_level},
+			customer_credit=#{customer_credit},
+			customer_bus_license=#{customer_bus_license},
+			customer_org_code=#{customer_org_code},
+			customer_taxcode=#{customer_taxcode},
+			customer_sucCode=#{customer_sucCode},
+			customer_taxrate=#{customer_taxrate},
+			customer_deposit_bank=#{customer_deposit_bank},
+			customer_account=#{customer_account},
+			customer_bank_address=#{customer_bank_address},
+			customer_president=#{customer_president},
+			customer_regfund=#{customer_regfund},
+			customer_address=#{customer_address},
+			customer_linkman=#{customer_linkman},
+			customer_phone=#{customer_phone},
+			customer_fax=#{customer_fax},
+			customer_email=#{customer_email},
+			customer_busdate_start=#{customer_busdate_start},
+			customer_busdate_end=#{customer_busdate_end},
+			customer_remark=#{customer_remark},
+			customer_status=#{customer_status},
+			update_by=#{updateBy.loginname},
+			update_time=#{updateDate}
+		WHERE id = #{id_key}
+	</update>
+
+
+
+	<update id="delete" parameterType="java.util.Map">
+		UPDATE eam_customer SET
+		isdelete = 1,
+		update_by=#{updateBy},
+		update_time=#{updateDate}
+		WHERE id IN
+		<foreach item="ids" index="index" collection="ids" open="(" separator="," close=")">
+			#{ids}
+		</foreach>
+	</update>
+	<insert id="insertBatch" >
+
+		INSERT INTO eam_customer(customer_code,customer_name,customer_level,customer_credit,customer_bus_license,customer_org_code,
+		customer_taxcode,customer_sucCode,customer_taxrate,customer_deposit_bank,customer_account,customer_bank_address,customer_president,
+		customer_regfund,customer_address,customer_linkman,customer_phone,customer_fax,customer_email,customer_busdate_start,customer_busdate_end,
+		customer_remark,customer_status,create_by,create_time, update_time,update_by,isdelete)
+		VALUES
+		 <foreach collection="list" item="item" index="index" separator="," >
+			(#{item.customer_code},#{item.customer_name},#{item.customer_level},#{item.customer_credit},#{item.customer_bus_license},#{item.customer_org_code},
+			#{item.customer_taxcode},#{item.customer_sucCode},#{item.customer_taxrate},#{item.customer_deposit_bank},#{item.customer_account},#{item.customer_bank_address},
+			#{item.customer_president},#{item.customer_regfund},#{item.customer_address},#{item.customer_linkman},#{item.customer_phone},#{item.customer_fax},#{item.customer_email},
+			#{item.customer_busdate_start},#{item.customer_busdate_end},#{item.customer_remark},#{item.customer_status},#{item.createBy.loginname},#{item.createDate},
+			#{item.updateDate},#{item.updateBy.loginname},#{item.DEL_FLAG_NORMAL}
+			)
+		 </foreach>
+
+	</insert>
+
+
+</mapper>

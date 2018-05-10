@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tiansu.eam.modules.sys.dao.EamDictDao">
+    <sql id="fieldColumns">
+        id as "id_key",
+        dict_type_code,
+        dict_type_name,
+        dict_type_desc,
+        dict_value,
+        dict_name,
+        dict_desc,
+        dict_value id,
+        dict_name text
+    </sql>
+
+    <select id="getEdit" resultType="java.util.Map">
+        SELECT
+        <include refid="fieldColumns"/>
+        FROM eam_dict
+        where id = #{id_key}
+        order by dict_value
+    </select>
+
+    <select id="findListByMap" resultType="java.util.Map">
+        select
+          <include refid="fieldColumns" />
+        from eam_dict
+        where 1 = 1
+        <if test="dict_type_code != null and dict_type_code != ''" >
+            and dict_type_code like
+            <if test="dbName == 'oracle'">'%'||#{dict_type_code}||'%'</if>
+            <if test="dbName == 'mssql'">'%'+#{dict_type_code}+'%'</if>
+            <if test="dbName == 'mysql'">CONCAT('%', #{dict_type_code}, '%')</if>
+        </if>
+        <if test="dict_type_name != null and dict_type_name != ''" >
+            and dict_type_name like
+            <if test="dbName == 'oracle'">'%'||#{dict_type_name}||'%'</if>
+            <if test="dbName == 'mssql'">'%'+#{dict_type_name}+'%'</if>
+            <if test="dbName == 'mysql'">CONCAT('%', #{dict_type_name}, '%')</if>
+        </if>
+        order by dict_type_code,dict_value
+    </select>
+
+    <delete id="delete">
+        delete from eam_dict where id = #{id_key}
+    </delete>
+
+    <update id="update">
+        UPDATE eam_dict SET
+        dict_type_code = #{dict_type_code},
+        dict_type_name = #{dict_type_name},
+        dict_type_desc = #{dict_type_desc},
+        dict_value = #{dict_value},
+        dict_name = #{dict_name},
+        dict_desc = #{dict_desc}
+        WHERE id = #{id_key}
+    </update>
+
+    <insert id="insert">
+        INSERT INTO eam_dict(
+        id,
+        dict_type_code,
+        dict_type_name,
+        dict_type_desc,
+        dict_value,
+        dict_name,
+        dict_desc
+        ) VALUES (
+        #{id_key},
+        #{dict_type_code},
+        #{dict_type_name},
+        #{dict_type_desc},
+        #{dict_value},
+        #{dict_name},
+        #{dict_desc}
+        )
+    </insert>
+
+    <select id="getByCode" resultType="EamDict">
+        select
+          <include refid="fieldColumns" />
+        from eam_dict
+        where dict_type_code = #{typeCode}
+        order by dict_value
+    </select>
+
+</mapper>

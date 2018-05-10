@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.tiansu.eam.modules.sys.dao.SequenceDao">
+  <!--根据名称获取-->
+    <select id="getBySeqType" parameterType="java.lang.String" resultType="com.tiansu.eam.modules.sys.entity.Sequence">
+        SELECT id,seq_type,seq_const,seq_timestamp,serial_no,seq_length,seq_incre,seq_clean,seq_currenttime
+              FROM eam_sequence
+              where seq_type=#{seqtype}
+    </select>
+
+    <!--根据名称流水号从0开始,更新时间-->
+    <update id="updateBySeqType" parameterType="java.lang.String">
+      UPDATE eam_sequence SET
+          serial_no=0,
+          seq_currenttime=convert(date,getdate())
+        <!--<if test="dbName == 'mysql'">seq_currenttime=CURDATE()</if>-->
+          WHERE
+              seq_type=#{seqtype}
+    </update>
+    <!--根据名称仅更新流水号-->
+    <update id="updateNoBySeqType" parameterType="java.lang.String">
+      UPDATE eam_sequence SET
+        serial_no=convert(int,serial_no)+convert(int,seq_incre)
+        <!--<if test="dbName == 'mysql'">serial_no=CONVERT(serial_no,SIGNED)+CONVERT(seq_incre,SIGNED)</if>-->
+          WHERE
+              seq_type=#{seqtype}
+    </update>
+</mapper>

@@ -1,0 +1,46 @@
+.test1{
+	position: absolute;
+	top:0;
+	bottom:0;
+	left: 0;
+	right: 0;
+	background-color: red;
+}
+.skip{
+	position: absolute;
+	top:50%;
+	left: 50%;
+	-webkit-transform: translate(-50%,-50%);
+	transform: translate(-50%,-50%);
+}
+.releaseBody{
+	width: 600px;
+	margin-left: 15px;
+	color: #666;
+	font-size: 14px;
+}
+.releaseBody .slideDiv{
+	padding: 10px;
+	border:1px solid #cacaca;
+	background-color: #fff;
+}
+.releaseBody .contitle .contentb{
+	margin-bottom: 10px;
+}
+.releaseBody h1:before{
+	content: "///";
+	color: #9ddcff;
+	padding-right: 0.3em;
+}
+.releaseBody .toggle{
+	padding: 3px;
+	background: #e2e2e2;
+	border-radius: 3px;
+	display: none;
+}
+.releaseBody .spanLabel{
+	color: #fff;
+	border-radius: 5px;
+	font-size: 12px;
+	padding: 2px 4px;
+}

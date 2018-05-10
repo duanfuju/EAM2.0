@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:activiti="http://activiti.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="巡检管理">
+  <process id="inspectionRoute_approve" name="巡检路线审批" isExecutable="true">
+    <documentation>巡检路线审批</documentation>
+    <startEvent id="start" name="开始" activiti:formKey="modules/opestandard/inspectionRouteFormAdd"></startEvent>
+    <endEvent id="end" name="结束"></endEvent>
+    <userTask id="approve" name="审批" activiti:async="true" activiti:candidateUsers="tiger" activiti:formKey="inspection_route/standardLibraryApr.jsp">
+      <documentation>审批</documentation>
+      <extensionElements>
+        <activiti:taskListener event="complete" class="com.tiansu.eam.modules.inspection.service.ActInspectionRouteAfter">
+          <activiti:field name="approveReason">
+            <activiti:expression><![CDATA[${approveReason}]]></activiti:expression>
+          </activiti:field>
+          <activiti:field name="pIid">
+            <activiti:expression><![CDATA[${pIid}]]></activiti:expression>
+          </activiti:field>
+          <activiti:field name="deptLeaderApproved">
+            <activiti:expression><![CDATA[${deptLeaderApproved}]]></activiti:expression>
+          </activiti:field>
+        </activiti:taskListener>
+      </extensionElements>
+    </userTask>
+    <sequenceFlow id="sid-3F5D4843-1A1E-443C-A61E-FE665F162E70" sourceRef="start" targetRef="approve"></sequenceFlow>
+    <sequenceFlow id="sid-D76CD102-CCFB-4EEB-A737-90052C150399" sourceRef="approve" targetRef="end"></sequenceFlow>
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_inspectionRoute_approve">
+    <bpmndi:BPMNPlane bpmnElement="inspectionRoute_approve" id="BPMNPlane_inspectionRoute_approve">
+      <bpmndi:BPMNShape bpmnElement="start" id="BPMNShape_start">
+        <omgdc:Bounds height="30.0" width="30.0" x="150.00000000000003" y="165.00000000000003"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="end" id="BPMNShape_end">
+        <omgdc:Bounds height="28.0" width="28.0" x="720.0000000000001" y="166.00000000000006"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="approve" id="BPMNShape_approve">
+        <omgdc:Bounds height="79.99999999999997" width="99.99999999999994" x="405.00000000000006" y="140.00000000000009"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="sid-3F5D4843-1A1E-443C-A61E-FE665F162E70" id="BPMNEdge_sid-3F5D4843-1A1E-443C-A61E-FE665F162E70">
+        <omgdi:waypoint x="180.00000000000003" y="180.00000000000003"></omgdi:waypoint>
+        <omgdi:waypoint x="405.00000000000006" y="180.00000000000006"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-D76CD102-CCFB-4EEB-A737-90052C150399" id="BPMNEdge_sid-D76CD102-CCFB-4EEB-A737-90052C150399">
+        <omgdi:waypoint x="505.0" y="180.00000000000006"></omgdi:waypoint>
+        <omgdi:waypoint x="720.0000000000001" y="180.00000000000006"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

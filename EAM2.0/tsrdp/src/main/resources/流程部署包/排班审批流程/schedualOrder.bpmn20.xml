@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:activiti="http://activiti.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="排班管理">
+  <process id="schedualOrder" name="排班表审批" isExecutable="true">
+    <startEvent id="sid-DC386408-140D-46E9-B183-C572B093894F"></startEvent>
+    <userTask id="sid-E84C91EA-CDEF-495B-BD0F-381D1FB06E5F" name="排班表审批" activiti:candidateUsers="tiger" activiti:candidateGroups="sysadmin" activiti:formKey="schedualOrder.bpmn20/faultOrderApprove.jsp">
+      <extensionElements>
+        <activiti:taskListener event="complete" class="com.tiansu.eam.modules.schedual.service.SchedualOrderApproveAfter">
+          <activiti:field name="result">
+            <activiti:expression><![CDATA[${result}]]></activiti:expression>
+          </activiti:field>
+          <activiti:field name="remark">
+            <activiti:expression><![CDATA[${remark}]]></activiti:expression>
+          </activiti:field>
+        </activiti:taskListener>
+      </extensionElements>
+    </userTask>
+    <sequenceFlow id="sid-1C171FBA-1779-4701-88BE-148C35836B94" sourceRef="sid-DC386408-140D-46E9-B183-C572B093894F" targetRef="sid-E84C91EA-CDEF-495B-BD0F-381D1FB06E5F"></sequenceFlow>
+    <endEvent id="sid-67270F24-0D75-4AF5-9FBE-E7EF05D3AA74"></endEvent>
+    <sequenceFlow id="sid-456C07BB-4968-4857-A563-3B6FF738F104" sourceRef="sid-E84C91EA-CDEF-495B-BD0F-381D1FB06E5F" targetRef="sid-67270F24-0D75-4AF5-9FBE-E7EF05D3AA74"></sequenceFlow>
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_schedualOrder">
+    <bpmndi:BPMNPlane bpmnElement="schedualOrder" id="BPMNPlane_schedualOrder">
+      <bpmndi:BPMNShape bpmnElement="sid-DC386408-140D-46E9-B183-C572B093894F" id="BPMNShape_sid-DC386408-140D-46E9-B183-C572B093894F">
+        <omgdc:Bounds height="30.0" width="30.0" x="311.41249999999997" y="114.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="sid-E84C91EA-CDEF-495B-BD0F-381D1FB06E5F" id="BPMNShape_sid-E84C91EA-CDEF-495B-BD0F-381D1FB06E5F">
+        <omgdc:Bounds height="80.0" width="100.0" x="375.0" y="90.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="sid-67270F24-0D75-4AF5-9FBE-E7EF05D3AA74" id="BPMNShape_sid-67270F24-0D75-4AF5-9FBE-E7EF05D3AA74">
+        <omgdc:Bounds height="28.0" width="28.0" x="531.4124999999999" y="115.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="sid-1C171FBA-1779-4701-88BE-148C35836B94" id="BPMNEdge_sid-1C171FBA-1779-4701-88BE-148C35836B94">
+        <omgdi:waypoint x="341.411728414522" y="129.15214127972126"></omgdi:waypoint>
+        <omgdi:waypoint x="375.0" y="129.49283631292"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-456C07BB-4968-4857-A563-3B6FF738F104" id="BPMNEdge_sid-456C07BB-4968-4857-A563-3B6FF738F104">
+        <omgdi:waypoint x="475.0" y="129.58476071836395"></omgdi:waypoint>
+        <omgdi:waypoint x="531.4129827612791" y="129.11626298962915"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

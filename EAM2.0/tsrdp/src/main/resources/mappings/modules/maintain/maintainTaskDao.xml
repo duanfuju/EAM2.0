@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tiansu.eam.modules.maintain.dao.MaintainTaskDao">
+
+    <sql id="maintainTaskColumns">
+        a.id AS "id_key",
+        a.route_id,
+        b.route_code,
+        b.route_name,
+        b.route_object,
+        b.route_type,
+        h.dict_name as "type_name",
+        b.route_mode,
+        j.dict_name as "mode_name",
+        b.route_isstandard,
+        a.task_time_plan_begin,
+        a.task_time_plan_finish,
+        a.task_time_begin,
+        a.task_time_finish,
+        a.task_isoverdue,
+        a.task_totalhour_plan,
+        a.task_totalhour,
+        a.task_status,
+        f.dict_name as "status_name",
+        a.task_processor,
+        a.task_processor_plan,
+        a.create_by,
+        a.create_time,
+        a.update_by,
+        a.update_time
+    </sql>
+
+    <insert id="insert">
+        INSERT INTO eam_maintain_task(
+        id,
+        project_id,
+        task_code,
+        task_name,
+        task_type,
+        task_mode,
+        task_period,
+        task_time_plan,
+        isoverdue,
+        task_device,
+        task_status,
+        task_maintain_code,
+        task_maintain_content,
+        pstid
+        ) VALUES (
+        #{id},
+        #{project_id},
+        #{task_code},
+        #{task_name},
+        #{task_type},
+        #{task_mode},
+        #{task_period},
+        #{task_time_plan},
+        #{isoverdue},
+        #{task_device},
+        #{task_status},
+        #{task_maintain_code},
+        #{task_maintain_content},
+        #{pstid}
+        )
+    </insert>
+
+
+    <!--查询保养内容-->
+    <select id="findMaintainProject" parameterType="java.lang.String" resultType="java.util.Map">
+        SELECT
+            a.maintain_code as maintain_code,
+            a.maintain_content as maintain_content
+        FROM eam_maintain_project_inf_content a,eam_maintain_task b
+
+        WHERE a.project_id=b.project_id AND b.id = #{id}
+
+    </select>
+
+
+    <select id="getFeedBackDatas" parameterType="java.lang.String" resultType="java.util.Map">
+        SELECT
+        task_check_standard,
+        task_check_remark,
+        task_result,
+        task_appearance
+        FROM eam_maintain_task
+
+        WHERE id = #{id}
+
+    </select>
+
+    <update id="update" parameterType="com.tiansu.eam.modules.maintain.entity.MaintainTask">
+        UPDATE eam_maintain_task
+        <trim prefix="set" suffixOverrides=",">
+            <if test="task_time_begin != null ">task_time_begin = #{task_time_begin},</if>
+            <if test="task_time_finish != null ">task_time_finish = #{task_time_finish},</if>
+            <if test="task_status != null ">task_status = #{task_status},</if>
+            <if test="task_act_processor != null ">task_act_processor = #{task_act_processor},</if>
+            <if test="task_act_processor_plan != null ">task_act_processor_plan = #{task_act_processor_plan},</if>
+            <if test="task_maintain_code != null ">task_maintain_code = #{task_maintain_code},</if>
+            <if test="task_maintain_content != null ">task_maintain_content = #{task_maintain_content},</if>
+            <if test="task_maintain_remark != null ">task_maintain_remark = #{task_maintain_remark},</if>
+            <if test="task_fk_flag != null ">task_fk_flag = #{task_fk_flag},</if>
+            <if test="task_result != null ">task_result = #{task_result},</if>
+            <if test="task_appearance != null ">task_appearance = #{task_appearance},</if>
+            <if test="task_fk_photo != null ">task_fk_photo = #{task_fk_photo},</if>
+            <if test="task_fk_video != null ">task_fk_video = #{task_fk_video},</if>
+        </trim>
+        WHERE id = #{id}
+    </update>
+
+
+    <!--保养实际消耗-->
+    <insert id="insertActualTool">
+        INSERT INTO eam_maintain_task_tool_fk
+        (id,task_id,tool_id,tool_num,tool_remark)
+        VALUES
+        <foreach collection="list" item="item" index="index" separator="," >
+            (#{item.id},#{item.task_id},#{item.tool_id},#{item.tool_num},#{item.tool_remark})
+        </foreach>
+    </insert>
+
+    <insert id="insertActualSparepart">
+        INSERT INTO eam_maintain_task_spareparts_fk
+        (id,task_id,attachment_id,attachment_num,attachment_remark)
+        VALUES
+        <foreach collection="list" item="item" index="index" separator="," >
+            (#{item.id},#{item.task_id},#{item.attachment_id},#{item.attachment_num},#{item.attachment_remark})
+        </foreach>
+    </insert>
+
+    <insert id="insertActualPerson">
+        INSERT INTO eam_maintain_task_manhaur_fk
+        (id,task_id,emp_id,emp_hour,emp_price,emp_remark)
+        VALUES
+        <foreach collection="list" item="item" index="index" separator="," >
+            (#{item.id},#{item.task_id},#{item.emp_id},#{item.emp_hour},#{item.emp_price},#{item.emp_remark})
+        </foreach>
+    </insert>
+
+    <insert id="insertActualOther">
+        INSERT INTO eam_maintain_task_othercharges_fk
+        (id,task_id,charge_name,charge_price,charge_remark)
+        VALUES
+        <foreach collection="list" item="item" index="index" separator="," >
+            (#{item.id},#{item.task_id},#{item.charge_name},#{item.charge_price},#{item.charge_remark})
+        </foreach>
+    </insert>
+
+    <select id="getInspectionIdByPIid" parameterType="java.lang.String" resultType="java.lang.String">
+        SELECT
+        id
+        FROM eam_maintain_task
+        WHERE pstid = #{piid}
+
+    </select>
+
+    <select id="getMaintainTaskByPiid" parameterType="java.lang.String" resultType="java.util.Map">
+        SELECT
+        id,
+        project_id,
+        task_act_processor,
+        task_act_processor_plan,
+        task_time_plan
+        FROM eam_maintain_task
+        WHERE pstid = #{piid}
+
+    </select>
+
+
+
+    <update id="updateMaintainTaskByPiid" parameterType="java.util.Map">
+        UPDATE eam_maintain_task
+        <trim prefix="set" suffixOverrides=",">
+            <if test="task_status != null ">task_status = #{task_status},</if>
+            <if test="task_act_processor != null ">task_act_processor = #{task_act_processor},</if>
+            <if test="task_act_processor_plan != null ">task_act_processor_plan = #{task_act_processor_plan},</if>
+
+        </trim>
+        WHERE pstid = #{pstid}
+    </update>
+
+    <!--根据流程实例id查询当前保养任务中所有设备专业的并集-->
+    <select id="getTaskMajorByPiid" parameterType="java.lang.String" resultType="java.util.List">
+        SELECT DISTINCT dev_major FROM eam_device where id IN
+            (SELECT dev_id FROM eam_maintaintask_device WHERE task_id=
+                    (SELECT id FROM eam_maintain_task WHERE pstid = #{piid})
+            )
+
+    </select>
+
+    <!--根据日期查询当日值班人-->
+    <select id="getScheduleByTaskDate" parameterType="java.lang.String" resultType="java.util.Map">
+        SELECT
+            a.schedual_emp AS schedual_emp,
+            b.major as emp_major
+            FROM
+            eam_schedual a,eam_user_ext b
+            WHERE
+            a.schedual_emp=b.loginname
+            AND
+            a.isdelete=0
+            AND
+            a.schedule_date = #{dateStr}
+    </select>
+
+    <!--根据保养月计划project_id查询保养责任人-->
+    <select id="getProcessorByDuty" parameterType="java.lang.String" resultType="java.lang.String">
+        SELECT project_empid FROM eam_maintain_project_sub WHERE id=#{project_id}
+    </select>
+
+    <!--更新计划接单人-->
+    <update id="updateMaintainTaskProcessorPlan" parameterType="java.util.Map">
+        UPDATE eam_maintain_task
+        <trim prefix="set" suffixOverrides=",">
+            <if test="processor_plan != null ">task_act_processor_plan = #{processor_plan},</if>
+
+        </trim>
+        WHERE pstid = #{pstid}
+    </update>
+
+    <!--Insert任务表,参数list-->
+    <insert id="insertTask">
+        INSERT INTO eam_maintain_task
+        (id,project_id,task_code,task_name,task_type,task_mode,task_period,project_cycle,task_time_plan,isoverdue,task_device,task_status,task_act_processor_plan,pstid)
+        VALUES
+        <foreach collection="list" item="item" index="index" separator="," >
+            (#{item.id},#{item.project_id},#{item.task_code},#{item.task_name},#{item.task_type},#{item.task_mode},#{item.task_period},
+            #{item.project_cycle},#{item.task_time_plan},#{item.isoverdue},#{item.task_device},#{item.task_status},#{item.task_act_processor_plan},#{item.pstid})
+        </foreach>
+    </insert>
+
+
+
+
+</mapper>

@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tiansu.eam.modules.inspection.dao.InspectionAreaDao">
+    
+	<sql id="InspectionAreaColumns">
+		id as 'id_key',
+		area_code,
+		area_name,
+		area_remark,
+		area_qrcode_status,
+		area_status,
+		area_device_ids,
+		area_device_names,
+		area_device_location_ids,
+		area_device_location_names,
+		area_subject_ids,
+		area_subject_names,
+		(select count(1) from eam_route_area where area_id=a.id) incidence_number
+
+	</sql>
+	
+
+	<select id="findById" resultType="java.util.Map">
+		SELECT
+			<include refid="InspectionAreaColumns"/>
+		FROM eam_inspection_area a
+		WHERE a.id =  #{id}
+	</select>
+
+	<select id="findListByMap" resultType="java.util.Map" parameterType="java.util.Map">
+		SELECT
+		<include refid="InspectionAreaColumns"/>
+		FROM eam_inspection_area a
+		<where>
+			a.isdelete=0
+			<if test="dept != null and dept != ''">
+				AND a.create_by IN
+				<if test="dbName == 'mssql'">(SELECT loginname FROM ioms_user WHERE dbo.find_in_set(userdeptno, #{dept})>0)</if>
+				<if test="dbName == 'mysql'">(SELECT loginname FROM ioms_user WHERE find_in_set(userdeptno, #{dept})>0)</if>
+			</if>
+			<if test="dev_id != null and dev_id != ''">
+				AND
+				a.dev_id LIKE
+				<if test="dbName == 'oracle'">'%'||#{dev_id}||'%'</if>
+				<if test="dbName == 'mssql'">'%'+#{dev_id}+'%'</if>
+				<if test="dbName == 'mysql'">concat('%',#{dev_id},'%')</if>
+
+			</if>
+			<if test="area_code != null and area_code != ''">
+				AND
+				a.area_code LIKE
+				<if test="dbName == 'oracle'">'%'||#{area_code}||'%'</if>
+				<if test="dbName == 'mssql'">'%'+#{area_code}+'%'</if>
+				<if test="dbName == 'mysql'">concat('%',#{area_code},'%')</if>
+			</if>
+			<if test="area_name != null and area_name != ''">
+				AND
+				a.area_name LIKE
+				<if test="dbName == 'oracle'">'%'||#{area_name}||'%'</if>
+				<if test="dbName == 'mssql'">'%'+#{area_name}+'%'</if>
+				<if test="dbName == 'mysql'">concat('%',#{area_name},'%')</if>
+			</if>
+			<if test="area_status != null and area_status != ''">
+				AND
+				a.area_status LIKE
+				<if test="dbName == 'oracle'">'%'||#{area_status}||'%'</if>
+				<if test="dbName == 'mssql'">'%'+#{area_status}+'%'</if>
+				<if test="dbName == 'mysql'">concat('%',#{area_status},'%')</if>
+			</if>
+			<if test="area_qrcode_status != null and area_qrcode_status != ''">
+				AND
+				a.area_qrcode_status LIKE
+				<if test="dbName == 'oracle'">'%'||#{area_qrcode_status}||'%'</if>
+				<if test="dbName == 'mssql'">'%'+#{area_qrcode_status}+'%'</if>
+				<if test="dbName == 'mysql'">concat('%',#{area_qrcode_status},'%')</if>
+			</if>
+
+
+
+			<if test="ids != null and ids != ''">
+				AND a.id in
+				<foreach item="ids" index="index" collection="ids" open="(" separator="," close=")">
+					#{ids}
+				</foreach>
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				order by a.create_time
+			</otherwise>
+		</choose>
+	</select>
+
+	
+	<insert id="insert">
+		INSERT INTO eam_inspection_area(
+			id,
+			area_code,
+			area_name,
+			area_remark,
+			area_qrcode_status,
+			area_status,
+			create_by,
+			create_time,
+			update_by,
+			update_time,
+			isdelete,
+			area_device_ids,
+			area_device_names,
+			area_device_location_ids,
+			area_device_location_names,
+			area_subject_ids,
+			area_subject_names
+		) VALUES (
+			#{id},
+			#{area_code},
+			#{area_name},
+			#{area_remark},
+			#{area_qrcode_status},
+			#{area_status},
+			#{createBy.loginname},
+			#{createDate},
+			#{updateBy.loginname},
+			#{updateDate},
+			#{DEL_FLAG_NORMAL},
+			#{area_device_ids},
+			#{area_device_names},
+			#{area_device_location_ids},
+			#{area_device_location_names},
+			#{area_subject_ids},
+			#{area_subject_names}
+		)
+	</insert>
+
+	<update id="update">
+		UPDATE eam_inspection_area SET
+			area_code=#{area_code},
+			area_name=#{area_name},
+			area_remark=#{area_remark},
+			area_qrcode_status=#{area_qrcode_status},
+			area_status=#{area_status},
+			update_by= #{updateBy.loginname},
+			update_time= #{updateDate},
+			area_device_ids=#{area_device_ids},
+			area_device_names=#{area_device_names},
+			area_device_location_ids=#{area_device_location_ids},
+			area_device_location_names=#{area_device_location_names},
+			area_subject_ids=#{area_subject_ids},
+			area_subject_names=#{area_subject_names}
+		WHERE id = #{id_key}
+	</update>
+
+	<update id="delete" parameterType="java.util.Map">
+		UPDATE eam_inspection_area SET
+		isdelete = 1,
+		update_by=#{updateBy},
+		update_time=#{updateDate}
+		WHERE id IN
+		<foreach item="ids" index="index" collection="ids" open="(" separator="," close=")">
+			#{ids}
+		</foreach>
+	</update>
+
+	<insert id="insertBatch" >
+		INSERT INTO eam_inspection_area(
+				id,area_code,area_name,area_remark,area_qrcode_status,area_status,create_by,create_time,update_by,update_time,
+				isdelete,area_device_ids,area_device_names,area_device_location_ids,area_device_location_names,area_subject_ids,area_subject_names
+		)VALUES
+		<foreach collection="list" item="item" index="index" separator="," >
+			(
+				#{item.id},#{item.area_code},#{item.area_name},#{item.area_remark},#{item.area_qrcode_status},#{item.area_status},
+				#{item.createBy.loginname},#{item.createDate},#{item.updateBy.loginname},#{item.updateDate},#{item.DEL_FLAG_NORMAL},
+				#{item.area_device_ids},#{item.area_device_names},#{item.area_device_location_ids},#{item.area_device_location_name},
+				#{item.area_subject_ids},#{item.area_subject_names}
+			  )
+		</foreach>
+	</insert>
+
+	<insert id="insertBatchAreaAndSubject" >
+		INSERT INTO eam_area_subject(
+			id,area_id,subject_id
+		)VALUES
+		<foreach collection="list" item="item" index="index" separator="," >
+			(
+				#{item.id},#{item.area_id},#{item.subject_id}
+			)
+		</foreach>
+	</insert>
+	<delete id="deteleBatchAreaAndSubjectByAreaId" >
+		delete from eam_area_subject
+		WHERE area_id 		IN
+		<foreach item="ids" index="index" collection="ids" open="(" separator="," close=")">
+			#{ids}
+		</foreach>
+	</delete>
+</mapper>

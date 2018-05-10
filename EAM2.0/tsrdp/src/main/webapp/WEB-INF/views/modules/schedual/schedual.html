@@ -1,0 +1,87 @@
+
+<section class="content">
+    <div class="row">
+
+        <div class="schedule-col-left">
+            <div class="box box-solid">
+
+
+                <form>
+                    <div class="scheduleSetting liger-form">
+                        <ul>
+                            <li>
+                                <input id="schedualOrderId" type="hidden"/>
+                                <div class="schedulename"><span style="color:Red">*</span> 排班周期</div>
+                                <div class="scheduleinput">
+                                    <input id="schedualPeriod" value="1" type="text">
+                                    <span>天</span>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="schedulename"><span style="color:Red">*</span> 截止日期</div>
+                                <div class="scheduleinput">
+                                    <input id="schedualEnd" type="text">
+                                </div>
+                            </li>
+                            <li>
+                                <div class="schedulename"><span style="color:Red">*</span> 排班类型</div>
+                                <div class="scheduleinput">
+                                    <input type="text" id="schedualType" name="schedualType">
+                                </div>
+                            </li>
+                            <li class="schedulenameli">
+                                <div class="schedulename">人员选择</div>
+                                <div class="schedulechoose">
+                                    <input type="radio" name="radio" id="org" value="1" checked/>按组织
+                                    <!--<input type="radio" name="radio" id="role" value="2" />按角色-->
+                                    <input type="button" id="choseEmps" value="选择" class="queryBtn"/>
+                                </div>
+                            </li>
+                            <li></li>
+                        </ul>
+                    </div>
+                    <div class="box-body">
+                        <h4 class="box-title">人员列表</h4>
+                        <!-- the events -->
+                        <div id="external-events">
+                        <!--<div id="external-events" style="height:475px;overflow-y:auto">-->
+                           <!-- <div class="external-event bg-green">宋雪艳</div>
+                            <div class="external-event bg-yellow">张永</div>
+                            <div class="external-event bg-aqua">曹昊</div>
+                            <div class="external-event bg-light-blue">李久伟</div>
+                            <div class="external-event bg-red">王金龙</div>
+                            <div class="external-event bg-purple">吴俊慧</div>
+                            <div class="external-event bg-teal">张文武</div>
+                            <div class="external-event bg-lime">段福举</div>
+                            <div class="external-event bg-fuchsia">祁也</div>-->
+                            <!--<div class="external-event bg-navy">Daenerys </div>-->
+                        </div>
+                    </div>
+                    <!-- /.box-body -->
+
+                </form>
+
+
+
+
+            </div>
+
+
+
+            <!-- /. box -->
+        </div>
+        <!-- /.col -->
+        <div class="schedule-col-right">
+            <div class="box box-primary">
+                <div class="box-body no-padding">
+                    <!-- THE CALENDAR -->
+                    <div id="calendar"></div>
+                </div>
+                <!-- /.box-body -->
+            </div>
+            <!-- /. box -->
+        </div>
+        <!-- /.col -->
+    </div>
+    <!-- /.row -->
+</section>

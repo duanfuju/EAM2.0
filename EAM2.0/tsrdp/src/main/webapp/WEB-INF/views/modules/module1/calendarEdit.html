@@ -1,0 +1,139 @@
+<head>
+    <link rel="stylesheet" type="text/css" href="/resource/plugins/jQuery-Timepicker-Addon/jquery-ui-timepicker-addon.css">
+    <script type="text/javascript" src="/resource/plugins/jQuery/jquery-2.2.3.min.js"></script>
+    <script src="/resource/plugins/jQueryUI/jquery-ui.js"></script>
+    <script src="/resource/plugins/jQuery-Timepicker-Addon/jquery-ui-timepicker-addon.js"
+            type="text/javascript"></script>
+    <style>
+    .scheduleDetail{
+        margin: 12px 0;
+    }
+    .scheduleDetail ul{
+        list-style: none;
+        font-size: 14px;
+        color: #222222;
+        line-height: 26px;
+        padding: 0;
+        margin: 0 auto;
+        width: 300px;
+    }
+    .scheduleDetail .schedulename{
+        margin-right: 10px;
+        width: 80px;
+        text-align: right;
+        float: left;
+        clear: both;
+    }
+    .scheduleDetail .scheduleinput ,.scheduleDetail input{
+        width: 200px;
+        display: inline;
+    }
+    .scheduleDetail li{
+        margin-bottom: 20px;
+    }
+    .scheduleDetail li:last-child{
+        text-align: center;
+    }
+    .scheduleDetail li .btn{
+        height: 26px;
+        width: 70px;
+        border-radius: 4px;
+        background-color: #15c7bd;
+        color: #ffffff;
+        font-size: 14px;
+        border: none;
+        margin-left: 10px;
+    }
+    div#ui-datepicker-div {
+        font-size: 75%;
+    }
+</style>
+</head>
+<body>
+<div id="main">
+<section class="content module1">
+    <form>
+        <div class="scheduleDetail">
+            <ul>
+                <li>
+                    <div class="schedulename">人员名</div>
+                    <div id="name" class="scheduleinput">张三</div>
+                </li>
+                <li>
+                    <div class="schedulename">开始时间</div>
+                    <div class="scheduleinput">
+                        <input id="starttime" type="text">
+                    </div>
+                </li>
+                <li>
+                    <div class="schedulename">结束时间</div>
+                    <div class="scheduleinput">
+                        <input id="endtime" type="text">
+                    </div>
+                </li>
+                <li>
+                    <div class="schedulename">排班类型</div>
+                    <div class="scheduleinput">
+                        <input type="text">
+                    </div>
+                </li>
+                <li class="btnGroup">
+                    <input class="btn Del" type="button" value="删除">
+                    <input class="btn Cfm" type="button" value="确定">
+                    <input class="btn Cancel" type="button" value="取消">
+                </li>
+            </ul>
+        </div>
+    </form>
+</section>
+</div>
+</body>
+<script>
+//    debugger;
+    //获取父级页面数据
+    $('#name').text(parent.pevent.title);
+    //加载时间控件
+    $('#starttime').datetimepicker();
+    $('#endtime').datetimepicker();
+    $('#starttime').datetimepicker('setDate',parent.pevent.start._d);
+    if(parent.pevent.end){
+        var end=parent.pevent.end._d;
+    }else{
+        var end=parent.pevent.start._d;
+    }
+    $('#endtime').datetimepicker('setDate',end);
+    //确定事件
+    $('.Cfm').click(function(){
+//        parent.pevent.title=$('#name').text();
+//        parent.pevent.start=$('#starttime').datetimepicker('getDate');
+//        parent.pevent.end=$('#endtime').datetimepicker('getDate');
+//        parent.$('#calendar').fullCalendar('updateEvent',parent.pevent);
+        var copiedEventObject = {};
+        copiedEventObject.id=parent.pevent.id;
+        copiedEventObject.title=$('#name').text();
+        copiedEventObject.start=$('#starttime').datetimepicker('getDate');
+        copiedEventObject.end=$('#endtime').datetimepicker('getDate');
+        copiedEventObject.backgroundColor=parent.pevent.backgroundColor;
+        copiedEventObject.borderColor=parent.pevent.borderColor;
+        parent.$('#calendar').fullCalendar( 'removeEvents', parent.pevent.id );
+        parent.$('#calendar').fullCalendar('renderEvent', copiedEventObject, true);
+        parent.layer.closeAll('iframe');
+    })
+    //删除事件
+     $('.Del').click(function(){
+         parent.$('#calendar').fullCalendar( 'removeEvents', parent.pevent.id );
+         parent.layer.closeAll('iframe');
+     })
+    //取消事件
+    $('.Cancel').click(function(){
+        //parent.layer.closeAll('iframe');
+        parent.layer.open({
+            type: 2,
+            title: 'linkage',
+            skin: 'layui-layer-rim', //加上边框
+            area: ['500px', '400px'], //宽高
+            closeBtn: 1, //显示关闭按钮
+            content: "/resource/modules/module1/linkage.html"
+        });
+    })
+</script>
